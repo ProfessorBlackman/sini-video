@@ -1,0 +1,21 @@
+{
+  "name": "sini-monorepo",
+  "private": true,
+  "license": "Apache-2.0",
+  "type": "module",
+  "packageManager": "pnpm@10.30.3",
+  "engines": {
+    "node": "^22.12.0 || >=24"
+  },
+  "scripts": {
+    "build": "pnpm -r run build",
+    "typecheck": "pnpm -r run typecheck",
+    "test": "vitest run",
+    "clean": "pnpm -r exec rm -rf dist"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.3"
+  }
+}

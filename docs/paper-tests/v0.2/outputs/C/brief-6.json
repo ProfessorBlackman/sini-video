@@ -1,0 +1,155 @@
+{
+  "version": "0.2",
+  "video": { "format": "4:5", "fps": 30, "background": "ink", "seed": 6 },
+  "theme": {
+    "palette": {
+      "ink": "#1C1A17",
+      "cream": "#F4EFE6",
+      "brass": "#B88A4A",
+      "stone": "#8A8178",
+      "sage": "#7C8A72"
+    },
+    "fonts": { "display": "DM Serif Display", "body": "Manrope" },
+    "motion": "editorial",
+    "transition": { "type": "wipe", "angle": 12, "bar": "brass", "barWidth": 30, "duration": 0.5 },
+    "texture": { "grain": 0.04, "vignette": 0.15 }
+  },
+  "assets": {
+    "living":  { "type": "image", "src": "assets/living.jpg",  "fallback": { "type": "placeholder", "hint": "bright living room, East Legon apartment", "color": "stone" } },
+    "kitchen": { "type": "image", "src": "assets/kitchen.jpg", "fallback": { "type": "placeholder", "hint": "fitted kitchen", "color": "sage" } },
+    "bedroom": { "type": "image", "src": "assets/bedroom.jpg", "fallback": { "type": "placeholder", "hint": "main bedroom", "color": "brass" } }
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "duration": 3.0,
+      "background": { "asset": "living", "fit": "cover", "overlay": { "linear": ["ink/0.35", "ink/0", "ink/0.8"], "angle": 180 } },
+      "elements": [
+        { "id": "for-rent", "type": "button", "variant": "solid", "label": "For rent",
+          "style": { "fill": "brass", "color": "cream" },
+          "layout": { "anchor": "top-left", "inset": [88, 72] },
+          "enter": { "preset": "fadeIn", "at": 0.2, "duration": 0.5 } },
+        { "id": "intro-loc", "type": "text", "role": "label",
+          "content": "East Legon · Accra",
+          "style": { "color": "cream/0.85" },
+          "layout": { "anchor": "bottom-left", "inset": [104, 72] },
+          "enter": { "preset": "fadeUp", "at": "intro-title.enter.end-0.3", "distance": 20 } },
+        { "id": "intro-title", "type": "text", "role": "title",
+          "content": "3-Bedroom\n*Apartment*",
+          "style": { "color": "cream" },
+          "layout": { "above": "intro-loc", "gap": 28 },
+          "enter": { "preset": "wordReveal", "at": 0.35, "stagger": 0.1 } }
+      ],
+      "timeline": [
+        { "target": "background", "preset": "kenBurns", "zoom": 1.1, "pan": [-30, 0], "at": 0 }
+      ]
+    },
+    {
+      "id": "kitchen",
+      "duration": 2.5,
+      "background": { "asset": "kitchen", "fit": "cover", "overlay": { "linear": ["ink/0", "ink/0.75"], "angle": 180 } },
+      "elements": [
+        { "id": "kitchen-kicker", "type": "text", "role": "label",
+          "content": "01 — Kitchen",
+          "style": { "color": "brass" },
+          "layout": { "anchor": "bottom-left", "inset": [228, 72] },
+          "enter": { "preset": "fadeIn", "at": 0.25, "duration": 0.5 } },
+        { "id": "kitchen-title", "type": "text", "role": "subtitle",
+          "content": "Fully *fitted* kitchen.",
+          "style": { "color": "cream" },
+          "layout": { "below": "kitchen-kicker", "gap": 20 },
+          "enter": { "preset": "wordReveal", "at": 0.35 } }
+      ],
+      "timeline": [
+        { "target": "background", "preset": "kenBurns", "zoom": 1.12, "pan": [30, -10], "at": 0 }
+      ]
+    },
+    {
+      "id": "bedroom",
+      "duration": 2.5,
+      "background": { "asset": "bedroom", "fit": "cover", "overlay": { "linear": ["ink/0", "ink/0.75"], "angle": 180 } },
+      "elements": [
+        { "id": "bedroom-kicker", "type": "text", "role": "label",
+          "content": "02 — Bedrooms",
+          "style": { "color": "brass" },
+          "layout": { "anchor": "bottom-left", "inset": [228, 72] },
+          "enter": { "preset": "fadeIn", "at": 0.25, "duration": 0.5 } },
+        { "id": "bedroom-title", "type": "text", "role": "subtitle",
+          "content": "Three *spacious* bedrooms.",
+          "style": { "color": "cream" },
+          "layout": { "below": "bedroom-kicker", "gap": 20 },
+          "enter": { "preset": "wordReveal", "at": 0.35 } }
+      ],
+      "timeline": [
+        { "target": "background", "preset": "kenBurns", "zoom": 1.1, "pan": [0, -30], "at": 0 }
+      ]
+    },
+    {
+      "id": "price",
+      "duration": 4.0,
+      "background": "cream",
+      "transition": { "type": "slide", "direction": "up", "push": true, "duration": 0.55, "ease": "expo.inOut" },
+      "elements": [
+        { "id": "thumbs", "type": "grid", "columns": 3, "gap": 16,
+          "layout": { "anchor": "top", "inset": [96, 0], "width": 936 },
+          "children": [
+            { "id": "thumb-living",  "type": "image", "asset": "living",  "fit": "cover", "layout": { "aspect": "9:16" }, "style": { "radius": 14 } },
+            { "id": "thumb-kitchen", "type": "image", "asset": "kitchen", "fit": "cover", "layout": { "aspect": "9:16" }, "style": { "radius": 14 } },
+            { "id": "thumb-bedroom", "type": "image", "asset": "bedroom", "fit": "cover", "layout": { "aspect": "9:16" }, "style": { "radius": 14 } }
+          ] },
+        { "id": "chips", "type": "stack", "direction": "horizontal", "gap": 14, "align": "center",
+          "layout": { "anchor": "bottom-left", "inset": [96, 72] },
+          "children": [
+            { "id": "chip-beds",    "type": "button", "variant": "outline", "label": "3 bedrooms",       "style": { "color": "ink", "stroke": "ink/0.35" } },
+            { "id": "chip-kitchen", "type": "button", "variant": "outline", "label": "Fitted kitchen",   "style": { "color": "ink", "stroke": "ink/0.35" } },
+            { "id": "chip-living",  "type": "button", "variant": "outline", "label": "Open-plan living", "style": { "color": "ink", "stroke": "ink/0.35" } }
+          ] },
+        { "id": "price-row", "type": "stack", "direction": "horizontal", "gap": 14, "align": "end",
+          "layout": { "above": "chips", "gap": 44 },
+          "children": [
+            { "id": "price-cur",   "type": "text", "role": "subtitle", "content": "GH₵", "style": { "color": "brass" } },
+            { "id": "price-num",   "type": "text", "role": "display",  "content": "4,500", "style": { "color": "ink" } },
+            { "id": "price-month", "type": "text", "role": "body",     "content": "/month", "style": { "color": "stone" } }
+          ] },
+        { "id": "price-kicker", "type": "text", "role": "label",
+          "content": "Monthly rent",
+          "style": { "color": "stone" },
+          "layout": { "above": "price-row", "gap": 18 } }
+      ],
+      "timeline": [
+        { "target": ["thumb-living", "thumb-kitchen", "thumb-bedroom"], "preset": "fadeUp", "distance": 40, "stagger": 0.1, "at": 0.15, "duration": 0.7 },
+        { "target": "price-kicker", "preset": "fadeIn", "at": 0.5, "duration": 0.4 },
+        { "id": "count", "target": "price-num", "preset": "countUp", "from": 0, "at": 0.6, "duration": 1.2, "ease": "expo.out" },
+        { "target": ["price-cur", "price-month"], "preset": "fadeIn", "at": 0.6, "duration": 0.5 },
+        { "target": ["chip-beds", "chip-kitchen", "chip-living"], "preset": "fadeUp", "distance": 20, "stagger": 0.1, "at": "count.end-0.4", "duration": 0.6 },
+        { "target": "price-num", "at": "count.end", "duration": 0.5, "ease": "back.out", "animate": { "scale": [1, 1.05, 1] } }
+      ]
+    },
+    {
+      "id": "cta",
+      "duration": 3.0,
+      "transition": { "type": "circle", "origin": "center", "duration": 0.6 },
+      "background": { "asset": "living", "fit": "cover", "overlay": "ink/0.72" },
+      "elements": [
+        { "id": "cta-title", "type": "text", "role": "title",
+          "content": "Make it\n*home.*",
+          "style": { "color": "cream", "align": "center" },
+          "layout": { "anchor": "center", "offset": [0, -150] },
+          "enter": { "preset": "wordReveal", "at": 0.3 } },
+        { "id": "cta-btn", "type": "button", "variant": "solid", "label": "Book a viewing",
+          "style": { "fill": "brass", "color": "cream", "shadow": "soft" },
+          "layout": { "below": "cta-title", "gap": 72, "align": "center" },
+          "enter": { "preset": "scaleIn", "at": "cta-title.enter.end-0.2", "from": 0.85 } },
+        { "id": "cta-sub", "type": "text", "role": "caption",
+          "content": "3-bed · East Legon · GH₵ 4,500/month",
+          "style": { "color": "cream/0.8", "align": "center" },
+          "layout": { "below": "cta-btn", "gap": 40, "align": "center" },
+          "enter": { "preset": "fadeIn", "at": "cta-btn.enter.end-0.2", "duration": 0.5 } }
+      ],
+      "timeline": [
+        { "target": "background", "preset": "kenBurns", "zoom": 1.06, "at": 0 },
+        { "target": "cta-btn", "preset": "pulse", "scale": 1.05, "every": 0.9, "at": "cta-btn.enter.end+0.1" }
+      ]
+    }
+  ]
+}

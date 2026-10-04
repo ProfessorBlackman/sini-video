@@ -1,0 +1,146 @@
+{
+  "version": "0.3",
+  "video": { "format": "1:1", "fps": 30, "background": "night", "safeZone": "none", "end": "hold" },
+  "theme": {
+    "palette": {
+      "night": "#0F1020",
+      "deep": "#1A1C38",
+      "paper": "#F4F1EA",
+      "gold": "#FCD116",
+      "red": "#D7263D",
+      "green": "#0A7A4B",
+      "mute": "#9AA0B4"
+    },
+    "fonts": { "display": "Space Grotesk", "body": "Inter Tight", "mono": "JetBrains Mono" },
+    "motion": "snappy",
+    "transition": { "type": "wipe", "from": "left", "angle": 12, "bar": "gold", "duration": 0.5 },
+    "texture": { "grain": 0.04, "vignette": 0.2 }
+  },
+  "assets": {
+    "photo-ama": { "type": "placeholder", "hint": "headshot of Ama Owusu", "color": "red" },
+    "photo-kwame": { "type": "placeholder", "hint": "headshot of Kwame Mensah", "color": "green" },
+    "photo-efua": { "type": "placeholder", "hint": "headshot of Efua Boateng", "color": "gold" },
+    "photo-yaw": { "type": "placeholder", "hint": "headshot of Yaw Asante", "color": "deep" }
+  },
+  "components": {
+    "speaker-card": {
+      "params": { "name": "", "photo": "", "title": "Speaker" },
+      "root": {
+        "id": "card", "type": "stack", "direction": "vertical", "align": "center", "gap": 16,
+        "style": { "fill": "paper/0.06", "stroke": "paper/0.12", "strokeWidth": 1, "radius": 28, "padding": [28, 24] },
+        "children": [
+          { "id": "photo", "type": "image", "asset": "{{photo}}", "fit": "cover",
+            "layout": { "width": 150, "height": 150 }, "style": { "radius": 75 } },
+          { "id": "name", "type": "text", "role": "body", "content": "{{name}}",
+            "style": { "color": "paper", "weight": 600, "align": "center" } },
+          { "id": "title", "type": "text", "role": "label", "content": "{{title}}", "style": { "color": "gold" } }
+        ]
+      }
+    },
+    "flag-bar": {
+      "params": {},
+      "root": {
+        "id": "bar", "type": "stack", "direction": "horizontal", "gap": 10,
+        "children": [
+          { "id": "s-red", "type": "shape", "shape": "pill", "layout": { "width": 64, "height": 10 }, "style": { "fill": "red" } },
+          { "id": "s-gold", "type": "shape", "shape": "pill", "layout": { "width": 64, "height": 10 }, "style": { "fill": "gold" } },
+          { "id": "s-green", "type": "shape", "shape": "pill", "layout": { "width": 64, "height": 10 }, "style": { "fill": "green" } }
+        ]
+      }
+    }
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "duration": 2.5,
+      "background": { "linear": ["night", "deep"], "angle": 160 },
+      "elements": [
+        { "id": "ring", "type": "shape", "shape": "circle",
+          "layout": { "anchor": "center", "width": 760, "height": 760, "offset": [320, -300] },
+          "style": { "fill": "night/0", "stroke": "gold/0.25", "strokeWidth": 2 },
+          "enter": { "preset": "drawOutline", "at": 0.1, "duration": 1.2, "ease": "cubic.inOut" } },
+        { "id": "intro-block", "type": "stack", "direction": "vertical", "align": "start", "gap": 28,
+          "layout": { "anchor": "left", "inset": [0, 96] },
+          "children": [
+            { "id": "intro-kicker", "type": "text", "role": "mono", "content": "> announcing",
+              "style": { "color": "gold" },
+              "enter": { "preset": "typewriter", "at": 0.2, "cps": 40, "caret": true } },
+            { "id": "intro-title", "type": "text", "role": "display", "content": "DevConf\nAccra",
+              "style": { "color": "paper", "letterSpacing": -0.03 },
+              "enter": { "preset": "charReveal", "at": 0.55, "duration": 0.4, "stagger": 0.03 } },
+            { "id": "intro-flag", "use": "flag-bar",
+              "enter": { "preset": "wipeIn", "from": "left", "at": 1.1, "duration": 0.45 } }
+          ] }
+      ],
+      "timeline": [
+        { "target": "ring", "preset": "drift", "x": -20, "y": 20, "scale": 1.04, "at": 0 }
+      ]
+    },
+    {
+      "id": "speakers",
+      "duration": 5.5,
+      "background": "night",
+      "elements": [
+        { "id": "sp-header", "type": "stack", "direction": "vertical", "gap": 10,
+          "layout": { "anchor": "top-left", "inset": [96, 72] },
+          "children": [
+            { "id": "sp-kicker", "type": "text", "role": "label", "content": "DevConf Accra · Speakers",
+              "style": { "color": "gold" },
+              "enter": { "preset": "fadeIn", "at": 0.25 } },
+            { "id": "sp-title", "type": "text", "role": "subtitle", "content": "Meet the *speakers.*",
+              "style": { "color": "paper" },
+              "enter": { "preset": "wordReveal", "at": 0.3 } }
+          ] },
+        { "id": "speaker-grid", "type": "grid", "columns": 2, "gap": 24,
+          "layout": { "below": "sp-header", "gap": 40, "align": "start", "width": 936 },
+          "children": [
+            { "id": "sp-ama", "use": "speaker-card", "with": { "name": "Ama Owusu", "photo": "photo-ama" } },
+            { "id": "sp-kwame", "use": "speaker-card", "with": { "name": "Kwame Mensah", "photo": "photo-kwame" } },
+            { "id": "sp-efua", "use": "speaker-card", "with": { "name": "Efua Boateng", "photo": "photo-efua" } },
+            { "id": "sp-yaw", "use": "speaker-card", "with": { "name": "Yaw Asante", "photo": "photo-yaw" } }
+          ] }
+      ],
+      "timeline": [
+        { "id": "cards-in", "target": ["sp-ama", "sp-kwame", "sp-efua", "sp-yaw"], "preset": "fadeUp",
+          "distance": 30, "at": 0.55, "duration": 0.45, "stagger": 0.08 },
+        { "id": "spotlight", "behavior": "focusCycle", "targets": ["sp-ama", "sp-kwame", "sp-efua", "sp-yaw"],
+          "at": "cards-in.end+0.15", "interval": 0.95, "dim": 0.3, "scale": 1.05 }
+      ]
+    },
+    {
+      "id": "tickets",
+      "duration": 4.0,
+      "background": "paper",
+      "elements": [
+        { "id": "tk-block", "type": "stack", "direction": "vertical", "align": "center", "gap": 28,
+          "layout": { "anchor": "center" },
+          "children": [
+            { "id": "tk-kicker", "type": "text", "role": "label", "content": "Save the date",
+              "style": { "color": "red" },
+              "enter": { "preset": "fadeUp", "at": 0.3, "distance": 20 } },
+            { "id": "tk-date", "type": "text", "role": "display", "content": "14–15\nMarch",
+              "style": { "color": "night", "align": "center", "letterSpacing": -0.03 },
+              "enter": { "preset": "wordReveal", "at": 0.45 } },
+            { "id": "tk-event", "type": "text", "role": "subtitle", "content": "DevConf *Accra*",
+              "style": { "color": "night/0.75", "align": "center" },
+              "enter": { "preset": "fadeUp", "at": 0.8 } },
+            { "id": "tk-flag", "use": "flag-bar",
+              "enter": { "preset": "wipeIn", "from": "left", "at": 1.0, "duration": 0.45 } },
+            { "id": "tk-cta", "type": "button", "variant": "solid", "label": "Get tickets",
+              "style": { "fill": "night", "color": "paper", "size": 40 },
+              "enter": { "preset": "popIn", "at": 1.3 } }
+          ] }
+      ],
+      "timeline": [
+        { "target": "tk-cta", "preset": "pulse", "ring": true, "every": 0.9, "at": "tk-cta.enter.end+0.3" }
+      ]
+    }
+  ],
+  "notes": [
+    "Invented copy: '> announcing', 'Meet the speakers.', 'DevConf Accra · Speakers', 'Save the date', and the generic 'Speaker' role under each name.",
+    "No year given for 14–15 March; none shown.",
+    "No ticket URL given; 'Get tickets' is shown without a link or URL. Add one if available.",
+    "Speaker photos are placeholders; replace with real headshots.",
+    "Colours (incl. a red/gold/green Ghana-flag motif) and fonts are assumptions; replace with DevConf brand if it exists."
+  ]
+}

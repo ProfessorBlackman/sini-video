@@ -1,0 +1,229 @@
+{
+  "version": "0.3",
+  "video": {
+    "format": "9:16",
+    "fps": 30,
+    "background": "#F5E6D3",
+    "targetDuration": 15,
+    "safeZone": "reels",
+    "end": "hold"
+  },
+  "theme": {
+    "palette": {
+      "warm-brown": "#8B6F47",
+      "cream": "#FFF5E6",
+      "rust": "#D4714F",
+      "gold": "#D4AF37",
+      "dark-brown": "#5C4033"
+    },
+    "fonts": {
+      "display": "Fraunces",
+      "body": "Inter Tight"
+    },
+    "motion": "playful",
+    "transition": {
+      "type": "wipe",
+      "from": "left",
+      "bar": "rust",
+      "duration": 0.5
+    },
+    "texture": {
+      "grain": 0.05,
+      "vignette": 0
+    }
+  },
+  "assets": {
+    "cinnamon-roll-hero": {
+      "type": "placeholder",
+      "hint": "fresh cinnamon rolls in baking tray, top view",
+      "color": "rust"
+    },
+    "box-product": {
+      "type": "placeholder",
+      "hint": "cinnamon roll box packaging, flat lay",
+      "color": "cream"
+    }
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "duration": "auto",
+      "background": "dark-brown",
+      "elements": [
+        {
+          "id": "bakery-name",
+          "type": "text",
+          "role": "display",
+          "content": "CRUMB & CO.",
+          "style": {
+            "color": "cream",
+            "weight": 700,
+            "align": "center"
+          },
+          "layout": {
+            "anchor": "center"
+          },
+          "enter": "charReveal"
+        },
+        {
+          "id": "intro-subtext",
+          "type": "text",
+          "role": "body",
+          "content": "Artisan Bakery",
+          "style": {
+            "color": "gold",
+            "align": "center",
+            "uppercase": true
+          },
+          "layout": {
+            "below": "bakery-name",
+            "gap": 24,
+            "align": "center"
+          }
+        }
+      ]
+    },
+    {
+      "id": "product-showcase",
+      "duration": "auto",
+      "background": "cream",
+      "transition": "theme",
+      "elements": [
+        {
+          "id": "product-image",
+          "type": "image",
+          "asset": "cinnamon-roll-hero",
+          "layout": {
+            "anchor": "top",
+            "inset": [120, 0],
+            "width": "85%",
+            "height": 600
+          },
+          "fit": "cover",
+          "enter": {
+            "preset": "fadeUp",
+            "distance": 40,
+            "duration": 0.8
+          }
+        },
+        {
+          "id": "product-name",
+          "type": "text",
+          "role": "title",
+          "content": "CINNAMON ROLL BOX",
+          "style": {
+            "color": "dark-brown",
+            "align": "center",
+            "weight": 700
+          },
+          "layout": {
+            "below": "product-image",
+            "gap": 48,
+            "align": "center",
+            "width": "90%"
+          }
+        },
+        {
+          "id": "product-description",
+          "type": "text",
+          "role": "body",
+          "content": "Freshly baked. Ready to share. Pure comfort.",
+          "style": {
+            "color": "rust",
+            "align": "center"
+          },
+          "layout": {
+            "below": "product-name",
+            "gap": 20,
+            "align": "center",
+            "width": "85%"
+          }
+        }
+      ]
+    },
+    {
+      "id": "call-to-action",
+      "duration": "auto",
+      "background": "rust",
+      "transition": "theme",
+      "elements": [
+        {
+          "id": "cta-headline",
+          "type": "text",
+          "role": "subtitle",
+          "content": "PRE-ORDER NOW",
+          "style": {
+            "color": "cream",
+            "align": "center",
+            "weight": 700
+          },
+          "layout": {
+            "anchor": "top",
+            "inset": [200, 0],
+            "width": "90%"
+          }
+        },
+        {
+          "id": "deadline-text",
+          "type": "text",
+          "role": "body",
+          "content": "Available this Friday",
+          "style": {
+            "color": "cream",
+            "align": "center"
+          },
+          "layout": {
+            "below": "cta-headline",
+            "gap": 32,
+            "align": "center"
+          }
+        },
+        {
+          "id": "cta-button",
+          "type": "button",
+          "label": "Order Box",
+          "variant": "solid",
+          "style": {
+            "fill": "cream",
+            "color": "rust"
+          },
+          "layout": {
+            "below": "deadline-text",
+            "gap": 60,
+            "align": "center"
+          }
+        },
+        {
+          "id": "footer-text",
+          "type": "text",
+          "role": "caption",
+          "content": "Link in bio • crumbandco.com",
+          "style": {
+            "color": "cream/0.7",
+            "align": "center",
+            "size": 20
+          },
+          "layout": {
+            "anchor": "bottom",
+            "inset": [80, 0],
+            "width": "90%"
+          }
+        }
+      ]
+    }
+  ],
+  "notes": [
+    "INVENTED: 'Artisan Bakery' subtext - brief only said 'Crumb & Co.' bakery",
+    "INVENTED: 'CINNAMON ROLL BOX' as product name - brief said 'cinnamon roll box' but no official name given",
+    "INVENTED: 'Freshly baked. Ready to share. Pure comfort.' as product description",
+    "INVENTED: 'PRE-ORDER NOW' and 'Available this Friday' as headline and deadline text",
+    "INVENTED: 'Order Box' button label - brief said 'pre-order by Friday' but no specific CTA text",
+    "INVENTED: 'crumbandco.com' as website - brief gave no URL",
+    "GUESSED: Used 'charReveal' for bakery name to match playful personality, but reference says default text enter for playful is 'bounceIn' - using charReveal as a variation that fits 'playful'",
+    "GUESSED: Color palette using warm browns and rusts to match 'warm and playful' brief",
+    "GUESSED: Three-scene structure (intro, product, CTA) to keep each scene 2-5 seconds as recommended",
+    "GUESSED: Fraunces display font chosen as it's warm and bakery-appropriate",
+    "MISSING: No actual product photography available - using placeholders only",
+    "HARD PARTS: Estimating text heights for 'auto' duration scenes; had to guess reasonable insets and gaps to avoid safe-zone issues"
+  ]
+}

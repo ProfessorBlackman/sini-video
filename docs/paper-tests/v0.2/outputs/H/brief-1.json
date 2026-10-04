@@ -1,0 +1,115 @@
+{
+  "version": "0.2",
+  "video": { "format": "9:16", "fps": 30, "background": "#2A1810" },
+  "theme": {
+    "palette": {
+      "cream": "#FDF4ED",
+      "cinnamon": "#A85A38",
+      "honey": "#D4A574",
+      "warm-bg": "#2A1810",
+      "accent": "#E8A76D"
+    },
+    "fonts": { "display": "Instrument Serif", "body": "Inter Tight" },
+    "motion": "playful",
+    "transition": { "type": "wipe", "angle": 45, "bar": "honey", "duration": 0.5 },
+    "texture": { "grain": 0.05 }
+  },
+  "assets": {
+    "roll": { "type": "placeholder", "hint": "golden cinnamon roll top-down view", "color": "cinnamon" },
+    "box": { "type": "placeholder", "hint": "Crumb & Co cinnamon roll weekend box", "color": "honey" }
+  },
+  "scenes": [
+    {
+      "id": "hero",
+      "duration": 3,
+      "background": "warm-bg",
+      "elements": [
+        {
+          "id": "headline",
+          "type": "text",
+          "role": "display",
+          "content": "Fresh from\nthe oven.",
+          "style": { "color": "cream", "align": "center" },
+          "layout": { "anchor": "center", "offset": [0, -200] },
+          "enter": "wordReveal"
+        }
+      ]
+    },
+    {
+      "id": "product",
+      "duration": 4,
+      "background": "warm-bg",
+      "elements": [
+        {
+          "id": "roll-img",
+          "type": "image",
+          "asset": "roll",
+          "layout": { "anchor": "center", "width": "60%", "aspect": "1:1" },
+          "enter": { "preset": "scaleIn", "from": 0.7 }
+        },
+        {
+          "id": "product-title",
+          "type": "text",
+          "role": "subtitle",
+          "content": "Cinnamon Roll Box",
+          "style": { "color": "honey", "align": "center" },
+          "layout": { "below": "roll-img", "gap": 60, "align": "center" },
+          "enter": { "preset": "fadeUp", "at": 0.8 }
+        }
+      ]
+    },
+    {
+      "id": "details",
+      "duration": 4,
+      "background": "warm-bg",
+      "elements": [
+        {
+          "id": "launch-date",
+          "type": "text",
+          "role": "body",
+          "content": "This weekend",
+          "style": { "color": "accent", "align": "center" },
+          "layout": { "anchor": "center", "offset": [0, -80] },
+          "enter": "wordReveal"
+        },
+        {
+          "id": "preorder-text",
+          "type": "text",
+          "role": "body",
+          "content": "Pre-order by Friday",
+          "style": { "color": "cream", "align": "center" },
+          "layout": { "below": "launch-date", "gap": 40, "align": "center" },
+          "enter": { "preset": "wordReveal", "at": "launch-date.enter.end+0.15" }
+        }
+      ]
+    },
+    {
+      "id": "cta",
+      "duration": 4,
+      "background": { "linear": ["warm-bg", "cinnamon"], "angle": 135 },
+      "elements": [
+        {
+          "id": "brand-name",
+          "type": "text",
+          "role": "title",
+          "content": "CRUMB & CO",
+          "style": { "color": "cream", "align": "center" },
+          "layout": { "anchor": "center", "offset": [0, -150] },
+          "enter": "charReveal"
+        },
+        {
+          "id": "order-button",
+          "type": "button",
+          "label": "Pre-order now",
+          "variant": "solid",
+          "style": { "fill": "honey", "color": "warm-bg" },
+          "layout": { "below": "brand-name", "gap": 80, "align": "center" },
+          "enter": { "preset": "scaleIn", "at": 0.5 }
+        }
+      ],
+      "timeline": [
+        { "target": "order-button", "preset": "pulse", "scale": 1.08, "every": 0.8, "at": 1 }
+      ]
+    }
+  ]
+}

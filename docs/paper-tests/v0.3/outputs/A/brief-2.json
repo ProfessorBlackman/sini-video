@@ -1,0 +1,147 @@
+{
+  "version": "0.3",
+  "video": {
+    "format": "16:9",
+    "fps": 30,
+    "background": "night",
+    "targetDuration": 20,
+    "safeZone": "none",
+    "end": { "type": "fade", "duration": 0.6, "color": "night" }
+  },
+  "theme": {
+    "palette": {
+      "night": "#0E1626",
+      "panel": "#17223A",
+      "bone": "#F2EFE8",
+      "mint": "#3DDC97",
+      "sky": "#5B8CFF",
+      "mute": "#8A93A6"
+    },
+    "fonts": { "display": "Space Grotesk", "body": "Inter Tight", "mono": "JetBrains Mono" },
+    "motion": "snappy",
+    "transition": { "type": "slide", "from": "right", "push": true, "duration": 0.5 },
+    "texture": { "grain": 0.03, "vignette": 0.2 }
+  },
+  "assets": {
+    "dash": {
+      "type": "image",
+      "src": "assets/dashboard.png",
+      "hotspots": { "export": { "text": "Export PDF" } },
+      "fallback": { "type": "placeholder", "hint": "Ledgerly invoicing dashboard with an 'Export PDF' button", "color": "panel" }
+    }
+  },
+  "scenes": [
+    {
+      "id": "hook",
+      "duration": "auto",
+      "background": { "radial": ["panel", "night"] },
+      "elements": [
+        { "id": "hook-block", "type": "stack", "align": "center", "gap": 28,
+          "layout": { "anchor": "center" },
+          "children": [
+            { "id": "hook-kicker", "type": "text", "role": "label", "content": "Introducing",
+              "style": { "color": "mint", "align": "center" }, "enter": "fadeUp" },
+            { "id": "hook-mark", "type": "text", "role": "display", "content": "Ledgerly",
+              "style": { "color": "bone", "align": "center", "letterSpacing": -0.03 },
+              "enter": { "preset": "charReveal", "stagger": 0.04 } },
+            { "id": "hook-sub", "type": "text", "role": "subtitle", "content": "Invoicing, *without the paperwork.*",
+              "style": { "color": "bone/0.7", "align": "center" }, "enter": "wordReveal" }
+          ] }
+      ]
+    },
+    {
+      "id": "demo",
+      "duration": "auto",
+      "background": "night",
+      "elements": [
+        { "id": "stage", "type": "group",
+          "layout": { "anchor": "center", "width": "100%", "height": "100%" },
+          "children": [
+            { "id": "dashboard", "type": "browser", "url": "ledgerly.app", "content": "dash", "chrome": "dark",
+              "layout": { "anchor": "center", "offset": [0, 20], "width": 1240 },
+              "style": { "shadow": "deep" },
+              "enter": { "preset": "scaleIn", "from": 0.92, "at": 0.2, "duration": 0.7 } },
+            { "id": "toast", "type": "stack", "direction": "horizontal", "align": "center", "gap": 20,
+              "layout": { "pin": { "to": "dashboard", "point": "bottom-right" }, "offset": [-300, -100], "width": 520 },
+              "style": { "fill": "panel", "stroke": "mint/0.4", "strokeWidth": 2, "radius": 20, "padding": [20, 32, 20, 20], "shadow": "deep" },
+              "enter": { "preset": "slideIn", "from": "right", "distance": 80, "at": "cam.end-0.2", "duration": 0.45 },
+              "children": [
+                { "id": "toast-icon", "type": "stack", "align": "center", "justify": "center",
+                  "layout": { "width": 56, "height": 56 },
+                  "style": { "fill": "mute/0.35", "radius": 28 },
+                  "states": { "done": { "style": { "fill": "mint" } } },
+                  "children": [
+                    { "id": "toast-check", "type": "text", "role": "body", "content": "✓",
+                      "style": { "color": "night", "weight": 700, "opacity": 0, "align": "center" },
+                      "states": { "done": { "style": { "opacity": 1 } } } }
+                  ] },
+                { "id": "toast-msg", "type": "text", "role": "body", "content": "Exporting PDF...",
+                  "style": { "color": "bone", "weight": 600 },
+                  "states": { "done": { "content": "PDF exported" } } }
+              ] }
+          ] }
+      ],
+      "timeline": [
+        { "id": "cam", "behavior": "camera", "target": "stage", "ease": "expo.inOut",
+          "keys": [
+            { "at": 0, "focus": "center", "zoom": 1 },
+            { "at": 1.2, "focus": "center", "zoom": 1 },
+            { "at": 2.1, "focus": "dashboard#export", "zoom": 1.7 },
+            { "at": "click.end+0.4", "focus": "dashboard#export", "zoom": 1.7 },
+            { "at": "click.end+1.2", "focus": "center", "zoom": 1 }
+          ] },
+        { "id": "click", "behavior": "interaction", "cursor": "pointer", "from": "bottom-right", "pace": "normal", "at": 2.0,
+          "steps": [ { "id": "press-export", "click": "dashboard#export" } ] },
+        { "id": "toast-done-icon", "target": "toast-icon", "state": "done", "at": "toast.enter.end+0.8" },
+        { "id": "toast-done-check", "target": "toast-check", "state": "done", "at": "toast.enter.end+0.8" },
+        { "id": "toast-done-msg", "target": "toast-msg", "state": "done", "at": "toast.enter.end+0.8" },
+        { "id": "toast-pop", "target": "toast-icon", "at": "toast.enter.end+0.8", "duration": 0.4, "ease": "back.out",
+          "animate": { "scale": [1, 1.2, 1] } }
+      ]
+    },
+    {
+      "id": "one-click",
+      "duration": "auto",
+      "background": "panel",
+      "elements": [
+        { "id": "oc-title", "type": "text", "role": "title", "content": "From invoice to PDF\nin *one click.*",
+          "style": { "color": "bone", "align": "center" },
+          "layout": { "anchor": "center", "offset": [0, -30] } },
+        { "id": "oc-rule", "type": "shape", "shape": "line",
+          "layout": { "below": "oc-title", "gap": 56, "align": "center", "width": 240 },
+          "style": { "stroke": "mint", "strokeWidth": 4 },
+          "enter": { "preset": "wipeIn", "at": "oc-title.enter.end" } }
+      ]
+    },
+    {
+      "id": "cta",
+      "duration": "auto",
+      "background": { "radial": ["panel", "night"] },
+      "transition": { "type": "circle", "origin": "center", "duration": 0.6 },
+      "elements": [
+        { "id": "cta-block", "type": "stack", "align": "center", "gap": 48,
+          "layout": { "anchor": "center" },
+          "children": [
+            { "id": "cta-mark", "type": "text", "role": "label", "content": "Ledgerly",
+              "style": { "color": "mint", "align": "center" }, "enter": "fadeUp" },
+            { "id": "cta-row", "type": "stack", "direction": "horizontal", "align": "center", "gap": 32,
+              "children": [
+                { "id": "cta-text", "type": "text", "role": "title", "content": "Start free at",
+                  "style": { "color": "bone" }, "enter": "wordReveal" },
+                { "id": "cta-url", "type": "button", "variant": "solid", "label": "ledgerly.app",
+                  "style": { "fill": "mint", "color": "night", "size": 56, "weight": 700 }, "enter": "popIn" }
+              ] }
+          ] }
+      ],
+      "timeline": [
+        { "target": "cta-url", "preset": "pulse", "ring": true, "every": 1.0, "at": "cta-url.enter.end+0.2" }
+      ]
+    }
+  ],
+  "notes": [
+    "Invented copy: 'Introducing', 'Invoicing, without the paperwork.', 'Exporting PDF...' / 'PDF exported' toast text, 'From invoice to PDF in one click.'",
+    "The click target is found by reading the text 'Export PDF' in assets/dashboard.png. If the button is labelled differently, the click and camera zoom will miss; give me its pixel box instead.",
+    "Toast position assumes the dashboard screenshot is roughly 1280x800. A much taller screenshot changes the browser height and the toast may sit too low.",
+    "Colours and fonts are my choice; swap for Ledgerly brand values if they exist."
+  ]
+}

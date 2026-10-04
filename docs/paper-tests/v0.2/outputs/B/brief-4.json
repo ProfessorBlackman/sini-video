@@ -1,0 +1,119 @@
+{
+  "version": "0.2",
+  "video": { "format": "1:1", "fps": 30, "background": "night", "seed": 4 },
+  "theme": {
+    "palette": {
+      "night": "#0B1020",
+      "panel": "#161D33",
+      "paper": "#F3EFE6",
+      "gold": "#F2B33D",
+      "red": "#D9412B",
+      "green": "#1F8A5B",
+      "mist": "#8D93A6"
+    },
+    "fonts": { "display": "Bricolage Grotesque", "body": "Inter Tight", "mono": "JetBrains Mono" },
+    "motion": { "base": "editorial", "duration": 0.6 },
+    "transition": { "type": "wipe", "angle": 15, "bar": "gold", "duration": 0.5 },
+    "texture": { "grain": 0.05, "vignette": 0.2 },
+    "roles": { "title": { "size": 96 } }
+  },
+  "assets": {
+    "ama": { "type": "placeholder", "hint": "headshot: Ama Owusu", "color": "red" },
+    "kwame": { "type": "placeholder", "hint": "headshot: Kwame Mensah", "color": "green" },
+    "efua": { "type": "placeholder", "hint": "headshot: Efua Boateng", "color": "gold" },
+    "yaw": { "type": "placeholder", "hint": "headshot: Yaw Asante", "color": "mist" }
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "duration": 2.5,
+      "background": { "radial": ["panel", "night"] },
+      "elements": [
+        { "id": "intro-kicker", "type": "text", "role": "mono", "content": "> announcing",
+          "style": { "color": "gold", "align": "center" },
+          "layout": { "anchor": "center", "offset": [0, -230] },
+          "enter": { "preset": "typewriter", "at": 0.15, "cps": 30 } },
+        { "id": "intro-title", "type": "text", "role": "display", "content": "DevConf\n*Accra*",
+          "style": { "color": "paper", "align": "center", "size": 180 },
+          "layout": { "below": "intro-kicker", "gap": 40, "align": "center" },
+          "enter": { "preset": "wordReveal", "at": 0.5, "stagger": 0.12 } },
+        { "id": "intro-rule", "type": "shape", "shape": "line",
+          "style": { "stroke": "gold", "strokeWidth": 4 },
+          "layout": { "below": "intro-title", "gap": 44, "align": "center", "width": 240 },
+          "enter": { "preset": "wipeIn", "from": "left", "at": "intro-title.enter.end-0.1" } }
+      ],
+      "timeline": [
+        { "target": "intro-title", "at": 0.5, "duration": 2.0, "ease": "linear", "animate": { "scale": [1, 1.04] } }
+      ]
+    },
+    {
+      "id": "speakers",
+      "duration": 5.5,
+      "background": "night",
+      "elements": [
+        { "id": "sp-heading", "type": "text", "role": "subtitle", "content": "Meet the *speakers*",
+          "style": { "color": "paper" },
+          "layout": { "anchor": "top-left", "inset": [72, 72] },
+          "enter": { "preset": "wordReveal", "at": 0.15 } },
+        { "id": "sp-grid", "type": "grid", "columns": 2, "gap": 24,
+          "layout": { "below": "sp-heading", "gap": 40, "width": 936 },
+          "children": [
+            { "id": "card-ama", "type": "group", "layout": { "height": 360 },
+              "children": [
+                { "id": "card-ama-bg", "type": "shape", "shape": "rect", "layout": { "anchor": "center", "width": "100%", "height": "100%" }, "style": { "fill": "panel", "radius": 28 } },
+                { "id": "card-ama-photo", "type": "image", "asset": "ama", "fit": "cover", "style": { "radius": 90 }, "layout": { "anchor": "top", "inset": [40, 0], "width": 180, "aspect": "1:1" } },
+                { "id": "card-ama-name", "type": "text", "role": "subtitle", "content": "Ama Owusu", "style": { "color": "paper", "size": 44, "align": "center" }, "layout": { "below": "card-ama-photo", "gap": 26, "align": "center" } },
+                { "id": "card-ama-role", "type": "text", "role": "label", "content": "Speaker", "style": { "color": "gold", "align": "center" }, "layout": { "below": "card-ama-name", "gap": 12, "align": "center" } }
+              ] },
+            { "id": "card-kwame", "type": "group", "layout": { "height": 360 },
+              "children": [
+                { "id": "card-kwame-bg", "type": "shape", "shape": "rect", "layout": { "anchor": "center", "width": "100%", "height": "100%" }, "style": { "fill": "panel", "radius": 28 } },
+                { "id": "card-kwame-photo", "type": "image", "asset": "kwame", "fit": "cover", "style": { "radius": 90 }, "layout": { "anchor": "top", "inset": [40, 0], "width": 180, "aspect": "1:1" } },
+                { "id": "card-kwame-name", "type": "text", "role": "subtitle", "content": "Kwame Mensah", "style": { "color": "paper", "size": 44, "align": "center" }, "layout": { "below": "card-kwame-photo", "gap": 26, "align": "center" } },
+                { "id": "card-kwame-role", "type": "text", "role": "label", "content": "Speaker", "style": { "color": "gold", "align": "center" }, "layout": { "below": "card-kwame-name", "gap": 12, "align": "center" } }
+              ] },
+            { "id": "card-efua", "type": "group", "layout": { "height": 360 },
+              "children": [
+                { "id": "card-efua-bg", "type": "shape", "shape": "rect", "layout": { "anchor": "center", "width": "100%", "height": "100%" }, "style": { "fill": "panel", "radius": 28 } },
+                { "id": "card-efua-photo", "type": "image", "asset": "efua", "fit": "cover", "style": { "radius": 90 }, "layout": { "anchor": "top", "inset": [40, 0], "width": 180, "aspect": "1:1" } },
+                { "id": "card-efua-name", "type": "text", "role": "subtitle", "content": "Efua Boateng", "style": { "color": "paper", "size": 44, "align": "center" }, "layout": { "below": "card-efua-photo", "gap": 26, "align": "center" } },
+                { "id": "card-efua-role", "type": "text", "role": "label", "content": "Speaker", "style": { "color": "gold", "align": "center" }, "layout": { "below": "card-efua-name", "gap": 12, "align": "center" } }
+              ] },
+            { "id": "card-yaw", "type": "group", "layout": { "height": 360 },
+              "children": [
+                { "id": "card-yaw-bg", "type": "shape", "shape": "rect", "layout": { "anchor": "center", "width": "100%", "height": "100%" }, "style": { "fill": "panel", "radius": 28 } },
+                { "id": "card-yaw-photo", "type": "image", "asset": "yaw", "fit": "cover", "style": { "radius": 90 }, "layout": { "anchor": "top", "inset": [40, 0], "width": 180, "aspect": "1:1" } },
+                { "id": "card-yaw-name", "type": "text", "role": "subtitle", "content": "Yaw Asante", "style": { "color": "paper", "size": 44, "align": "center" }, "layout": { "below": "card-yaw-photo", "gap": 26, "align": "center" } },
+                { "id": "card-yaw-role", "type": "text", "role": "label", "content": "Speaker", "style": { "color": "gold", "align": "center" }, "layout": { "below": "card-yaw-name", "gap": 12, "align": "center" } }
+              ] }
+          ] }
+      ],
+      "timeline": [
+        { "id": "cards-in", "target": ["card-ama", "card-kwame", "card-efua", "card-yaw"], "preset": "scaleIn", "from": 0.9, "stagger": 0.08, "at": 0.35, "duration": 0.55 },
+        { "behavior": "focusCycle", "targets": ["card-ama", "card-kwame", "card-efua", "card-yaw"], "at": "cards-in.end+0.2", "interval": 0.95, "dim": 0.35, "scale": 1.04 }
+      ]
+    },
+    {
+      "id": "details",
+      "duration": 4,
+      "background": { "linear": ["night", "panel"], "angle": 180 },
+      "elements": [
+        { "id": "date-kicker", "type": "text", "role": "label", "content": "Accra, Ghana",
+          "style": { "color": "gold", "align": "center" },
+          "layout": { "anchor": "center", "offset": [0, -260] },
+          "enter": { "preset": "trackIn", "at": 0.2 } },
+        { "id": "date-main", "type": "text", "role": "display", "content": "14–15\nMarch",
+          "style": { "color": "paper", "align": "center" },
+          "layout": { "below": "date-kicker", "gap": 36, "align": "center" },
+          "enter": { "preset": "wordReveal", "at": 0.35, "stagger": 0.1 } },
+        { "id": "tickets-btn", "type": "button", "variant": "solid", "label": "Get tickets",
+          "style": { "fill": "gold", "color": "night", "radius": 999 },
+          "layout": { "below": "date-main", "gap": 72, "align": "center" },
+          "enter": { "preset": "popIn", "at": "date-main.enter.end+0.1" } }
+      ],
+      "timeline": [
+        { "target": "tickets-btn", "preset": "pulse", "scale": 1.05, "every": 0.8, "at": "tickets-btn.enter.end+0.2" }
+      ]
+    }
+  ]
+}

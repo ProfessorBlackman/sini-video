@@ -1,0 +1,100 @@
+{
+  "version": "0.2",
+  "video": { "format": "9:16", "fps": 30, "background": "black", "seed": 5 },
+  "theme": {
+    "palette": {
+      "black": "#0A0907",
+      "char": "#17140F",
+      "gold": "#C9A45C",
+      "goldlight": "#E8D3A0",
+      "ivory": "#F2ECE0",
+      "smoke": "#7A7264"
+    },
+    "fonts": { "display": "Fraunces", "body": "Inter Tight" },
+    "motion": "calm",
+    "transition": { "type": "crossfade", "duration": 0.8 },
+    "texture": { "grain": 0.05, "vignette": 0.45 }
+  },
+  "scenes": [
+    {
+      "id": "simplicity",
+      "duration": 2.3,
+      "background": { "radial": ["char", "black"] },
+      "elements": [
+        { "id": "w-simplicity", "type": "text", "role": "display",
+          "content": "Simplicity",
+          "style": { "color": "gold", "align": "center" },
+          "layout": { "anchor": "center", "offset": [0, -40] },
+          "enter": { "preset": "trackIn", "from": 0.35, "at": 0.25, "duration": 1.3, "ease": "cubic.out" } },
+        { "id": "rule-1", "type": "shape", "shape": "line",
+          "style": { "stroke": "gold/0.7", "strokeWidth": 2 },
+          "layout": { "below": "w-simplicity", "gap": 56, "align": "center", "width": 220 },
+          "enter": { "preset": "wipeIn", "from": "left", "at": 0.9, "duration": 1.0 } }
+      ],
+      "timeline": [
+        { "target": "w-simplicity", "preset": "drift", "y": -24, "at": 0 }
+      ]
+    },
+    {
+      "id": "ultimate",
+      "duration": 2.4,
+      "background": { "radial": ["char", "black"] },
+      "elements": [
+        { "id": "w-is-the", "type": "text", "role": "subtitle",
+          "content": "*is the*",
+          "style": { "color": "ivory/0.85", "align": "center" },
+          "layout": { "anchor": "center", "offset": [0, -130] },
+          "enter": { "preset": "fadeUp", "at": 0.15, "distance": 24, "duration": 0.9 } },
+        { "id": "w-ultimate", "type": "text", "role": "display",
+          "content": "ultimate",
+          "style": { "color": "gold", "align": "center" },
+          "layout": { "below": "w-is-the", "gap": 28, "align": "center" },
+          "enter": { "preset": "blurIn", "amount": 16, "at": "w-is-the.enter.end-0.4", "duration": 1.1 } }
+      ],
+      "timeline": [
+        { "target": ["w-is-the", "w-ultimate"], "preset": "drift", "y": -20, "at": 0 }
+      ]
+    },
+    {
+      "id": "sophistication",
+      "duration": 1.8,
+      "transition": { "type": "zoom", "direction": "in", "duration": 0.6, "ease": "cubic.inOut" },
+      "background": "black",
+      "elements": [
+        { "id": "w-sophistication", "type": "text", "role": "display",
+          "content": "*sophistication.*",
+          "fit": "shrink", "maxLines": 1,
+          "style": { "color": "goldlight", "align": "center" },
+          "layout": { "anchor": "center", "maxWidth": 936 },
+          "enter": { "preset": "charReveal", "at": 0.1, "stagger": 0.035, "duration": 0.7, "blur": true } }
+      ],
+      "timeline": [
+        { "target": "w-sophistication", "at": 0.1, "duration": 1.7, "ease": "linear", "animate": { "scale": [1, 1.05] } }
+      ]
+    },
+    {
+      "id": "attribution",
+      "duration": 3.5,
+      "background": { "radial": ["char", "black"] },
+      "elements": [
+        { "id": "full-quote", "type": "text", "role": "subtitle",
+          "content": "“Simplicity is the\nultimate *sophistication.*”",
+          "style": { "color": "ivory", "align": "center" },
+          "layout": { "anchor": "center", "offset": [0, -90], "maxWidth": 900 },
+          "enter": { "preset": "lineReveal", "at": 0.2, "stagger": 0.15, "duration": 0.9 } },
+        { "id": "rule-2", "type": "shape", "shape": "line",
+          "style": { "stroke": "gold/0.8", "strokeWidth": 2 },
+          "layout": { "below": "full-quote", "gap": 64, "align": "center", "width": 120 },
+          "enter": { "preset": "wipeIn", "from": "left", "at": "full-quote.enter.end-0.3", "duration": 0.7 } },
+        { "id": "author", "type": "text", "role": "label",
+          "content": "Leonardo da Vinci",
+          "style": { "color": "gold", "align": "center", "letterSpacing": 0.24 },
+          "layout": { "below": "rule-2", "gap": 40, "align": "center" },
+          "enter": { "preset": "trackIn", "from": 0.5, "at": "rule-2.enter.start+0.2", "duration": 0.9 } }
+      ],
+      "timeline": [
+        { "target": ["full-quote", "rule-2", "author"], "preset": "drift", "y": -16, "at": 0 }
+      ]
+    }
+  ]
+}

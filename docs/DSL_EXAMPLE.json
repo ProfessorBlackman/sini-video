@@ -1,0 +1,44 @@
+{
+  "version": "0.1",
+
+  "video": {
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "duration": 15
+  },
+
+  "assets": {
+    "hero": "assets/novae/hero.jpg",
+    "logo": "assets/novae/logo.svg"
+  },
+
+  "scenes": [
+    {
+      "id": "intro",
+      "duration": 3,
+      "background": "#1E1512",
+
+      "elements": [
+        {
+          "id": "headline",
+          "type": "text",
+          "content": "YOUR CLOTHES\nHAVE A LOOK.",
+          "style": {
+            "font": "serif",
+            "size": 120
+          },
+          "position": {
+            "x": 84,
+            "y": 430
+          },
+
+          "enter": {
+            "type": "wordReveal",
+            "duration": 0.75
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+.DS_Store
+
+# Render outputs
+out/
+
+# Local Claude Code settings
+.claude/settings.local.json
+.claude/scheduled_tasks.lock
+
+# Client reference material (Novaé photos, footage): not licensed for redistribution
+inspiration/
+
+# Paper-test scratch
+docs/paper-tests/**/__pycache__/

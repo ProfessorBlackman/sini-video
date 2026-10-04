@@ -1,0 +1,169 @@
+{
+  "version": "0.2",
+  "video": { "format": "9:16", "fps": 30, "background": "ink", "seed": 7 },
+  "theme": {
+    "palette": {
+      "ink": "#1A120B",
+      "tomato": "#E2462C",
+      "saffron": "#F4B63F",
+      "cream": "#FFF4E2",
+      "leaf": "#2F7D4F",
+      "clay": "#8A5A3B",
+      "mute": "#9C8B7A"
+    },
+    "fonts": { "display": "Bricolage Grotesque", "body": "Manrope" },
+    "motion": "snappy",
+    "transition": { "type": "wipe", "angle": 15, "bar": "saffron", "duration": 0.5 },
+    "texture": { "grain": 0.04, "vignette": 0.15 }
+  },
+  "assets": {
+    "jollof": { "type": "placeholder", "hint": "plate of smoky party jollof rice with chicken, top-down", "color": "tomato" },
+    "waakye": { "type": "placeholder", "hint": "waakye with shito and egg", "color": "clay" },
+    "kelewele": { "type": "placeholder", "hint": "spicy fried plantain (kelewele)", "color": "saffron" },
+    "jollof-plate": { "type": "placeholder", "hint": "jollof rice in a delivery bowl, close-up", "color": "tomato" }
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "duration": 2.5,
+      "background": { "radial": ["tomato", "#B8341F"] },
+      "elements": [
+        { "id": "hungry", "type": "text", "role": "display", "content": "Hungry?",
+          "style": { "color": "cream", "align": "center" },
+          "layout": { "anchor": "center", "offset": [0, -80] },
+          "enter": "popIn" },
+        { "id": "intro-sub", "type": "text", "role": "subtitle", "content": "*One tap away.*",
+          "style": { "color": "cream", "align": "center" },
+          "layout": { "below": "hungry", "gap": 36, "align": "center" },
+          "enter": "fadeUp" },
+        { "id": "intro-brand", "type": "text", "role": "label", "content": "Chop Express",
+          "style": { "color": "saffron", "align": "center" },
+          "layout": { "anchor": "bottom", "inset": [160, 0] },
+          "enter": "fadeIn" }
+      ],
+      "timeline": [
+        { "target": "hungry", "preset": "swing", "angle": 5, "at": "hungry.enter.end" }
+      ]
+    },
+    {
+      "id": "app",
+      "duration": 5,
+      "background": "cream",
+      "elements": [
+        { "id": "h-app", "type": "text", "role": "title", "content": "Pick your\nfavourite.",
+          "style": { "color": "ink" },
+          "layout": { "anchor": "top-left", "inset": [150, 84] },
+          "enter": { "preset": "wordReveal", "at": 0.15 },
+          "states": { "added": { "content": "Added.\n*That easy.*" } } },
+        { "id": "phone", "type": "phone",
+          "layout": { "anchor": "bottom", "inset": [90, 0], "width": 620 },
+          "enter": { "preset": "slideIn", "from": "down", "at": 0.3, "duration": 0.8 },
+          "children": [
+            { "id": "p-header", "type": "stack", "direction": "horizontal", "justify": "space-between", "align": "center",
+              "children": [
+                { "id": "p-brand", "type": "text", "role": "subtitle", "content": "**Chop Express**",
+                  "style": { "color": "tomato", "size": 40 } },
+                { "id": "cart-btn", "type": "button", "variant": "outline", "label": "Cart · 0",
+                  "style": { "color": "ink", "stroke": "ink/0.3" },
+                  "states": { "added": { "label": "Cart · 1", "style": { "fill": "tomato", "color": "cream", "stroke": "tomato" } } } }
+              ] },
+            { "id": "p-title", "type": "text", "role": "caption", "content": "POPULAR NEAR YOU",
+              "style": { "color": "mute", "letterSpacing": 0.08 } },
+            { "id": "p-jollof", "type": "stack", "direction": "vertical", "gap": 14, "align": "start",
+              "style": { "fill": "#FFFFFF", "radius": 28, "shadow": "soft" },
+              "states": { "selected": { "style": { "stroke": "tomato", "strokeWidth": 4, "scale": 1.02 } } },
+              "children": [
+                { "id": "p-jollof-img", "type": "image", "asset": "jollof", "fit": "cover",
+                  "layout": { "width": "100%", "height": 340 }, "style": { "radius": 22 } },
+                { "id": "p-jollof-name", "type": "text", "role": "subtitle", "content": "Party Jollof",
+                  "style": { "color": "ink", "size": 44 } },
+                { "id": "p-jollof-price", "type": "text", "role": "body", "content": "GH₵ 85 · 25 min",
+                  "style": { "color": "mute", "size": 28 } },
+                { "id": "add-btn", "type": "button", "variant": "solid", "label": "Add to cart",
+                  "style": { "fill": "tomato", "color": "cream" },
+                  "states": { "added": { "label": "Added ✓", "style": { "fill": "leaf" } } } }
+              ] },
+            { "id": "p-grid", "type": "grid", "columns": 2, "gap": 16,
+              "children": [
+                { "id": "p-waakye", "type": "image", "asset": "waakye", "fit": "cover",
+                  "layout": { "aspect": "1:1" }, "style": { "radius": 22 } },
+                { "id": "p-kelewele", "type": "image", "asset": "kelewele", "fit": "cover",
+                  "layout": { "aspect": "1:1" }, "style": { "radius": 22 } }
+              ] }
+          ] }
+      ],
+      "timeline": [
+        { "id": "tap-flow", "behavior": "interaction", "cursor": "touch", "from": "bottom-right", "at": 1.2,
+          "steps": [
+            { "click": "p-jollof", "set": { "p-jollof": "selected" } },
+            { "wait": 0.3 },
+            { "click": "add-btn", "set": { "add-btn": "added", "cart-btn": "added" } },
+            { "wait": 0.4 },
+            { "click": "cart-btn" }
+          ] },
+        { "target": "h-app", "state": "added", "at": 3.3 }
+      ]
+    },
+    {
+      "id": "tracking",
+      "duration": 4.5,
+      "background": "ink",
+      "elements": [
+        { "id": "h-track", "type": "text", "role": "title", "content": "Track it\n*live.*",
+          "style": { "color": "cream" },
+          "layout": { "anchor": "top-left", "inset": [150, 84] },
+          "enter": { "preset": "wordReveal", "at": 0.15 } },
+        { "id": "track", "type": "progress",
+          "steps": ["Ordered", "Cooking", "On the way", "Delivered"], "value": 0,
+          "style": { "fill": "saffron", "color": "cream" },
+          "layout": { "below": "h-track", "gap": 140, "width": 912 },
+          "enter": { "preset": "wipeIn", "from": "left", "at": 0.4, "duration": 0.6 } },
+        { "id": "status", "type": "text", "role": "subtitle", "content": "Order received",
+          "style": { "color": "saffron" },
+          "layout": { "below": "track", "gap": 90 },
+          "enter": "fadeUp",
+          "states": {
+            "cooking": { "content": "Cooking your jollof…" },
+            "way": { "content": "Rider on the way" },
+            "delivered": { "content": "Delivered. *Enjoy!*", "style": { "color": "cream" } }
+          } },
+        { "id": "plate", "type": "image", "asset": "jollof-plate", "fit": "cover",
+          "layout": { "anchor": "bottom", "inset": [170, 0], "width": 560, "aspect": "1:1" },
+          "style": { "radius": 280, "shadow": "deep" },
+          "enter": { "preset": "popIn", "at": 0.7 } }
+      ],
+      "timeline": [
+        { "id": "step-1", "target": "track", "at": 1.2, "duration": 0.4, "ease": "back.out", "animate": { "value": 1 } },
+        { "target": "status", "state": "cooking", "at": "step-1.start" },
+        { "id": "step-2", "target": "track", "at": 2.1, "duration": 0.4, "ease": "back.out", "animate": { "value": 2 } },
+        { "target": "status", "state": "way", "at": "step-2.start" },
+        { "id": "step-3", "target": "track", "at": 3.0, "duration": 0.4, "ease": "back.out", "animate": { "value": 3 } },
+        { "target": "status", "state": "delivered", "at": "step-3.start" },
+        { "target": "plate", "preset": "float", "amplitude": 8, "period": 3, "at": "plate.enter.end" }
+      ]
+    },
+    {
+      "id": "cta",
+      "duration": 3,
+      "background": { "radial": ["tomato", "#B8341F"] },
+      "transition": { "type": "circle", "origin": "center", "duration": 0.5 },
+      "elements": [
+        { "id": "cta-head", "type": "text", "role": "title", "content": "Hot jollof,\nat your door.",
+          "style": { "color": "cream", "align": "center" },
+          "layout": { "anchor": "center", "offset": [0, -200] },
+          "enter": { "preset": "wordReveal", "at": 0.1 } },
+        { "id": "order-btn", "type": "button", "variant": "solid", "label": "Order now",
+          "style": { "fill": "saffron", "color": "ink", "size": 48, "shadow": "deep" },
+          "layout": { "below": "cta-head", "gap": 110, "align": "center" },
+          "enter": "popIn" },
+        { "id": "cta-brand", "type": "text", "role": "label", "content": "Chop Express · Food delivery",
+          "style": { "color": "cream/0.8", "align": "center" },
+          "layout": { "anchor": "bottom", "inset": [160, 0] },
+          "enter": "fadeIn" }
+      ],
+      "timeline": [
+        { "target": "order-btn", "preset": "pulse", "scale": 1.08, "every": 0.75, "at": "order-btn.enter.end" }
+      ]
+    }
+  ]
+}

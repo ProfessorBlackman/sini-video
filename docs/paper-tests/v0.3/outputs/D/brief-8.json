@@ -1,0 +1,175 @@
+{
+  "version": "0.3",
+  "video": {
+    "format": "16:9",
+    "fps": 30,
+    "background": "night",
+    "targetDuration": 20,
+    "end": { "type": "fade", "duration": 0.6, "color": "night" }
+  },
+  "theme": {
+    "palette": {
+      "night": "#10221B",
+      "cream": "#F4EFE4",
+      "harvest": "#E9A23B",
+      "leaf": "#5FA77A",
+      "mute": "#93A398"
+    },
+    "fonts": { "display": "Fraunces", "body": "Inter Tight" },
+    "motion": "editorial",
+    "transition": { "type": "wipe", "from": "left", "angle": 0, "bar": "harvest", "duration": 0.6 },
+    "texture": { "grain": 0.05, "vignette": 0.2 }
+  },
+  "assets": {
+    "community":  { "type": "placeholder", "hint": "volunteers serving food at a community meal, warm light", "color": "leaf" },
+    "meal-serve": { "type": "placeholder", "hint": "hands passing a plate of food across a serving table", "color": "harvest" }
+  },
+  "components": {
+    "stat": {
+      "params": { "value": "0", "label": "" },
+      "root": {
+        "id": "box", "type": "stack", "direction": "vertical", "gap": 12, "align": "start",
+        "style": { "fill": "cream/0.06", "stroke": "cream/0.12", "strokeWidth": 1, "radius": 28, "padding": [48, 56] },
+        "children": [
+          { "id": "num", "type": "text", "role": "display", "content": "{{value}}",
+            "style": { "color": "harvest", "size": 180 } },
+          { "id": "lbl", "type": "text", "role": "subtitle", "content": "*{{label}}*",
+            "style": { "color": "cream" } }
+        ]
+      }
+    }
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "duration": "auto",
+      "background": {
+        "asset": "community", "fit": "cover",
+        "overlay": { "linear": ["night/0.35", "night/0.92"], "angle": 180 }
+      },
+      "elements": [
+        { "id": "i-block", "type": "stack", "direction": "vertical", "align": "start", "gap": 28,
+          "layout": { "anchor": "bottom-left", "inset": [140, 140] },
+          "children": [
+            { "id": "i-kicker", "type": "text", "role": "label", "content": "Year in review",
+              "style": { "color": "harvest" },
+              "enter": { "preset": "fadeUp", "at": 0.3, "distance": 20 } },
+            { "id": "i-title", "type": "text", "role": "display", "content": "A year of\n*full plates.*",
+              "style": { "color": "cream" },
+              "enter": { "preset": "wordReveal", "at": "i-kicker.enter.start+0.2" } }
+          ] }
+      ],
+      "timeline": [
+        { "target": "background", "preset": "kenBurns", "zoom": 1.1, "pan": [-30, -10], "at": 0 }
+      ]
+    },
+    {
+      "id": "meals",
+      "duration": "auto",
+      "background": "night",
+      "elements": [
+        { "id": "m-img", "type": "image", "asset": "meal-serve", "fit": "cover",
+          "layout": { "anchor": "right", "inset": [0, 140], "width": 680, "height": 800 },
+          "style": { "radius": 28 },
+          "enter": { "preset": "wipeIn", "from": "right", "at": 0.15, "duration": 0.9 } },
+        { "id": "m-block", "type": "stack", "direction": "vertical", "align": "start", "gap": 8,
+          "layout": { "anchor": "left", "inset": [0, 140] },
+          "children": [
+            { "id": "m-num", "type": "text", "role": "display", "content": "12,000",
+              "style": { "color": "harvest", "size": 240, "letterSpacing": -0.03 },
+              "enter": { "preset": "countUp", "at": 0.3, "duration": 1.8, "ease": "expo.out" } },
+            { "id": "m-lbl", "type": "text", "role": "subtitle", "content": "*meals served*",
+              "style": { "color": "cream" },
+              "enter": { "preset": "fadeUp", "at": "m-num.enter.start+0.4" } }
+          ] }
+      ],
+      "timeline": [
+        { "target": "m-img", "preset": "kenBurns", "zoom": 1.08, "at": 0 }
+      ]
+    },
+    {
+      "id": "people",
+      "duration": "auto",
+      "background": "night",
+      "elements": [
+        { "id": "p-block", "type": "stack", "direction": "vertical", "align": "center", "gap": 72,
+          "layout": { "anchor": "center" },
+          "children": [
+            { "id": "p-title", "type": "text", "role": "title", "content": "Powered by *people.*",
+              "style": { "color": "cream", "align": "center" },
+              "enter": { "preset": "wordReveal", "at": 0.2 } },
+            { "id": "p-row", "type": "stack", "direction": "horizontal", "gap": 48, "align": "stretch",
+              "children": [
+                { "id": "s-vol", "use": "stat", "with": { "value": "340", "label": "volunteers" },
+                  "layout": { "width": 560 } },
+                { "id": "s-comm", "use": "stat", "with": { "value": "18", "label": "communities" },
+                  "layout": { "width": 560 } }
+              ] }
+          ] }
+      ],
+      "timeline": [
+        { "id": "cards-in", "target": ["s-vol", "s-comm"], "preset": "fadeUp", "at": "p-title.enter.end-0.1", "stagger": 0.2 },
+        { "target": "s-vol/num", "preset": "countUp", "at": "cards-in.start", "duration": 1.4, "ease": "expo.out" },
+        { "target": "s-comm/num", "preset": "countUp", "at": "cards-in.start+0.2", "duration": 1.4, "ease": "expo.out" }
+      ]
+    },
+    {
+      "id": "quarters",
+      "duration": "auto",
+      "background": "night",
+      "elements": [
+        { "id": "c-text", "type": "stack", "direction": "vertical", "align": "start", "gap": 24,
+          "layout": { "anchor": "left", "inset": [0, 140], "width": 560 },
+          "children": [
+            { "id": "c-kicker", "type": "text", "role": "label", "content": "Meals per quarter",
+              "style": { "color": "harvest" },
+              "enter": { "preset": "fadeUp", "at": 0.2, "distance": 20 } },
+            { "id": "c-title", "type": "text", "role": "subtitle", "content": "Every quarter,\n*more plates.*",
+              "style": { "color": "cream", "size": 72 },
+              "layout": { "maxWidth": 560 },
+              "enter": { "preset": "wordReveal", "at": "c-kicker.enter.start+0.15" } },
+            { "id": "c-sub", "type": "text", "role": "body", "content": "From 2,100 in Q1 to 3,800 in Q4.",
+              "style": { "color": "mute" },
+              "layout": { "maxWidth": 560 },
+              "enter": { "preset": "fadeUp", "at": "c-title.enter.end-0.1" } }
+          ] },
+        { "id": "meals-chart", "type": "chart", "kind": "bar",
+          "data": [["Q1", 2100], ["Q2", 2800], ["Q3", 3300], ["Q4", 3800]],
+          "highlight": "Q4",
+          "format": "0,0",
+          "style": { "fill": "cream/0.22", "stroke": "harvest", "color": "cream" },
+          "layout": { "anchor": "right", "inset": [0, 140], "width": 1000, "height": 720 },
+          "enter": { "preset": "grow", "at": 0.6, "duration": 0.8, "stagger": 0.15 } }
+      ]
+    },
+    {
+      "id": "thanks",
+      "duration": "auto",
+      "background": { "radial": ["leaf/0.35", "night"] },
+      "transition": { "type": "crossfade", "duration": 0.8 },
+      "elements": [
+        { "id": "o-block", "type": "stack", "direction": "vertical", "align": "center", "gap": 36,
+          "layout": { "anchor": "center" },
+          "children": [
+            { "id": "o-title", "type": "text", "role": "display", "content": "Thank you.",
+              "style": { "color": "cream", "align": "center" },
+              "enter": { "preset": "wordReveal", "at": 0.25 } },
+            { "id": "o-rule", "type": "shape", "shape": "line",
+              "layout": { "width": 240 },
+              "style": { "stroke": "harvest", "strokeWidth": 3 },
+              "enter": { "preset": "wipeIn", "at": "o-title.enter.end-0.1", "duration": 0.6 } },
+            { "id": "o-sub", "type": "text", "role": "subtitle",
+              "content": "*12,000 meals. 340 volunteers. 18 communities.*",
+              "style": { "color": "cream/0.85", "align": "center" },
+              "enter": { "preset": "wordReveal", "at": "o-rule.enter.end-0.2", "stagger": 0.06 } }
+          ] }
+      ]
+    }
+  ],
+  "notes": [
+    "The nonprofit's name, logo and the year were not given, so the video says 'Year in review' without a year or name. Add them to the intro and the thank-you scene.",
+    "Invented copy (not in the brief): 'A year of full plates.', 'Powered by people.', 'Every quarter, more plates.', 'Thank you.'.",
+    "'From 2,100 in Q1 to 3,800 in Q4.' is derived from the brief's quarterly figures. The quarters add up to 12,000, which matches the meals total.",
+    "No photos were supplied: 'community' and 'meal-serve' are placeholders. Replace with real photos from the year's work."
+  ]
+}

@@ -1,0 +1,121 @@
+{
+  "version": "0.2",
+  "video": { "format": "16:9", "fps": 30, "background": "#1E1512" },
+  "theme": {
+    "palette": {
+      "primary": "#1E1512",
+      "bg": "#EEE6DA",
+      "accent": "#FF6B35",
+      "text": "#1a1a1a"
+    },
+    "fonts": { "display": "Instrument Serif", "body": "Inter Tight" },
+    "motion": "editorial"
+  },
+  "scenes": [
+    {
+      "id": "impact-numbers",
+      "duration": 8,
+      "background": "bg",
+      "elements": [
+        {
+          "id": "title",
+          "type": "text",
+          "role": "title",
+          "content": "2024 Year in Review",
+          "style": { "color": "primary", "align": "center" },
+          "layout": { "anchor": "top", "inset": [80, 0] },
+          "enter": "fadeUp"
+        },
+        {
+          "id": "meals-count",
+          "type": "text",
+          "role": "display",
+          "content": "12000",
+          "style": { "color": "accent", "align": "center", "size": 120 },
+          "layout": { "anchor": "center", "offset": [-350, -150] },
+          "enter": { "preset": "countUp", "at": 1.5, "duration": 2, "ease": "expo.out" }
+        },
+        {
+          "id": "meals-label",
+          "type": "text",
+          "role": "body",
+          "content": "meals served",
+          "style": { "color": "text", "align": "center" },
+          "layout": { "below": "meals-count", "gap": 20, "align": "center" },
+          "enter": "fadeUp"
+        },
+        {
+          "id": "volunteers-count",
+          "type": "text",
+          "role": "display",
+          "content": "340",
+          "style": { "color": "accent", "align": "center", "size": 100 },
+          "layout": { "anchor": "center", "offset": [0, -150] },
+          "enter": { "preset": "countUp", "at": 2.0, "duration": 1.5, "ease": "expo.out" }
+        },
+        {
+          "id": "volunteers-label",
+          "type": "text",
+          "role": "body",
+          "content": "volunteers",
+          "style": { "color": "text", "align": "center" },
+          "layout": { "below": "volunteers-count", "gap": 20, "align": "center" },
+          "enter": "fadeUp"
+        },
+        {
+          "id": "communities-count",
+          "type": "text",
+          "role": "display",
+          "content": "18",
+          "style": { "color": "accent", "align": "center", "size": 100 },
+          "layout": { "anchor": "center", "offset": [350, -150] },
+          "enter": { "preset": "countUp", "at": 2.5, "duration": 1.2, "ease": "expo.out" }
+        },
+        {
+          "id": "communities-label",
+          "type": "text",
+          "role": "body",
+          "content": "communities",
+          "style": { "color": "text", "align": "center" },
+          "layout": { "below": "communities-count", "gap": 20, "align": "center" },
+          "enter": "fadeUp"
+        }
+      ]
+    },
+    {
+      "id": "chart-view",
+      "duration": 12,
+      "background": "primary",
+      "transition": { "type": "wipe", "angle": 90, "bar": "accent", "duration": 0.6 },
+      "elements": [
+        {
+          "id": "chart-title",
+          "type": "text",
+          "role": "title",
+          "content": "Meals Served by Quarter",
+          "style": { "color": "bg", "align": "center" },
+          "layout": { "anchor": "top", "inset": [60, 0] },
+          "enter": "fadeUp"
+        },
+        {
+          "id": "chart",
+          "type": "template",
+          "layout": { "below": "chart-title", "gap": 100, "width": "90%", "align": "center" },
+          "html": "<div class='chart-container'><div class='chart'><div class='bar q1'><div class='bar-fill'></div></div><div class='bar q2'><div class='bar-fill'></div></div><div class='bar q3'><div class='bar-fill'></div></div><div class='bar q4'><div class='bar-fill'></div></div></div><div class='chart-labels'><div class='label'>{{label1}}<br/>{{val1}}</div><div class='label'>{{label2}}<br/>{{val2}}</div><div class='label'>{{label3}}<br/>{{val3}}</div><div class='label'>{{label4}}<br/>{{val4}}</div></div></div>",
+          "css": ".chart-container{display:flex;flex-direction:column;align-items:center;}.chart{display:flex;justify-content:space-around;align-items:flex-end;gap:20px;height:220px;width:100%;}.bar{display:flex;flex-direction:column;align-items:center;position:relative;}.bar-fill{width:50px;background:#EEE6DA;border-radius:3px;}.bar.q1 .bar-fill{height:110px;}.bar.q2 .bar-fill{height:161px;}.bar.q3 .bar-fill{height:191px;}.bar.q4 .bar-fill{height:220px;}.chart-labels{display:flex;justify-content:space-around;gap:20px;width:100%;margin-top:20px;}.label{text-align:center;font-size:14px;color:#EEE6DA;}",
+          "params": {
+            "label1": "Q1",
+            "val1": "2,100",
+            "label2": "Q2",
+            "val2": "2,800",
+            "label3": "Q3",
+            "val3": "3,300",
+            "label4": "Q4",
+            "val4": "3,800"
+          },
+          "enter": "fadeUp"
+        }
+      ]
+    }
+  ]
+}

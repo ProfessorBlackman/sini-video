@@ -1,0 +1,170 @@
+{
+  "version": "0.2",
+  "video": { "format": "9:16", "fps": 30, "background": "cream", "seed": 7 },
+  "theme": {
+    "palette": {
+      "cream": "#FFF3E2",
+      "dough": "#F6D9A8",
+      "cinnamon": "#B5622E",
+      "espresso": "#3A2117",
+      "butter": "#F6C344",
+      "berry": "#E2574C",
+      "icing": "#FFFFFF"
+    },
+    "fonts": { "display": "Fraunces", "body": "Manrope" },
+    "motion": "playful",
+    "transition": { "type": "slide", "direction": "left", "push": true, "duration": 0.5 },
+    "texture": { "grain": 0.05, "vignette": 0.15 }
+  },
+  "assets": {
+    "roll-box": { "type": "placeholder", "hint": "open kraft box of six iced cinnamon rolls, top-down, warm morning light", "color": "cinnamon" },
+    "roll-close": { "type": "placeholder", "hint": "close-up of one gooey cinnamon roll swirl with icing dripping", "color": "dough" }
+  },
+  "scenes": [
+    {
+      "id": "hook",
+      "duration": 2,
+      "background": "cream",
+      "elements": [
+        { "id": "blob-a", "type": "shape", "shape": "circle",
+          "layout": { "anchor": "top-right", "inset": [-160, -160], "width": 620, "height": 620 },
+          "style": { "fill": "butter" },
+          "enter": { "preset": "popIn", "at": 0 } },
+        { "id": "blob-b", "type": "shape", "shape": "circle",
+          "layout": { "anchor": "bottom-left", "inset": [-120, -100], "width": 380, "height": 380 },
+          "style": { "fill": "berry/0.85" },
+          "enter": { "preset": "popIn", "at": 0.1 } },
+        { "id": "hook-title", "type": "text", "role": "display",
+          "content": "Weekend\n*plans?*",
+          "style": { "color": "espresso", "size": 190 },
+          "layout": { "anchor": "left", "inset": [0, 84] },
+          "enter": { "preset": "bounceIn", "at": 0.2, "stagger": 0.1 } },
+        { "id": "hook-brand", "type": "text", "role": "label",
+          "content": "Crumb & Co.",
+          "style": { "color": "cinnamon" },
+          "layout": { "above": "hook-title", "gap": 28 },
+          "enter": { "preset": "fadeUp", "at": 0.1, "distance": 20 } }
+      ],
+      "timeline": [
+        { "target": "blob-a", "preset": "float", "at": 0.5, "amplitude": 14, "period": 3 },
+        { "target": "hook-title", "preset": "swing", "at": 1.0, "angle": 4 }
+      ]
+    },
+    {
+      "id": "box",
+      "duration": 3,
+      "background": { "radial": ["dough", "cinnamon"] },
+      "elements": [
+        { "id": "box-img", "type": "image", "asset": "roll-box",
+          "layout": { "anchor": "top", "inset": [260, 0], "width": 760, "aspect": "1:1" },
+          "fit": "cover",
+          "style": { "radius": 48, "shadow": "deep", "rotation": -3 },
+          "enter": { "preset": "popIn", "at": 0.15 } },
+        { "id": "sticker", "type": "group",
+          "layout": { "anchor": "top-right", "inset": [200, 90], "width": 240, "height": 240 },
+          "style": { "rotation": 12 },
+          "enter": { "preset": "popIn", "at": 0.7 },
+          "children": [
+            { "id": "sticker-dot", "type": "shape", "shape": "circle",
+              "layout": { "anchor": "center", "width": "100%", "height": "100%" },
+              "style": { "fill": "berry", "shadow": "soft" } },
+            { "id": "sticker-text", "type": "text", "role": "subtitle",
+              "content": "New!",
+              "style": { "color": "icing", "align": "center", "italic": true },
+              "layout": { "anchor": "center" } }
+          ] },
+        { "id": "box-title", "type": "text", "role": "title",
+          "content": "The Cinnamon\nRoll Box",
+          "style": { "color": "espresso", "align": "center" },
+          "layout": { "below": "box-img", "gap": 64, "align": "center" },
+          "enter": { "preset": "bounceIn", "at": 0.5 } }
+      ],
+      "timeline": [
+        { "target": "box-img", "preset": "kenBurns", "at": 0.8, "zoom": 1.08 },
+        { "target": "sticker", "preset": "swing", "at": 1.2, "angle": 10 }
+      ]
+    },
+    {
+      "id": "inside",
+      "duration": 3.5,
+      "background": "cream",
+      "elements": [
+        { "id": "roll-img", "type": "image", "asset": "roll-close",
+          "layout": { "anchor": "top", "inset": [0, 0], "width": "100%", "height": 880 },
+          "fit": "cover",
+          "enter": { "preset": "wipeIn", "from": "down", "at": 0, "duration": 0.6 } },
+        { "id": "inside-title", "type": "text", "role": "title",
+          "content": "Six rolls.\n*One box.*",
+          "style": { "color": "espresso" },
+          "layout": { "anchor": "top-left", "inset": [960, 84] },
+          "enter": { "preset": "bounceIn", "at": 0.4 } },
+        { "id": "inside-list", "type": "stack", "direction": "vertical", "gap": 20, "align": "start",
+          "layout": { "below": "inside-title", "gap": 52 },
+          "children": [
+            { "id": "item-1", "type": "text", "role": "body", "content": "• Brown-butter dough", "style": { "color": "cinnamon", "weight": 600 } },
+            { "id": "item-2", "type": "text", "role": "body", "content": "• Cream-cheese icing", "style": { "color": "cinnamon", "weight": 600 } },
+            { "id": "item-3", "type": "text", "role": "body", "content": "• Baked fresh Saturday", "style": { "color": "cinnamon", "weight": 600 } }
+          ] }
+      ],
+      "timeline": [
+        { "target": "roll-img", "preset": "kenBurns", "at": 0.6, "zoom": 1.1, "pan": [0, -20] },
+        { "target": ["item-1", "item-2", "item-3"], "preset": "slideIn", "from": "left", "distance": 80, "stagger": 0.15, "at": 0.9, "duration": 0.5 }
+      ]
+    },
+    {
+      "id": "friday",
+      "duration": 3.5,
+      "background": "cinnamon",
+      "elements": [
+        { "id": "fri-label", "type": "text", "role": "label",
+          "content": "Pre-order by",
+          "style": { "color": "cream", "size": 34 },
+          "layout": { "anchor": "left", "inset": [0, 84], "offset": [0, -240] },
+          "enter": { "preset": "fadeUp", "at": 0.15, "distance": 24 } },
+        { "id": "fri-day", "type": "text", "role": "display",
+          "content": "*Friday.*",
+          "style": { "color": "butter", "size": 260 },
+          "layout": { "below": "fri-label", "gap": 16 },
+          "enter": { "preset": "bounceIn", "at": 0.3 } },
+        { "id": "fri-rule", "type": "shape", "shape": "pill",
+          "layout": { "below": "fri-day", "gap": 40, "width": 140, "height": 14 },
+          "style": { "fill": "cream" },
+          "enter": { "preset": "wipeIn", "from": "left", "at": 0.6, "duration": 0.4 } },
+        { "id": "fri-pickup", "type": "text", "role": "body",
+          "content": "Pick up Sat or Sun.",
+          "style": { "color": "cream", "size": 48 },
+          "layout": { "below": "fri-rule", "gap": 40 },
+          "enter": { "preset": "fadeUp", "at": 0.8, "duration": 0.5 } }
+      ],
+      "timeline": [
+        { "target": "fri-day", "preset": "swing", "at": 1.0, "angle": 5 }
+      ]
+    },
+    {
+      "id": "cta",
+      "duration": 3,
+      "background": "butter",
+      "transition": { "type": "circle", "origin": "center", "duration": 0.6 },
+      "elements": [
+        { "id": "cta-mark", "type": "text", "role": "display",
+          "content": "Crumb\n*& Co.*",
+          "style": { "color": "espresso", "size": 200, "align": "center" },
+          "layout": { "anchor": "center", "offset": [0, -220] },
+          "enter": { "preset": "charReveal", "at": 0.15, "stagger": 0.04 } },
+        { "id": "cta-btn", "type": "button", "variant": "solid",
+          "label": "Pre-order the box",
+          "style": { "fill": "espresso", "color": "cream", "radius": 999 },
+          "layout": { "below": "cta-mark", "gap": 80, "align": "center" },
+          "enter": { "preset": "popIn", "at": 0.55 } },
+        { "id": "cta-note", "type": "text", "role": "caption",
+          "content": "Link in bio",
+          "style": { "color": "espresso/0.7", "align": "center" },
+          "layout": { "below": "cta-btn", "gap": 28, "align": "center" },
+          "enter": { "preset": "fadeIn", "at": 0.9 } }
+      ],
+      "timeline": [
+        { "target": "cta-btn", "preset": "pulse", "at": 1.3, "scale": 1.06, "every": 0.75 }
+      ]
+    }
+  ]
+}

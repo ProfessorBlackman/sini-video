@@ -1,0 +1,180 @@
+{
+  "version": "0.3",
+  "video": { "format": "9:16", "fps": 30, "background": "#0F0F0F", "targetDuration": 15 },
+  "theme": {
+    "palette": {
+      "ink": "#0F0F0F",
+      "bone": "#FFFFFF",
+      "warm": "#FF6B35",
+      "mute": "#888888"
+    },
+    "fonts": { "display": "Instrument Serif", "body": "Inter Tight" },
+    "motion": "snappy",
+    "transition": { "type": "crossfade", "duration": 0.4 },
+    "texture": { "grain": 0.05 }
+  },
+  "assets": {
+    "jollof": { "type": "placeholder", "hint": "jollof rice dish", "color": "warm" }
+  },
+  "scenes": [
+    {
+      "id": "app-demo",
+      "duration": 5,
+      "background": "ink",
+      "elements": [
+        {
+          "id": "phone",
+          "type": "phone",
+          "background": "bone",
+          "padding": [24, 16],
+          "gap": 20,
+          "layout": { "anchor": "center", "width": 540 },
+          "enter": "slideIn",
+          "children": [
+            {
+              "id": "header",
+              "type": "text",
+              "role": "label",
+              "content": "CHOP EXPRESS",
+              "style": { "color": "warm", "weight": 700 },
+              "enter": "none"
+            },
+            {
+              "id": "item-card",
+              "type": "stack",
+              "align": "center",
+              "gap": 16,
+              "style": {
+                "fill": "bone",
+                "radius": 20,
+                "padding": 20,
+                "stroke": "warm",
+                "strokeWidth": 2
+              },
+              "children": [
+                {
+                  "id": "food-img",
+                  "type": "image",
+                  "asset": "jollof",
+                  "layout": { "width": 200, "height": 160 },
+                  "style": { "radius": 12 },
+                  "enter": "none"
+                },
+                {
+                  "id": "food-name",
+                  "type": "text",
+                  "role": "subtitle",
+                  "content": "Jollof Rice",
+                  "style": { "color": "ink", "weight": 700 },
+                  "enter": "none"
+                },
+                {
+                  "id": "food-price",
+                  "type": "text",
+                  "role": "body",
+                  "content": "GH₵ 15",
+                  "style": { "color": "warm", "weight": 600 },
+                  "enter": "none"
+                },
+                {
+                  "id": "add-btn",
+                  "type": "button",
+                  "label": "Add to cart",
+                  "variant": "solid",
+                  "style": { "fill": "warm", "color": "bone" },
+                  "states": {
+                    "added": {
+                      "label": "Added ✓",
+                      "style": { "fill": "bone", "color": "warm" }
+                    }
+                  },
+                  "enter": "none"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "id": "tap-sequence",
+          "behavior": "interaction",
+          "cursor": "touch",
+          "from": "bottom-center",
+          "pace": "normal",
+          "at": 1.2,
+          "steps": [
+            { "id": "select-item", "click": "phone/item-card" },
+            { "wait": 0.3 },
+            { "id": "tap-add", "click": "phone/add-btn", "set": { "phone/add-btn": "added" } }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "order-status",
+      "duration": 5.5,
+      "background": "ink",
+      "elements": [
+        {
+          "id": "status-title",
+          "type": "text",
+          "role": "title",
+          "content": "Order placed!",
+          "style": { "color": "bone" },
+          "layout": { "anchor": "top", "inset": [100, 0], "maxWidth": "90%" }
+        },
+        {
+          "id": "progress-track",
+          "type": "progress",
+          "steps": ["Ordered", "Cooking", "On the way", "Delivered"],
+          "value": 0,
+          "style": { "fill": "warm", "color": "mute" },
+          "layout": { "anchor": "center", "inset": [60, 0], "width": "85%" },
+          "enter": { "preset": "fadeUp", "at": 0.3, "duration": 0.5 }
+        }
+      ],
+      "timeline": [
+        {
+          "target": "progress-track",
+          "at": 1.0,
+          "duration": 4.0,
+          "ease": "cubic.inOut",
+          "animate": { "value": [0, 3] }
+        }
+      ]
+    },
+    {
+      "id": "final-cta",
+      "duration": "auto",
+      "background": "ink",
+      "elements": [
+        {
+          "id": "order-btn",
+          "type": "button",
+          "label": "Order now",
+          "variant": "solid",
+          "style": { "fill": "warm", "color": "bone" },
+          "layout": { "anchor": "center" },
+          "enter": "popIn"
+        }
+      ],
+      "timeline": [
+        {
+          "target": "order-btn",
+          "preset": "pulse",
+          "scale": 1.1,
+          "every": 0.8,
+          "at": 0.4
+        }
+      ]
+    }
+  ],
+  "notes": [
+    "Chop Express branding colours (warm orange #FF6B35) inferred from food delivery context.",
+    "Jollof rice image is a placeholder; replace with actual dish photo.",
+    "Button 'Added ✓' state label is invented; brief only implies action feedback.",
+    "The price GH₵ 15 is invented; brief did not provide pricing.",
+    "Progress steps match brief exactly: Ordered → Cooking → On the way → Delivered."
+  ]
+}

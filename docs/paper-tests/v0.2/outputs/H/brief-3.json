@@ -1,0 +1,145 @@
+{
+  "version": "0.2",
+  "video": { "format": "9:16", "fps": 30, "background": "#F5F5F5" },
+  "theme": {
+    "palette": {
+      "dark": "#1A1A1A",
+      "light": "#FFFFFF",
+      "blue": "#0066FF",
+      "gray": "#999999",
+      "bg": "#F5F5F5"
+    },
+    "fonts": { "display": "Instrument Serif", "body": "Inter Tight" },
+    "motion": "snappy",
+    "transition": { "type": "slide", "direction": "up", "duration": 0.4 },
+    "texture": { "grain": 0.02 }
+  },
+  "scenes": [
+    {
+      "id": "onboard",
+      "duration": 7,
+      "background": "bg",
+      "elements": [
+        {
+          "id": "onboard-phone",
+          "type": "phone",
+          "layout": { "anchor": "center", "width": 520 },
+          "enter": { "preset": "slideIn", "from": "up", "at": 0.2, "duration": 0.6 },
+          "children": [
+            {
+              "id": "onboard-title",
+              "type": "text",
+              "role": "subtitle",
+              "content": "Choose your goal",
+              "style": { "color": "dark", "align": "center" },
+              "layout": { "inset": 40 }
+            },
+            {
+              "id": "goal-strength",
+              "type": "button",
+              "label": "Build strength",
+              "variant": "outline",
+              "style": { "stroke": "blue", "color": "dark" },
+              "layout": { "inset": 40 },
+              "states": {
+                "selected": { "variant": "solid", "style": { "fill": "blue", "color": "light" } }
+              }
+            },
+            {
+              "id": "goal-cardio",
+              "type": "button",
+              "label": "Improve cardio",
+              "variant": "outline",
+              "style": { "stroke": "gray", "color": "gray" },
+              "layout": { "inset": 40 }
+            },
+            {
+              "id": "goal-flex",
+              "type": "button",
+              "label": "Increase flexibility",
+              "variant": "outline",
+              "style": { "stroke": "gray", "color": "gray" },
+              "layout": { "inset": 40 }
+            },
+            {
+              "id": "button-spacer",
+              "type": "shape",
+              "shape": "rect",
+              "style": { "fill": "bg", "opacity": 0 },
+              "layout": { "height": 120 }
+            },
+            {
+              "id": "continue-btn",
+              "type": "button",
+              "label": "Continue",
+              "variant": "solid",
+              "style": { "fill": "blue", "color": "light" },
+              "layout": { "inset": 40 }
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "behavior": "interaction",
+          "at": 1.5,
+          "cursor": "touch",
+          "steps": [
+            { "click": "goal-strength", "set": { "goal-strength": "selected" } },
+            { "wait": 0.2 },
+            { "click": "continue-btn" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "home",
+      "duration": 8,
+      "background": "bg",
+      "transition": { "type": "slide", "direction": "up", "duration": 0.4 },
+      "elements": [
+        {
+          "id": "home-phone",
+          "type": "phone",
+          "layout": { "anchor": "center", "width": 520 },
+          "enter": { "preset": "fadeIn", "at": 0 },
+          "children": [
+            {
+              "id": "home-header",
+              "type": "text",
+              "role": "title",
+              "content": "Today",
+              "style": { "color": "dark", "align": "left" },
+              "layout": { "inset": 32 }
+            },
+            {
+              "id": "status-text",
+              "type": "text",
+              "role": "caption",
+              "content": "Your personalized workout",
+              "style": { "color": "gray", "align": "center" },
+              "layout": { "inset": 32 }
+            },
+            {
+              "id": "workout-card",
+              "type": "text",
+              "role": "body",
+              "content": "Strength Training\n45 min",
+              "style": { "color": "dark", "align": "center", "weight": 600 },
+              "layout": { "inset": 32 }
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "behavior": "scroll",
+          "target": "home-phone",
+          "to": "workout-card",
+          "at": 1.5,
+          "duration": 0.9
+        }
+      ]
+    }
+  ]
+}

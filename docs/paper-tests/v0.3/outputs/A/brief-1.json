@@ -1,0 +1,154 @@
+{
+  "version": "0.3",
+  "video": {
+    "format": "9:16",
+    "fps": 30,
+    "background": "cream",
+    "targetDuration": 15,
+    "safeZone": "reels",
+    "end": "hold"
+  },
+  "theme": {
+    "palette": {
+      "cream": "#FBF1E4",
+      "dough": "#F1D9B5",
+      "cocoa": "#4A2A1C",
+      "cinnamon": "#B8592A",
+      "butter": "#F4C25B",
+      "blush": "#EBA48C",
+      "white": "#FFFFFF"
+    },
+    "fonts": { "display": "Fraunces", "body": "Manrope" },
+    "motion": "playful",
+    "transition": { "type": "circle", "origin": "center", "duration": 0.6 },
+    "texture": { "grain": 0.05, "vignette": 0.15 }
+  },
+  "assets": {
+    "roll-box":   { "type": "placeholder", "hint": "open kraft box of iced cinnamon rolls, top-down", "color": "dough" },
+    "roll-close": { "type": "placeholder", "hint": "close-up of a cinnamon roll swirl with icing", "color": "cinnamon" },
+    "roll-pull":  { "type": "placeholder", "hint": "hands pulling apart a warm cinnamon roll", "color": "butter" },
+    "roll-table": { "type": "placeholder", "hint": "cinnamon roll box on a weekend breakfast table", "color": "blush" }
+  },
+  "components": {
+    "polaroid": {
+      "params": { "photo": "roll-close" },
+      "root": {
+        "id": "frame", "type": "stack", "align": "center",
+        "style": { "fill": "white", "radius": 10, "padding": [18, 18, 56, 18], "shadow": "soft" },
+        "children": [
+          { "id": "pic", "type": "image", "asset": "{{photo}}", "fit": "cover",
+            "layout": { "width": 250, "aspect": "4:5" }, "style": { "radius": 4 } }
+        ]
+      }
+    }
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "duration": "auto",
+      "background": { "radial": ["cream", "dough"] },
+      "elements": [
+        { "id": "sun-blob", "type": "shape", "shape": "circle",
+          "layout": { "anchor": "center", "offset": [0, -60], "width": 760, "height": 760 },
+          "style": { "fill": "butter/0.35" },
+          "enter": { "preset": "scaleIn", "from": 0.6, "at": 0.1, "duration": 0.9 } },
+        { "id": "brand-block", "type": "stack", "align": "center", "gap": 28,
+          "layout": { "anchor": "center", "offset": [0, -60] },
+          "children": [
+            { "id": "brand-kicker", "type": "text", "role": "label", "content": "New this weekend",
+              "style": { "color": "cinnamon", "align": "center" },
+              "enter": { "preset": "fadeUp", "at": 0.3 } },
+            { "id": "brand-mark", "type": "text", "role": "display", "content": "Crumb\n& Co.",
+              "style": { "color": "cocoa", "align": "center", "size": 190 },
+              "enter": { "preset": "charReveal", "at": "brand-kicker.enter.end-0.1", "stagger": 0.05 } }
+          ] }
+      ],
+      "timeline": [
+        { "target": "sun-blob", "preset": "drift", "at": "sun-blob.enter.end", "y": -20, "scale": 1.08 },
+        { "target": "brand-mark", "preset": "swing", "angle": 4, "at": "brand-mark.enter.end" }
+      ]
+    },
+    {
+      "id": "reveal",
+      "duration": "auto",
+      "background": "butter",
+      "elements": [
+        { "id": "reveal-title", "type": "text", "role": "title",
+          "content": "Introducing the\n*Cinnamon\nRoll Box*",
+          "style": { "color": "cocoa", "align": "center" },
+          "layout": { "anchor": "top", "inset": [280, 0] } },
+        { "id": "box-img", "type": "image", "asset": "roll-box", "fit": "cover",
+          "layout": { "below": "reveal-title", "gap": 64, "align": "center", "width": 700, "aspect": "1:1" },
+          "style": { "radius": 40, "shadow": "deep" },
+          "enter": { "preset": "popIn", "at": "reveal-title.enter.end-0.1" } },
+        { "id": "new-badge", "type": "stack", "align": "center", "justify": "center",
+          "layout": { "pin": { "to": "box-img", "point": "top-right" }, "offset": [-40, 40], "width": 190, "height": 190 },
+          "style": { "fill": "cinnamon", "radius": 95, "rotation": 12, "shadow": "soft" },
+          "enter": { "preset": "popIn", "at": "box-img.enter.end" },
+          "children": [
+            { "id": "badge-text", "type": "text", "role": "label", "content": "New!",
+              "style": { "color": "cream", "size": 40, "align": "center" } }
+          ] }
+      ],
+      "timeline": [
+        { "target": "box-img", "preset": "float", "amplitude": 12, "period": 3, "at": "box-img.enter.end" },
+        { "target": "new-badge", "preset": "pulse", "scale": 1.08, "every": 0.9, "at": "new-badge.enter.end" }
+      ]
+    },
+    {
+      "id": "weekend",
+      "duration": "auto",
+      "background": "cinnamon",
+      "elements": [
+        { "id": "weekend-block", "type": "stack", "align": "center", "gap": 90,
+          "layout": { "anchor": "center", "offset": [0, -40] },
+          "children": [
+            { "id": "weekend-title", "type": "text", "role": "title", "content": "Made for\n*the weekend.*",
+              "style": { "color": "cream", "align": "center" },
+              "enter": { "preset": "bounceIn", "at": 0.3 } },
+            { "id": "polaroids", "type": "stack", "direction": "horizontal", "gap": 16, "align": "center",
+              "children": [
+                { "id": "pol-1", "use": "polaroid", "with": { "photo": "roll-close" }, "style": { "rotation": -6 } },
+                { "id": "pol-2", "use": "polaroid", "with": { "photo": "roll-pull" },  "style": { "rotation": 3 } },
+                { "id": "pol-3", "use": "polaroid", "with": { "photo": "roll-table" }, "style": { "rotation": -2 } }
+              ] },
+            { "id": "weekend-sub", "type": "text", "role": "body", "content": "A whole box of swirls.",
+              "style": { "color": "cream/0.9", "align": "center" },
+              "enter": { "preset": "fadeUp", "at": "pols-in.end" } }
+          ] }
+      ],
+      "timeline": [
+        { "id": "pols-in", "target": ["pol-1", "pol-2", "pol-3"], "preset": "bounceIn",
+          "stagger": 0.15, "at": "weekend-title.enter.end-0.2" }
+      ]
+    },
+    {
+      "id": "cta",
+      "duration": "auto",
+      "background": { "radial": ["cream", "dough"] },
+      "elements": [
+        { "id": "cta-block", "type": "stack", "align": "center", "gap": 44,
+          "layout": { "anchor": "center", "offset": [0, -80] },
+          "children": [
+            { "id": "cta-kicker", "type": "text", "role": "label", "content": "The Cinnamon Roll Box",
+              "style": { "color": "cinnamon", "align": "center" }, "enter": "fadeUp" },
+            { "id": "cta-title", "type": "text", "role": "display", "content": "Pre-order\nby *Friday.*",
+              "style": { "color": "cocoa", "align": "center" }, "enter": "bounceIn" },
+            { "id": "cta-btn", "type": "button", "variant": "solid", "label": "Pre-order now",
+              "style": { "fill": "cinnamon", "color": "cream", "size": 44, "radius": 60 }, "enter": "popIn" },
+            { "id": "cta-brand", "type": "text", "role": "subtitle", "content": "*Crumb & Co.*",
+              "style": { "color": "cocoa", "align": "center" }, "enter": "fadeIn" }
+          ] }
+      ],
+      "timeline": [
+        { "target": "cta-btn", "preset": "pulse", "ring": true, "every": 0.9, "at": "cta-btn.enter.end+0.2" }
+      ]
+    }
+  ],
+  "notes": [
+    "No photos yet: all four images are placeholders (roll-box, roll-close, roll-pull, roll-table). Replace with real product shots; the hint on each says what to shoot.",
+    "Invented copy: 'New this weekend', 'Introducing the Cinnamon Roll Box', 'New!' badge, 'Made for the weekend.', 'A whole box of swirls.', 'Pre-order now' button label.",
+    "The brief doesn't say how to pre-order (link in bio, DM, website, in store). Consider adding that line to the CTA scene.",
+    "Brand colours and fonts (Fraunces / Manrope, cream-cinnamon palette) are my choice; swap for Crumb & Co.'s real brand if it has one."
+  ]
+}

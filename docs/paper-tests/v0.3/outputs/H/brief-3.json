@@ -1,0 +1,269 @@
+{
+  "version": "0.3",
+  "video": {
+    "format": "9:16",
+    "fps": 30,
+    "background": "#F8F9FA",
+    "targetDuration": 15,
+    "safeZone": "reels",
+    "end": "hold"
+  },
+  "theme": {
+    "palette": {
+      "navy": "#0A1428",
+      "accent": "#FF6B6B",
+      "light": "#F8F9FA",
+      "mute": "#6C757D",
+      "white": "#FFFFFF"
+    },
+    "fonts": {
+      "display": "Space Grotesk",
+      "body": "Inter Tight"
+    },
+    "motion": "snappy",
+    "transition": {
+      "type": "crossfade",
+      "duration": 0.4
+    },
+    "texture": {
+      "grain": 0,
+      "vignette": 0
+    }
+  },
+  "scenes": [
+    {
+      "id": "pulse-demo",
+      "duration": "auto",
+      "background": "light",
+      "elements": [
+        {
+          "id": "phone",
+          "type": "phone",
+          "background": "white",
+          "padding": [0, 0],
+          "gap": 0,
+          "statusBar": true,
+          "screen": "onboarding",
+          "screens": {
+            "onboarding": [
+              {
+                "id": "onboarding-header",
+                "type": "text",
+                "role": "title",
+                "content": "What's your goal?",
+                "style": {
+                  "color": "navy",
+                  "weight": 700,
+                  "align": "center"
+                },
+                "layout": {
+                  "anchor": "top",
+                  "inset": [60, 20],
+                  "width": 320
+                },
+                "enter": "none"
+              },
+              {
+                "id": "strength-btn",
+                "type": "button",
+                "label": "Build Strength",
+                "variant": "solid",
+                "style": {
+                  "fill": "accent",
+                  "color": "white"
+                },
+                "layout": {
+                  "below": "onboarding-header",
+                  "gap": 40,
+                  "align": "center",
+                  "width": 280
+                },
+                "enter": "none",
+                "states": {
+                  "selected": {
+                    "style": {
+                      "fill": "navy"
+                    },
+                    "label": "✓ Build Strength"
+                  }
+                }
+              },
+              {
+                "id": "cardio-btn",
+                "type": "button",
+                "label": "Improve Cardio",
+                "variant": "outline",
+                "style": {
+                  "stroke": "mute",
+                  "color": "mute"
+                },
+                "layout": {
+                  "below": "strength-btn",
+                  "gap": 16,
+                  "align": "center",
+                  "width": 280
+                },
+                "enter": "none"
+              },
+              {
+                "id": "continue-btn",
+                "type": "button",
+                "label": "Continue",
+                "variant": "solid",
+                "style": {
+                  "fill": "navy",
+                  "color": "white"
+                },
+                "layout": {
+                  "anchor": "bottom",
+                  "inset": [60, 0],
+                  "width": 280
+                },
+                "enter": "none"
+              }
+            ],
+            "home": [
+              {
+                "id": "home-header",
+                "type": "text",
+                "role": "label",
+                "content": "TODAY'S WORKOUT",
+                "style": {
+                  "color": "mute"
+                },
+                "layout": {
+                  "anchor": "top",
+                  "inset": [40, 24],
+                  "width": 320
+                },
+                "enter": "none"
+              },
+              {
+                "id": "workout-card",
+                "type": "group",
+                "layout": {
+                  "below": "home-header",
+                  "gap": 32,
+                  "align": "center",
+                  "width": 320
+                },
+                "style": {
+                  "fill": "navy/0.08",
+                  "radius": 20,
+                  "padding": [32, 24]
+                },
+                "enter": "none",
+                "children": [
+                  {
+                    "id": "workout-title",
+                    "type": "text",
+                    "role": "subtitle",
+                    "content": "Strength Training",
+                    "style": {
+                      "color": "navy",
+                      "weight": 700,
+                      "align": "center"
+                    },
+                    "enter": "none"
+                  },
+                  {
+                    "id": "workout-duration",
+                    "type": "text",
+                    "role": "body",
+                    "content": "45 min • 8 exercises",
+                    "style": {
+                      "color": "mute",
+                      "align": "center"
+                    },
+                    "enter": "none"
+                  },
+                  {
+                    "id": "start-btn",
+                    "type": "button",
+                    "label": "Start Now",
+                    "variant": "solid",
+                    "style": {
+                      "fill": "accent",
+                      "color": "white"
+                    },
+                    "layout": {
+                      "width": 240
+                    },
+                    "enter": "none"
+                  }
+                ]
+              }
+            ]
+          },
+          "layout": {
+            "anchor": "center",
+            "width": 380,
+            "height": 740
+          },
+          "enter": {
+            "preset": "fadeUp",
+            "duration": 0.6
+          }
+        }
+      ],
+      "timeline": [
+        {
+          "id": "select-goal",
+          "behavior": "interaction",
+          "target": "phone",
+          "at": 1.0,
+          "cursor": "touch",
+          "from": "bottom-right",
+          "pace": "normal",
+          "steps": [
+            {
+              "id": "tap-strength",
+              "click": "strength-btn",
+              "set": {
+                "strength-btn": "selected"
+              }
+            },
+            {
+              "wait": 0.3
+            },
+            {
+              "id": "tap-continue",
+              "click": "continue-btn"
+            }
+          ]
+        },
+        {
+          "id": "navigate-home",
+          "behavior": "navigate",
+          "target": "phone",
+          "navigate": "home",
+          "at": "tap-continue.end+0.15",
+          "transition": "push"
+        },
+        {
+          "id": "scroll-to-workout",
+          "behavior": "scroll",
+          "target": "phone",
+          "to": "workout-card",
+          "at": "navigate-home.end+0.4",
+          "duration": 0.8
+        }
+      ]
+    }
+  ],
+  "notes": [
+    "INVENTED: Second goal option 'Improve Cardio' — brief specified picking 'Build strength' but didn't name alternative options",
+    "INVENTED: Workout details '45 min • 8 exercises' and 'Strength Training' — brief said 'scrolls to today's workout' but no specific content",
+    "INVENTED: 'Start Now' button inside workout card — brief showed interaction and scroll but no final CTA on home screen",
+    "INVENTED: Color palette (navy, accent red, light gray) — brief said 'clean and snappy' with no color guidance",
+    "GUESSED: 'Space Grotesk' display font — felt snappy and modern for a fitness app per reference bundled fonts",
+    "GUESSED: Phone dimensions 380×740 — logical screen per reference is 390×844, but adjusted to fit canvas with safe zone and visual balance",
+    "GUESSED: Button state for selected goal changes fill to navy and adds checkmark — typical mobile UX pattern; automatic state animation applies per reference §9.5",
+    "GUESSED: Interaction pace 'normal' — brief said 'snappy' but didn't specify cursor speed; reference paces are slow/normal/fast with defined move/press/type times",
+    "GUESSED: Group container for workout card with padding and radius — provides visual containment but adds a layer not explicitly in brief",
+    "GUESSED: Set `enter: 'none'` on all screen children — they appear when screen loads; adding individual enters would complicate timing within the phone's logical pixel context",
+    "MISSING: Icons for goal types (strength vs. cardio) or workout details — would improve visual clarity but reference doesn't prescribe where/how",
+    "MISSING: Animation for the state change of strength-btn — reference §9.5 says state changes animate automatically (colors blend), but exact duration and easing applied by engine",
+    "HARD PARTS: Timing the interaction → navigate → scroll sequence; had to understand interaction step timing (move, press, release total) to compute when navigate could start. Using 'tap-continue.end+0.15' required estimating that the press step takes ~0.18s (per normal pace in reference), plus accounting for cursor fade-out delay. Phone screen logical pixels vs. canvas pixels also required attention: padding/gap/layout all in logical 390×844, not canvas pixels"
+  ]
+}

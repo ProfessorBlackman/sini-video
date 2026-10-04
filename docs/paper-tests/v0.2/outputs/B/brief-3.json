@@ -1,0 +1,237 @@
+{
+  "version": "0.2",
+  "video": { "format": "9:16", "fps": 30, "background": "ink", "seed": 3 },
+  "theme": {
+    "palette": {
+      "ink": "#0E0F12",
+      "slate": "#1C1F26",
+      "line": "#2C303A",
+      "chalk": "#F4F5F0",
+      "mist": "#8A90A0",
+      "volt": "#C6F432"
+    },
+    "fonts": { "display": "Space Grotesk", "body": "Manrope" },
+    "motion": "snappy",
+    "transition": { "type": "slide", "direction": "left", "push": true, "duration": 0.45, "ease": "expo.inOut" },
+    "texture": { "grain": 0.03, "vignette": 0.15 }
+  },
+  "assets": {
+    "activity-chart": { "type": "placeholder", "hint": "weekly activity bar chart, 7 bars, lime on dark", "color": "slate" },
+    "workout-photo": { "type": "placeholder", "hint": "athlete doing a dumbbell press, moody gym lighting", "color": "line" },
+    "next-photo": { "type": "placeholder", "hint": "mobility / stretching session thumbnail", "color": "slate" }
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "duration": 2.5,
+      "background": { "radial": ["slate", "ink"] },
+      "elements": [
+        { "id": "wordmark", "type": "text", "role": "display", "content": "pulse",
+          "style": { "color": "chalk", "size": 220, "align": "center", "letterSpacing": -0.04 },
+          "layout": { "anchor": "center", "offset": [0, -60] },
+          "enter": { "preset": "charReveal", "at": 0.15, "stagger": 0.05 } },
+        { "id": "wordmark-dot", "type": "shape", "shape": "circle",
+          "style": { "fill": "volt" },
+          "layout": { "rightOf": "wordmark", "gap": 10, "align": "end", "width": 40, "height": 40, "offset": [0, -30] },
+          "enter": { "preset": "popIn", "at": "wordmark.enter.end-0.1" } },
+        { "id": "tagline", "type": "text", "role": "subtitle", "content": "Train *smarter.*",
+          "style": { "color": "mist", "align": "center" },
+          "layout": { "below": "wordmark", "gap": 28, "align": "center" },
+          "enter": { "preset": "wordReveal", "at": "wordmark-dot.enter.start+0.1" } }
+      ],
+      "timeline": [
+        { "target": "wordmark-dot", "preset": "pulse", "scale": 1.25, "every": 0.6, "at": "wordmark-dot.enter.end" }
+      ]
+    },
+    {
+      "id": "onboarding",
+      "duration": 4.5,
+      "background": "chalk",
+      "elements": [
+        { "id": "ob-headline", "type": "text", "role": "title", "content": "Pick a goal.\n*One tap.*",
+          "style": { "color": "ink" },
+          "layout": { "anchor": "top-left", "inset": [150, 72] },
+          "enter": { "preset": "wordReveal", "at": 0.1 } },
+        { "id": "ob-phone", "type": "phone", "chrome": "dark",
+          "layout": { "anchor": "bottom", "inset": [118, 0], "width": 620 },
+          "style": { "shadow": "deep" },
+          "enter": { "preset": "slideIn", "from": "down", "at": 0.15, "duration": 0.6 },
+          "children": [
+            { "id": "ob-screen", "type": "group",
+              "layout": { "width": "100%", "height": "100%" },
+              "children": [
+                { "id": "ob-bg", "type": "shape", "shape": "rect",
+                  "layout": { "anchor": "center", "width": "100%", "height": "100%" },
+                  "style": { "fill": "ink" } },
+                { "id": "ob-steps", "type": "progress",
+                  "steps": ["Profile", "Goal", "Plan"], "value": 1,
+                  "layout": { "anchor": "top-left", "inset": [96, 40], "width": "86%" },
+                  "style": { "fill": "volt", "color": "mist" } },
+                { "id": "ob-title", "type": "text", "role": "subtitle", "content": "What's your\nmain goal?",
+                  "style": { "color": "chalk", "size": 56 },
+                  "layout": { "below": "ob-steps", "gap": 64 } },
+                { "id": "ob-sub", "type": "text", "role": "caption", "content": "We'll build your plan around it.",
+                  "style": { "color": "mist" },
+                  "layout": { "below": "ob-title", "gap": 16 } },
+                { "id": "ob-goals", "type": "stack", "direction": "vertical", "gap": 18, "align": "stretch",
+                  "layout": { "below": "ob-sub", "gap": 48, "width": "86%" },
+                  "children": [
+                    { "id": "goal-lose", "type": "button", "variant": "outline", "label": "Lose weight",
+                      "style": { "color": "chalk", "stroke": "line", "radius": 20 } },
+                    { "id": "goal-strength", "type": "button", "variant": "outline", "label": "Build strength",
+                      "style": { "color": "chalk", "stroke": "line", "radius": 20 },
+                      "states": { "selected": { "label": "Build strength  ✓", "style": { "fill": "volt", "color": "ink", "stroke": "volt" } } } },
+                    { "id": "goal-endurance", "type": "button", "variant": "outline", "label": "Improve endurance",
+                      "style": { "color": "chalk", "stroke": "line", "radius": 20 } },
+                    { "id": "goal-move", "type": "button", "variant": "outline", "label": "Just move more",
+                      "style": { "color": "chalk", "stroke": "line", "radius": 20 } }
+                  ] },
+                { "id": "ob-continue", "type": "button", "variant": "solid", "label": "Continue",
+                  "layout": { "anchor": "bottom", "inset": [72, 0], "width": "86%" },
+                  "style": { "fill": "slate", "color": "mist", "radius": 20 },
+                  "states": {
+                    "ready": { "style": { "fill": "volt", "color": "ink" } },
+                    "pressed": { "label": "Building your plan…", "style": { "fill": "volt", "color": "ink", "scale": 0.97 } }
+                  } }
+              ] }
+          ] }
+      ],
+      "timeline": [
+        { "target": "ob-goals", "preset": "fadeUp", "distance": 24, "stagger": 0.06, "at": "ob-phone.enter.end-0.15" },
+        { "id": "ob-tap", "behavior": "interaction", "cursor": "touch", "from": "bottom-right", "at": 1.5,
+          "steps": [
+            { "click": "goal-strength", "set": { "goal-strength": "selected", "ob-continue": "ready" } },
+            { "wait": 0.35 },
+            { "click": "ob-continue", "set": { "ob-continue": "pressed" } }
+          ] },
+        { "target": "ob-steps", "at": "ob-tap.end-0.1", "duration": 0.4, "animate": { "value": [1, 2] } }
+      ]
+    },
+    {
+      "id": "home",
+      "duration": 5,
+      "background": "chalk",
+      "elements": [
+        { "id": "home-headline", "type": "text", "role": "title", "content": "Today's workout,\n*ready.*",
+          "style": { "color": "ink" },
+          "layout": { "anchor": "top-left", "inset": [150, 72] },
+          "enter": { "preset": "wordReveal", "at": 0.2 } },
+        { "id": "home-phone", "type": "phone", "chrome": "dark",
+          "layout": { "anchor": "bottom", "inset": [118, 0], "width": 620 },
+          "style": { "shadow": "deep" },
+          "children": [
+            { "id": "h-header", "type": "group", "layout": { "height": 300 }, "style": { "fill": "ink" },
+              "children": [
+                { "id": "h-hello", "type": "text", "role": "label", "content": "Good morning",
+                  "style": { "color": "mist" },
+                  "layout": { "anchor": "top-left", "inset": [100, 40] } },
+                { "id": "h-name", "type": "text", "role": "subtitle", "content": "Ready, Kofi?",
+                  "style": { "color": "chalk", "size": 56 },
+                  "layout": { "below": "h-hello", "gap": 12 } },
+                { "id": "h-goal", "type": "button", "variant": "outline", "label": "Goal · Build strength",
+                  "style": { "color": "volt", "stroke": "volt/0.5", "size": 22 },
+                  "layout": { "below": "h-name", "gap": 20 } }
+              ] },
+            { "id": "h-stats-wrap", "type": "group", "layout": { "height": 220 }, "style": { "fill": "ink" },
+              "children": [
+                { "id": "h-stats", "type": "grid", "columns": 3, "gap": 12,
+                  "layout": { "anchor": "top-left", "inset": [0, 40], "width": "86%" },
+                  "children": [
+                    { "id": "stat-streak", "type": "group", "layout": { "height": 180 },
+                      "children": [
+                        { "id": "stat-streak-bg", "type": "shape", "shape": "rect", "layout": { "anchor": "center", "width": "100%", "height": "100%" }, "style": { "fill": "slate", "radius": 24 } },
+                        { "id": "stat-streak-num", "type": "text", "role": "subtitle", "content": "4", "style": { "color": "volt", "size": 52 }, "layout": { "anchor": "top-left", "inset": [28, 22] } },
+                        { "id": "stat-streak-cap", "type": "text", "role": "caption", "content": "day streak", "style": { "color": "mist", "size": 20 }, "layout": { "below": "stat-streak-num", "gap": 6 } }
+                      ] },
+                    { "id": "stat-kcal", "type": "group", "layout": { "height": 180 },
+                      "children": [
+                        { "id": "stat-kcal-bg", "type": "shape", "shape": "rect", "layout": { "anchor": "center", "width": "100%", "height": "100%" }, "style": { "fill": "slate", "radius": 24 } },
+                        { "id": "stat-kcal-num", "type": "text", "role": "subtitle", "content": "3.2k", "style": { "color": "chalk", "size": 52 }, "layout": { "anchor": "top-left", "inset": [28, 22] } },
+                        { "id": "stat-kcal-cap", "type": "text", "role": "caption", "content": "kcal this week", "style": { "color": "mist", "size": 20 }, "layout": { "below": "stat-kcal-num", "gap": 6 } }
+                      ] },
+                    { "id": "stat-recovery", "type": "group", "layout": { "height": 180 },
+                      "children": [
+                        { "id": "stat-recovery-bg", "type": "shape", "shape": "rect", "layout": { "anchor": "center", "width": "100%", "height": "100%" }, "style": { "fill": "slate", "radius": 24 } },
+                        { "id": "stat-recovery-num", "type": "text", "role": "subtitle", "content": "86%", "style": { "color": "chalk", "size": 52 }, "layout": { "anchor": "top-left", "inset": [28, 22] } },
+                        { "id": "stat-recovery-cap", "type": "text", "role": "caption", "content": "recovery", "style": { "color": "mist", "size": 20 }, "layout": { "below": "stat-recovery-num", "gap": 6 } }
+                      ] }
+                  ] }
+              ] },
+            { "id": "h-week", "type": "group", "layout": { "height": 400 }, "style": { "fill": "ink" },
+              "children": [
+                { "id": "h-week-label", "type": "text", "role": "label", "content": "This week",
+                  "style": { "color": "mist" },
+                  "layout": { "anchor": "top-left", "inset": [24, 40] } },
+                { "id": "h-week-chart", "type": "image", "asset": "activity-chart", "fit": "cover",
+                  "style": { "radius": 24 },
+                  "layout": { "below": "h-week-label", "gap": 20, "width": "86%", "height": 300 } }
+              ] },
+            { "id": "h-today", "type": "group", "layout": { "height": 680 }, "style": { "fill": "ink" },
+              "children": [
+                { "id": "h-today-label", "type": "text", "role": "label", "content": "Today's workout",
+                  "style": { "color": "volt" },
+                  "layout": { "anchor": "top-left", "inset": [24, 40] } },
+                { "id": "h-card", "type": "group",
+                  "layout": { "below": "h-today-label", "gap": 20, "width": "86%", "height": 580 },
+                  "children": [
+                    { "id": "h-card-bg", "type": "shape", "shape": "rect",
+                      "layout": { "anchor": "center", "width": "100%", "height": "100%" },
+                      "style": { "fill": "volt", "radius": 32 } },
+                    { "id": "h-card-photo", "type": "image", "asset": "workout-photo", "fit": "cover", "focus": [50, 40],
+                      "style": { "radius": 24 },
+                      "layout": { "anchor": "top", "inset": [16, 0], "width": "94%", "height": 250 } },
+                    { "id": "h-card-title", "type": "text", "role": "subtitle", "content": "Upper Body\nPower",
+                      "style": { "color": "ink", "size": 54 },
+                      "layout": { "below": "h-card-photo", "gap": 24, "offset": [14, 0] } },
+                    { "id": "h-card-meta", "type": "text", "role": "caption", "content": "45 min · 6 exercises · Intermediate",
+                      "style": { "color": "ink/0.7", "size": 22 },
+                      "layout": { "below": "h-card-title", "gap": 10 } },
+                    { "id": "h-start", "type": "button", "variant": "solid", "label": "Start workout",
+                      "style": { "fill": "ink", "color": "volt", "radius": 999 },
+                      "layout": { "anchor": "bottom-left", "inset": [28, 28] },
+                      "states": { "started": { "label": "Let's go  ▶", "style": { "fill": "slate" } } } }
+                  ] }
+              ] },
+            { "id": "h-next", "type": "group", "layout": { "height": 420 }, "style": { "fill": "ink" },
+              "children": [
+                { "id": "h-next-label", "type": "text", "role": "label", "content": "Up next",
+                  "style": { "color": "mist" },
+                  "layout": { "anchor": "top-left", "inset": [24, 40] } },
+                { "id": "h-next-img", "type": "image", "asset": "next-photo", "fit": "cover",
+                  "style": { "radius": 24 },
+                  "layout": { "below": "h-next-label", "gap": 20, "width": "86%", "height": 300 } }
+              ] }
+          ] }
+      ],
+      "timeline": [
+        { "id": "h-scroll", "behavior": "scroll", "target": "home-phone", "to": "h-card", "at": 1.3, "duration": 0.8, "ease": "expo.inOut" },
+        { "target": "h-card", "at": "h-scroll.end+0.05", "duration": 0.5, "ease": "cubic.inOut", "animate": { "scale": [1, 1.03, 1] } },
+        { "id": "h-tap", "behavior": "interaction", "cursor": "touch", "from": "bottom-right", "at": "h-scroll.end+0.6",
+          "steps": [ { "click": "h-start", "set": { "h-start": "started" } } ] }
+      ]
+    },
+    {
+      "id": "outro",
+      "duration": 3,
+      "background": "volt",
+      "transition": { "type": "circle", "origin": "h-start", "duration": 0.5, "ease": "expo.inOut" },
+      "elements": [
+        { "id": "outro-line", "type": "text", "role": "display", "content": "Train with\n*intent.*",
+          "style": { "color": "ink", "align": "center" },
+          "layout": { "anchor": "center", "offset": [0, -160] },
+          "enter": { "preset": "wordReveal", "at": 0.2 } },
+        { "id": "outro-brand", "type": "text", "role": "subtitle", "content": "pulse",
+          "style": { "color": "ink", "align": "center", "weight": 700 },
+          "layout": { "below": "outro-line", "gap": 48, "align": "center" },
+          "enter": "fadeUp" },
+        { "id": "outro-cta", "type": "button", "variant": "solid", "label": "Get Pulse",
+          "style": { "fill": "ink", "color": "volt", "radius": 999 },
+          "layout": { "below": "outro-brand", "gap": 64, "align": "center" },
+          "enter": "popIn" }
+      ],
+      "timeline": [
+        { "target": "outro-cta", "preset": "pulse", "scale": 1.05, "every": 0.8, "at": "outro-cta.enter.end" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,199 @@
+{
+  "version": "0.2",
+  "video": { "format": "16:9", "fps": 30, "background": "ink", "seed": 1 },
+  "theme": {
+    "palette": {
+      "ink": "#0F172A",
+      "night": "#1E1B4B",
+      "slate": "#334155",
+      "mute": "#94A3B8",
+      "paper": "#F8FAFC",
+      "indigo": "#4F46E5",
+      "mint": "#34D399",
+      "white": "#FFFFFF"
+    },
+    "fonts": { "display": "Space Grotesk", "body": "Inter Tight", "mono": "JetBrains Mono" },
+    "motion": "snappy",
+    "transition": { "type": "wipe", "angle": 15, "bar": "indigo", "duration": 0.5 },
+    "texture": { "grain": 0.02, "vignette": 0 }
+  },
+  "assets": {
+    "dashboard": {
+      "type": "image",
+      "src": "assets/dashboard.png",
+      "fallback": { "type": "placeholder", "hint": "Ledgerly invoicing dashboard: invoice list, totals, Export PDF button top-right", "color": "paper" }
+    }
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "duration": 3.5,
+      "background": { "linear": ["ink", "night"], "angle": 135 },
+      "elements": [
+        { "id": "intro-mark", "type": "text", "role": "display",
+          "content": "Ledgerly",
+          "style": { "color": "white", "size": 240, "align": "center", "letterSpacing": -0.03 },
+          "layout": { "anchor": "center", "offset": [0, -60] },
+          "enter": { "preset": "charReveal", "at": 0.2, "stagger": 0.05 } },
+        { "id": "intro-sub", "type": "text", "role": "subtitle",
+          "content": "Invoicing, minus the busywork.",
+          "style": { "color": "mute", "align": "center" },
+          "layout": { "below": "intro-mark", "gap": 28, "align": "center" },
+          "enter": { "preset": "fadeUp", "at": 0.8, "distance": 24 } }
+      ],
+      "timeline": [
+        { "target": "intro-mark", "at": 1.2, "duration": 2.3, "ease": "cubic.inOut", "animate": { "scale": [1, 1.04] } }
+      ]
+    },
+    {
+      "id": "demo",
+      "duration": 8.5,
+      "background": "paper",
+      "elements": [
+        { "id": "stage", "type": "group",
+          "layout": { "anchor": "center", "width": "100%", "height": "100%" },
+          "children": [
+            { "id": "demo-title", "type": "text", "role": "title",
+              "content": "Every invoice.\n*One dashboard.*",
+              "style": { "color": "ink", "size": 84 },
+              "layout": { "anchor": "top-left", "inset": [300, 110], "maxWidth": 520 },
+              "enter": { "preset": "lineReveal", "at": 0.2 } },
+            { "id": "demo-sub", "type": "text", "role": "body",
+              "content": "Create, send and track every invoice.",
+              "style": { "color": "slate", "size": 34 },
+              "layout": { "below": "demo-title", "gap": 32, "maxWidth": 480 },
+              "enter": { "preset": "fadeUp", "at": 0.9, "distance": 20 } },
+            { "id": "app-wrap", "type": "group",
+              "layout": { "x": 680, "y": 184, "width": 1140, "height": 712 },
+              "enter": { "preset": "fadeUp", "at": 0.35, "duration": 0.8, "distance": 60 },
+              "children": [
+                { "id": "app", "type": "browser", "url": "ledgerly.app/dashboard",
+                  "content": "dashboard", "chrome": "light",
+                  "layout": { "x": 0, "y": 0, "width": "100%", "height": "100%" },
+                  "style": { "radius": 16, "shadow": "deep" } },
+                { "id": "export-btn", "type": "button", "variant": "solid",
+                  "label": "Export PDF",
+                  "layout": { "x": 916, "y": 78, "width": 184, "height": 52 },
+                  "style": { "fill": "indigo", "color": "white", "radius": 10 },
+                  "states": {
+                    "loading": { "label": "Exporting…", "style": { "fill": "indigo/0.7" } },
+                    "done": { "label": "Exported ✓", "style": { "fill": "mint", "color": "ink" } }
+                  } },
+                { "id": "toast", "type": "group",
+                  "layout": { "x": 680, "y": 576, "width": 420, "height": 96 },
+                  "enter": { "preset": "slideIn", "from": "down", "distance": 40, "at": 5.9, "duration": 0.45 },
+                  "children": [
+                    { "id": "toast-bg", "type": "shape", "shape": "rect",
+                      "layout": { "x": 0, "y": 0, "width": "100%", "height": "100%" },
+                      "style": { "fill": "ink", "radius": 16, "shadow": "soft" } },
+                    { "id": "toast-icon", "type": "group",
+                      "layout": { "anchor": "left", "inset": [0, 24], "width": 48, "height": 48 },
+                      "children": [
+                        { "id": "toast-icon-bg", "type": "shape", "shape": "circle",
+                          "layout": { "anchor": "center", "width": "100%", "height": "100%" },
+                          "style": { "fill": "mint" } },
+                        { "id": "toast-icon-check", "type": "text", "role": "body",
+                          "content": "✓",
+                          "style": { "color": "ink", "size": 28, "weight": 700, "align": "center" },
+                          "layout": { "anchor": "center" } }
+                      ] },
+                    { "id": "toast-title", "type": "text", "role": "body",
+                      "content": "PDF exported",
+                      "style": { "color": "white", "size": 28, "weight": 600 },
+                      "layout": { "anchor": "top-left", "inset": [18, 92] } },
+                    { "id": "toast-meta", "type": "text", "role": "caption",
+                      "content": "INV-2041.pdf saved to Downloads",
+                      "style": { "color": "mute", "size": 22 },
+                      "layout": { "below": "toast-title", "gap": 4 } }
+                  ] }
+              ] }
+          ] }
+      ],
+      "timeline": [
+        { "behavior": "camera", "target": "stage", "ease": "expo.inOut",
+          "keys": [
+            { "at": 0, "focus": "center", "zoom": 1 },
+            { "at": 2.9, "focus": "center", "zoom": 1 },
+            { "at": 3.6, "focus": "export-btn", "zoom": 1.8 },
+            { "at": 5.2, "focus": "export-btn", "zoom": 1.8 },
+            { "at": 5.8, "focus": "center", "zoom": 1 }
+          ] },
+        { "id": "export-click", "behavior": "interaction", "at": 3.7, "cursor": "pointer", "from": "bottom-right", "pace": "normal",
+          "steps": [
+            { "click": "export-btn", "set": { "export-btn": "loading" } }
+          ] },
+        { "target": "export-btn", "state": "done", "at": 5.0 }
+      ]
+    },
+    {
+      "id": "features",
+      "duration": 4,
+      "background": "ink",
+      "elements": [
+        { "id": "feat-title", "type": "text", "role": "title",
+          "content": "Branded PDFs.\n*In one click.*",
+          "style": { "color": "white", "size": 96 },
+          "layout": { "anchor": "top-left", "inset": [150, 160] },
+          "enter": { "preset": "lineReveal", "at": 0.3 } },
+        { "id": "feat-grid", "type": "grid", "columns": 3, "gap": 32,
+          "layout": { "below": "feat-title", "gap": 88, "width": 1600 },
+          "children": [
+            { "id": "card-1", "type": "group", "layout": { "height": 240 },
+              "enter": { "preset": "fadeUp", "at": 1.0, "distance": 60, "duration": 0.6 },
+              "children": [
+                { "id": "card-1-bg", "type": "shape", "shape": "rect",
+                  "layout": { "x": 0, "y": 0, "width": "100%", "height": "100%" },
+                  "style": { "fill": "white/0.06", "stroke": "white/0.14", "strokeWidth": 2, "radius": 24 } },
+                { "id": "card-1-num", "type": "text", "role": "mono", "content": "01",
+                  "style": { "color": "mint" }, "layout": { "anchor": "top-left", "inset": [36, 40] } },
+                { "id": "card-1-text", "type": "text", "role": "body", "content": "Auto-numbered invoices",
+                  "style": { "color": "white" }, "layout": { "anchor": "bottom-left", "inset": [40, 40], "maxWidth": 420 } }
+              ] },
+            { "id": "card-2", "type": "group", "layout": { "height": 240 },
+              "enter": { "preset": "fadeUp", "at": 1.12, "distance": 60, "duration": 0.6 },
+              "children": [
+                { "id": "card-2-bg", "type": "shape", "shape": "rect",
+                  "layout": { "x": 0, "y": 0, "width": "100%", "height": "100%" },
+                  "style": { "fill": "white/0.06", "stroke": "white/0.14", "strokeWidth": 2, "radius": 24 } },
+                { "id": "card-2-num", "type": "text", "role": "mono", "content": "02",
+                  "style": { "color": "mint" }, "layout": { "anchor": "top-left", "inset": [36, 40] } },
+                { "id": "card-2-text", "type": "text", "role": "body", "content": "Your logo, your colours",
+                  "style": { "color": "white" }, "layout": { "anchor": "bottom-left", "inset": [40, 40], "maxWidth": 420 } }
+              ] },
+            { "id": "card-3", "type": "group", "layout": { "height": 240 },
+              "enter": { "preset": "fadeUp", "at": 1.24, "distance": 60, "duration": 0.6 },
+              "children": [
+                { "id": "card-3-bg", "type": "shape", "shape": "rect",
+                  "layout": { "x": 0, "y": 0, "width": "100%", "height": "100%" },
+                  "style": { "fill": "white/0.06", "stroke": "white/0.14", "strokeWidth": 2, "radius": 24 } },
+                { "id": "card-3-num", "type": "text", "role": "mono", "content": "03",
+                  "style": { "color": "mint" }, "layout": { "anchor": "top-left", "inset": [36, 40] } },
+                { "id": "card-3-text", "type": "text", "role": "body", "content": "Send or download",
+                  "style": { "color": "white" }, "layout": { "anchor": "bottom-left", "inset": [40, 40], "maxWidth": 420 } }
+              ] }
+          ] }
+      ]
+    },
+    {
+      "id": "outro",
+      "duration": 4,
+      "background": { "radial": ["indigo", "night"] },
+      "transition": { "type": "circle", "origin": "center", "duration": 0.6 },
+      "elements": [
+        { "id": "outro-line", "type": "text", "role": "display",
+          "content": "Start free at\n*ledgerly.app*",
+          "style": { "color": "white", "align": "center" },
+          "layout": { "anchor": "center", "offset": [0, -60] },
+          "enter": { "preset": "lineReveal", "at": 0.3 } },
+        { "id": "outro-btn", "type": "button", "variant": "solid",
+          "label": "Start free",
+          "style": { "fill": "mint", "color": "ink", "radius": 999 },
+          "layout": { "below": "outro-line", "gap": 64, "align": "center" },
+          "enter": { "preset": "popIn", "at": 1.0 } }
+      ],
+      "timeline": [
+        { "target": "outro-btn", "preset": "pulse", "at": 1.6, "scale": 1.05, "every": 0.9 }
+      ]
+    }
+  ]
+}

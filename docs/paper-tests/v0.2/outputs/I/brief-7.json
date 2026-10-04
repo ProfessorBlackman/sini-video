@@ -1,0 +1,152 @@
+{
+  "version": "0.2",
+  "video": { "format": "9:16", "fps": 30, "background": "#F5F5F5" },
+  "theme": {
+    "palette": {
+      "primary": "#FF6B35",
+      "bg": "#FFFFFF",
+      "text": "#1a1a1a",
+      "accent": "#4CAF50"
+    },
+    "fonts": { "display": "Inter Tight", "body": "Inter Tight" },
+    "motion": "snappy"
+  },
+  "assets": {
+    "jollof": { "type": "placeholder", "hint": "jollof rice dish, appetizing flat lay", "color": "primary" }
+  },
+  "scenes": [
+    {
+      "id": "menu",
+      "duration": 5,
+      "background": "bg",
+      "elements": [
+        {
+          "id": "phone",
+          "type": "phone",
+          "layout": { "anchor": "center", "width": "85%" },
+          "children": [
+            {
+              "id": "header",
+              "type": "text",
+              "role": "title",
+              "content": "Chop Express",
+              "style": { "color": "primary", "align": "center" }
+            },
+            {
+              "id": "dish-img",
+              "type": "image",
+              "asset": "jollof",
+              "layout": { "height": 280 }
+            },
+            {
+              "id": "dish-name",
+              "type": "text",
+              "role": "subtitle",
+              "content": "Jollof Rice",
+              "style": { "color": "text", "align": "center" }
+            },
+            {
+              "id": "dish-price",
+              "type": "text",
+              "role": "body",
+              "content": "GH₵ 25.00",
+              "style": { "color": "text", "align": "center" }
+            },
+            {
+              "id": "add-btn",
+              "type": "button",
+              "label": "Add to cart",
+              "variant": "solid",
+              "style": { "fill": "primary", "color": "bg" },
+              "states": {
+                "added": {
+                  "label": "Added ✓",
+                  "style": { "fill": "accent" }
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "behavior": "interaction",
+          "at": 2,
+          "cursor": "touch",
+          "steps": [
+            { "click": "add-btn", "set": { "add-btn": "added" } }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tracking",
+      "duration": 6,
+      "background": "bg",
+      "transition": { "type": "crossfade", "duration": 0.5 },
+      "elements": [
+        {
+          "id": "track-title",
+          "type": "text",
+          "role": "title",
+          "content": "Order Status",
+          "style": { "color": "text", "align": "center" },
+          "layout": { "anchor": "top", "inset": [80, 0] },
+          "enter": "fadeIn"
+        },
+        {
+          "id": "progress",
+          "type": "progress",
+          "steps": ["Ordered", "Cooking", "On the way", "Delivered"],
+          "value": 0,
+          "style": { "fill": "primary", "color": "text" },
+          "layout": { "below": "track-title", "gap": 80, "width": "80%", "align": "center" }
+        }
+      ],
+      "timeline": [
+        {
+          "target": "progress",
+          "at": 0.8,
+          "duration": 4.5,
+          "ease": "cubic.inOut",
+          "animate": { "value": [0, 3] }
+        }
+      ]
+    },
+    {
+      "id": "cta",
+      "duration": 4,
+      "background": "bg",
+      "transition": { "type": "crossfade", "duration": 0.3 },
+      "elements": [
+        {
+          "id": "cta-text",
+          "type": "text",
+          "role": "subtitle",
+          "content": "Ready to order?",
+          "style": { "color": "text", "align": "center" },
+          "layout": { "anchor": "top", "inset": [240, 0] },
+          "enter": "fadeUp"
+        },
+        {
+          "id": "order-btn",
+          "type": "button",
+          "label": "Order now",
+          "variant": "solid",
+          "layout": { "anchor": "center", "offset": [0, 200] },
+          "style": { "fill": "primary", "color": "bg" },
+          "enter": "scaleIn"
+        }
+      ],
+      "timeline": [
+        {
+          "target": "order-btn",
+          "preset": "pulse",
+          "at": 0.5,
+          "scale": 1.08,
+          "every": 0.8
+        }
+      ]
+    }
+  ]
+}

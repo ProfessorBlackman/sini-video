@@ -1,0 +1,161 @@
+{
+  "version": "0.3",
+  "video": {
+    "format": "9:16",
+    "fps": 30,
+    "background": "ink",
+    "safeZone": "reels",
+    "end": { "type": "fade", "duration": 0.5, "color": "ink" }
+  },
+  "theme": {
+    "palette": {
+      "ink": "#0B0A08",
+      "coal": "#1A1712",
+      "gold": "#C9A45C",
+      "gilt": "#E8D3A2",
+      "bone": "#F2ECDF",
+      "mute": "#8F8576"
+    },
+    "fonts": { "display": "Instrument Serif", "body": "Inter Tight" },
+    "motion": "calm",
+    "transition": { "type": "crossfade", "duration": 0.7, "ease": "sine.inOut" },
+    "texture": { "grain": 0.05, "vignette": 0.45 }
+  },
+  "scenes": [
+    {
+      "id": "simplicity",
+      "duration": 2.4,
+      "background": { "radial": ["coal", "ink"] },
+      "elements": [
+        {
+          "id": "w-simplicity",
+          "type": "text",
+          "role": "display",
+          "content": "Simplicity",
+          "style": { "color": "bone", "align": "center", "size": 170 },
+          "layout": { "anchor": "center", "offset": [0, -30] },
+          "fit": "shrink",
+          "maxLines": 1,
+          "enter": { "preset": "charReveal", "at": 0.2, "duration": 0.8, "stagger": 0.05 }
+        },
+        {
+          "id": "rule-top",
+          "type": "shape",
+          "shape": "line",
+          "layout": { "below": "w-simplicity", "gap": 56, "align": "center", "width": 140 },
+          "style": { "stroke": "gold", "strokeWidth": 2 },
+          "enter": { "preset": "wipeIn", "from": "left", "at": "w-simplicity.enter.end-0.4", "duration": 0.9 }
+        }
+      ],
+      "timeline": [
+        { "target": "w-simplicity", "preset": "drift", "y": -24, "scale": 1.03, "at": 0.2 }
+      ]
+    },
+    {
+      "id": "ultimate",
+      "duration": 3.4,
+      "background": { "radial": ["coal", "ink"] },
+      "elements": [
+        {
+          "id": "phrase",
+          "type": "stack",
+          "direction": "vertical",
+          "align": "center",
+          "gap": 28,
+          "layout": { "anchor": "center" },
+          "children": [
+            {
+              "id": "w-is-the",
+              "type": "text",
+              "role": "subtitle",
+              "content": "*is the ultimate*",
+              "style": { "color": "bone/0.75", "align": "center" },
+              "enter": { "preset": "wordReveal", "at": 0.5, "duration": 0.7, "stagger": 0.12 }
+            },
+            {
+              "id": "w-sophistication",
+              "type": "text",
+              "role": "display",
+              "content": "sophistication.",
+              "style": { "color": "gold", "align": "center", "size": 150 },
+              "layout": { "maxWidth": 936 },
+              "fit": "shrink",
+              "maxLines": 1,
+              "enter": { "preset": "trackIn", "from": 0.3, "at": "w-is-the.enter.end-0.3", "duration": 1.3, "ease": "sine.out" }
+            },
+            {
+              "id": "rule-mid",
+              "type": "shape",
+              "shape": "line",
+              "layout": { "width": 220 },
+              "style": { "stroke": "gold/0.7", "strokeWidth": 2 },
+              "enter": { "preset": "wipeIn", "from": "left", "at": "w-sophistication.enter.start+0.5", "duration": 1.0 }
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        { "target": "w-sophistication", "at": "w-sophistication.enter.start", "duration": 1.6, "ease": "sine.inOut",
+          "animate": { "color": ["gilt", "gold"] } },
+        { "target": "phrase", "preset": "drift", "y": -20, "at": 0.3 }
+      ]
+    },
+    {
+      "id": "attribution",
+      "duration": 4.2,
+      "background": { "radial": ["coal", "ink"] },
+      "elements": [
+        {
+          "id": "quote-block",
+          "type": "stack",
+          "direction": "vertical",
+          "align": "center",
+          "gap": 40,
+          "layout": { "anchor": "center", "width": 936 },
+          "children": [
+            {
+              "id": "q-mark",
+              "type": "text",
+              "role": "display",
+              "content": "“",
+              "style": { "color": "gold", "size": 220, "align": "center" },
+              "enter": { "preset": "fadeIn", "at": 0.4, "duration": 1.0 }
+            },
+            {
+              "id": "q-full",
+              "type": "text",
+              "role": "subtitle",
+              "content": "Simplicity is the ultimate\n*sophistication.*",
+              "style": { "color": "bone", "align": "center" },
+              "enter": { "preset": "lineReveal", "at": 0.6, "duration": 0.9, "stagger": 0.12 }
+            },
+            {
+              "id": "q-rule",
+              "type": "shape",
+              "shape": "line",
+              "layout": { "width": 80 },
+              "style": { "stroke": "gold/0.6", "strokeWidth": 2 },
+              "enter": { "preset": "wipeIn", "from": "left", "at": 1.3, "duration": 0.8 }
+            },
+            {
+              "id": "q-author",
+              "type": "text",
+              "role": "label",
+              "content": "— Leonardo da Vinci",
+              "style": { "color": "gold", "align": "center", "letterSpacing": 0.18 },
+              "enter": { "preset": "fadeUp", "at": 1.6, "duration": 0.8, "distance": 20 }
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        { "target": "quote-block", "preset": "drift", "y": -16, "at": 0.4 }
+      ]
+    }
+  ],
+  "notes": [
+    "Text is exactly the quote and attribution from the brief; no other copy was added.",
+    "Scene durations are fixed (2.4 + 3.4 + 4.2 = 10.0s) to hit the requested 10 seconds exactly.",
+    "Palette is my interpretation of 'black and gold' (near-black #0B0A08, gold #C9A45C)."
+  ]
+}

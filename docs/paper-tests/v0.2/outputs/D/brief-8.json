@@ -1,0 +1,179 @@
+{
+  "version": "0.2",
+  "video": { "format": "16:9", "fps": 30, "background": "night", "seed": 8 },
+  "theme": {
+    "palette": {
+      "night": "#0F1B2D",
+      "cream": "#F5EFE3",
+      "sun": "#F2A541",
+      "leaf": "#3E8E6A",
+      "mist": "#8C9AAE",
+      "slate": "#1C2B42"
+    },
+    "fonts": { "display": "Fraunces", "body": "Inter Tight" },
+    "motion": "editorial",
+    "transition": { "type": "wipe", "angle": 12, "bar": "sun", "duration": 0.6 },
+    "texture": { "grain": 0.05, "vignette": 0.2 }
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "duration": 3,
+      "background": { "radial": ["slate", "night"] },
+      "elements": [
+        { "id": "kicker", "type": "text", "role": "label", "content": "Our year in review",
+          "style": { "color": "sun", "size": 28 },
+          "layout": { "anchor": "left", "inset": [0, 160], "offset": [0, -170] },
+          "enter": { "preset": "fadeIn", "at": 0.1 } },
+        { "id": "h-intro", "type": "text", "role": "display", "content": "A year of\n*showing up.*",
+          "style": { "color": "cream" },
+          "layout": { "below": "kicker", "gap": 36 },
+          "enter": { "preset": "wordReveal", "at": 0.2 } },
+        { "id": "intro-rule", "type": "shape", "shape": "line",
+          "style": { "stroke": "sun", "strokeWidth": 3 },
+          "layout": { "below": "h-intro", "gap": 48, "width": 240 },
+          "enter": "wipeIn" }
+      ]
+    },
+    {
+      "id": "meals",
+      "duration": 3.5,
+      "background": "night",
+      "elements": [
+        { "id": "meals-num", "type": "text", "role": "display", "content": "12,000",
+          "style": { "color": "sun", "size": 300, "align": "center", "letterSpacing": -0.03 },
+          "layout": { "anchor": "center", "offset": [0, -70] },
+          "enter": { "preset": "countUp", "at": 0.2, "duration": 1.8, "ease": "expo.out" } },
+        { "id": "meals-label", "type": "text", "role": "subtitle", "content": "*meals served*",
+          "style": { "color": "cream", "align": "center", "size": 72 },
+          "layout": { "below": "meals-num", "gap": 24, "align": "center" },
+          "enter": { "preset": "fadeUp", "at": 0.6 } }
+      ],
+      "timeline": [
+        { "target": "meals-num", "at": 2.0, "duration": 1.5, "ease": "cubic.inOut", "animate": { "scale": [1, 1.04] } }
+      ]
+    },
+    {
+      "id": "people",
+      "duration": 4,
+      "background": "night",
+      "elements": [
+        { "id": "people-row", "type": "stack", "direction": "horizontal", "gap": 260, "align": "start", "justify": "center",
+          "layout": { "anchor": "center", "width": "84%" },
+          "children": [
+            { "id": "vol-col", "type": "stack", "direction": "vertical", "gap": 12, "align": "center",
+              "children": [
+                { "id": "vol-num", "type": "text", "role": "display", "content": "340",
+                  "style": { "color": "sun", "size": 240, "align": "center" },
+                  "enter": { "preset": "countUp", "at": 0.3, "duration": 1.4 } },
+                { "id": "vol-label", "type": "text", "role": "subtitle", "content": "volunteers",
+                  "style": { "color": "cream", "align": "center" },
+                  "enter": { "preset": "fadeUp", "at": 0.6 } }
+              ] },
+            { "id": "com-col", "type": "stack", "direction": "vertical", "gap": 12, "align": "center",
+              "children": [
+                { "id": "com-num", "type": "text", "role": "display", "content": "18",
+                  "style": { "color": "leaf", "size": 240, "align": "center" },
+                  "enter": { "preset": "countUp", "at": 0.7, "duration": 1.4 } },
+                { "id": "com-label", "type": "text", "role": "subtitle", "content": "communities",
+                  "style": { "color": "cream", "align": "center" },
+                  "enter": { "preset": "fadeUp", "at": 1.0 } }
+              ] }
+          ] }
+      ]
+    },
+    {
+      "id": "chart",
+      "duration": 6,
+      "background": "night",
+      "elements": [
+        { "id": "chart-title", "type": "text", "role": "subtitle", "content": "Meals served, *by quarter*",
+          "style": { "color": "cream" },
+          "layout": { "anchor": "top-left", "inset": [90, 160] },
+          "enter": { "preset": "wordReveal", "at": 0.15 } },
+        { "id": "baseline", "type": "shape", "shape": "line",
+          "style": { "stroke": "cream/0.4", "strokeWidth": 2 },
+          "layout": { "x": 300, "y": 900, "width": 1320 },
+          "enter": { "preset": "wipeIn", "from": "left", "at": 0.4, "duration": 0.6 } },
+
+        { "id": "bar-q1", "type": "shape", "shape": "rect",
+          "style": { "fill": "mist", "radius": 10 },
+          "layout": { "x": 340, "y": 613, "width": 220, "height": 287 },
+          "enter": { "preset": "wipeIn", "from": "down", "at": 0.8, "duration": 0.9, "ease": "expo.out" } },
+        { "id": "bar-q2", "type": "shape", "shape": "rect",
+          "style": { "fill": "mist", "radius": 10 },
+          "layout": { "x": 680, "y": 517, "width": 220, "height": 383 },
+          "enter": { "preset": "wipeIn", "from": "down", "at": "bar-q1.enter.start+0.25", "duration": 0.9, "ease": "expo.out" } },
+        { "id": "bar-q3", "type": "shape", "shape": "rect",
+          "style": { "fill": "mist", "radius": 10 },
+          "layout": { "x": 1020, "y": 448, "width": 220, "height": 452 },
+          "enter": { "preset": "wipeIn", "from": "down", "at": "bar-q2.enter.start+0.25", "duration": 0.9, "ease": "expo.out" } },
+        { "id": "bar-q4", "type": "shape", "shape": "rect",
+          "style": { "fill": "mist", "radius": 10 },
+          "layout": { "x": 1360, "y": 380, "width": 220, "height": 520 },
+          "enter": { "preset": "wipeIn", "from": "down", "at": "bar-q3.enter.start+0.25", "duration": 0.9, "ease": "expo.out" } },
+
+        { "id": "val-q1", "type": "text", "role": "subtitle", "content": "2,100",
+          "style": { "color": "cream", "size": 48, "align": "center" },
+          "layout": { "above": "bar-q1", "gap": 16, "align": "center" },
+          "enter": { "preset": "countUp", "at": "bar-q1.enter.start", "duration": 0.9 } },
+        { "id": "val-q2", "type": "text", "role": "subtitle", "content": "2,800",
+          "style": { "color": "cream", "size": 48, "align": "center" },
+          "layout": { "above": "bar-q2", "gap": 16, "align": "center" },
+          "enter": { "preset": "countUp", "at": "bar-q2.enter.start", "duration": 0.9 } },
+        { "id": "val-q3", "type": "text", "role": "subtitle", "content": "3,300",
+          "style": { "color": "cream", "size": 48, "align": "center" },
+          "layout": { "above": "bar-q3", "gap": 16, "align": "center" },
+          "enter": { "preset": "countUp", "at": "bar-q3.enter.start", "duration": 0.9 } },
+        { "id": "val-q4", "type": "text", "role": "subtitle", "content": "3,800",
+          "style": { "color": "cream", "size": 48, "align": "center" },
+          "layout": { "above": "bar-q4", "gap": 16, "align": "center" },
+          "enter": { "preset": "countUp", "at": "bar-q4.enter.start", "duration": 0.9 } },
+
+        { "id": "q1-label", "type": "text", "role": "label", "content": "Q1",
+          "style": { "color": "mist", "size": 26, "align": "center" },
+          "layout": { "below": "bar-q1", "gap": 24, "align": "center" },
+          "enter": { "preset": "fadeIn", "at": "bar-q1.enter.start" } },
+        { "id": "q2-label", "type": "text", "role": "label", "content": "Q2",
+          "style": { "color": "mist", "size": 26, "align": "center" },
+          "layout": { "below": "bar-q2", "gap": 24, "align": "center" },
+          "enter": { "preset": "fadeIn", "at": "bar-q2.enter.start" } },
+        { "id": "q3-label", "type": "text", "role": "label", "content": "Q3",
+          "style": { "color": "mist", "size": 26, "align": "center" },
+          "layout": { "below": "bar-q3", "gap": 24, "align": "center" },
+          "enter": { "preset": "fadeIn", "at": "bar-q3.enter.start" } },
+        { "id": "q4-label", "type": "text", "role": "label", "content": "Q4",
+          "style": { "color": "mist", "size": 26, "align": "center" },
+          "layout": { "below": "bar-q4", "gap": 24, "align": "center" },
+          "enter": { "preset": "fadeIn", "at": "bar-q4.enter.start" } },
+
+        { "id": "growth", "type": "text", "role": "body", "content": "**+81%** from Q1 to Q4",
+          "style": { "color": "sun", "align": "right" },
+          "layout": { "anchor": "top-right", "inset": [110, 160] },
+          "enter": { "preset": "fadeUp", "at": "cue:highlight" } }
+      ],
+      "cues": { "highlight": 3.0 },
+      "timeline": [
+        { "target": "bar-q4", "at": "cue:highlight", "duration": 0.5, "ease": "cubic.inOut", "animate": { "fill": "sun" } },
+        { "target": "val-q4", "at": "cue:highlight", "duration": 0.5, "ease": "cubic.inOut", "animate": { "color": "sun" } },
+        { "target": ["bar-q1", "bar-q2", "bar-q3"], "at": "cue:highlight", "duration": 0.5, "animate": { "opacity": 0.55 } }
+      ]
+    },
+    {
+      "id": "outro",
+      "duration": 3.5,
+      "background": { "radial": ["slate", "night"] },
+      "transition": { "type": "crossfade", "duration": 0.6 },
+      "elements": [
+        { "id": "thanks", "type": "text", "role": "display", "content": "Thank *you.*",
+          "style": { "color": "cream", "align": "center" },
+          "layout": { "anchor": "center", "offset": [0, -60] },
+          "enter": { "preset": "wordReveal", "at": 0.2 } },
+        { "id": "thanks-sub", "type": "text", "role": "subtitle", "content": "To everyone who showed up.",
+          "style": { "color": "mist", "align": "center", "size": 52 },
+          "layout": { "below": "thanks", "gap": 40, "align": "center" },
+          "enter": { "preset": "fadeUp", "at": 0.6 } }
+      ]
+    }
+  ]
+}

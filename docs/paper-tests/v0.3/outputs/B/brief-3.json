@@ -1,0 +1,195 @@
+{
+  "version": "0.3",
+  "video": { "format": "9:16", "fps": 30, "background": "ink", "safeZone": "reels", "end": "hold" },
+  "theme": {
+    "palette": {
+      "ink": "#0D1117",
+      "paper": "#FFFFFF",
+      "mist": "#F1F3F6",
+      "line": "#DADFE6",
+      "coral": "#FF4D3D",
+      "slate": "#6B7280",
+      "volt": "#D4FF3A"
+    },
+    "fonts": { "display": "Bricolage Grotesque", "body": "Inter Tight" },
+    "motion": "snappy",
+    "transition": { "type": "slide", "from": "right", "push": true, "duration": 0.45 },
+    "texture": { "grain": 0.03, "vignette": 0 }
+  },
+  "assets": {
+    "hero-athlete": { "type": "placeholder", "hint": "athlete mid-lift in a bright gym", "color": "coral" },
+    "workout-strength": { "type": "placeholder", "hint": "barbell and plates, close-up", "color": "ink" },
+    "workout-mobility": { "type": "placeholder", "hint": "person stretching on a mat", "color": "slate" }
+  },
+  "components": {
+    "goal-option": {
+      "params": { "label": "" },
+      "root": {
+        "id": "option", "type": "stack", "direction": "horizontal", "align": "center", "justify": "space-between",
+        "style": { "fill": "mist", "stroke": "line", "strokeWidth": 2, "radius": 16, "padding": [18, 20] },
+        "states": { "selected": { "style": { "fill": "coral/0.08", "stroke": "coral" } } },
+        "children": [
+          { "id": "goal-text", "type": "text", "role": "body", "content": "{{label}}",
+            "style": { "color": "ink", "weight": 600 } },
+          { "id": "goal-dot", "type": "shape", "shape": "circle", "layout": { "width": 22, "height": 22 },
+            "style": { "fill": "paper/0", "stroke": "line", "strokeWidth": 2 },
+            "states": { "on": { "style": { "fill": "coral", "stroke": "coral" } } } }
+        ]
+      }
+    },
+    "workout-card": {
+      "params": { "photo": "", "tag": "", "title": "", "meta": "", "cta": "Start", "variant": "solid" },
+      "root": {
+        "id": "card", "type": "stack", "direction": "vertical", "align": "stretch", "gap": 10,
+        "style": { "fill": "mist", "radius": 20, "padding": 14 },
+        "children": [
+          { "id": "card-img", "type": "image", "asset": "{{photo}}", "fit": "cover",
+            "layout": { "height": 170 }, "style": { "radius": 14 } },
+          { "id": "card-tag", "type": "text", "role": "label", "content": "{{tag}}", "style": { "color": "coral" } },
+          { "id": "card-title", "type": "text", "role": "subtitle", "content": "{{title}}", "style": { "color": "ink" } },
+          { "id": "card-meta", "type": "text", "role": "caption", "content": "{{meta}}", "style": { "color": "slate" } },
+          { "id": "card-cta", "type": "button", "label": "{{cta}}", "variant": "{{variant}}",
+            "style": { "fill": "ink", "color": "paper", "stroke": "ink" } }
+        ]
+      }
+    }
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "duration": 3.2,
+      "background": { "radial": ["coral/0.22", "ink"] },
+      "elements": [
+        { "id": "brand-block", "type": "stack", "direction": "vertical", "align": "center", "gap": 40,
+          "layout": { "anchor": "center" },
+          "children": [
+            { "id": "brand-row", "type": "stack", "direction": "horizontal", "align": "center", "gap": 26,
+              "children": [
+                { "id": "brand-dot", "type": "shape", "shape": "circle", "layout": { "width": 64, "height": 64 },
+                  "style": { "fill": "coral" },
+                  "enter": { "preset": "popIn", "at": 0.15 } },
+                { "id": "wordmark", "type": "text", "role": "display", "content": "Pulse",
+                  "style": { "color": "paper", "size": 210, "letterSpacing": -0.04 },
+                  "enter": { "preset": "charReveal", "at": 0.3, "duration": 0.45, "stagger": 0.05 } }
+              ] },
+            { "id": "tagline", "type": "text", "role": "subtitle", "content": "Your goal. *Your plan.*",
+              "style": { "color": "paper/0.8", "align": "center" },
+              "enter": { "preset": "wordReveal", "at": 0.8 } }
+          ] }
+      ],
+      "timeline": [
+        { "target": "brand-dot", "preset": "pulse", "ring": true, "every": 0.8, "at": 0.7 }
+      ]
+    },
+    {
+      "id": "demo",
+      "duration": 7.6,
+      "background": { "linear": ["#161B22", "ink"], "angle": 180 },
+      "elements": [
+        { "id": "caption-main", "type": "text", "role": "title", "content": "Pick your\n*goal.*",
+          "style": { "color": "paper", "align": "center" },
+          "layout": { "anchor": "top", "inset": [200, 0] },
+          "enter": { "preset": "lineReveal", "at": 0.2, "ease": "expo.out" },
+          "states": { "home": { "content": "Today's\n*workout, ready.*" } } },
+        { "id": "phone", "type": "phone",
+          "layout": { "anchor": "top", "inset": [540, 0], "width": 600 },
+          "style": { "shadow": "deep" },
+          "background": "paper", "padding": [20, 22], "gap": 14,
+          "enter": { "preset": "slideIn", "from": "down", "at": 0.15, "duration": 0.7, "ease": "expo.out" },
+          "screen": "onboarding",
+          "screens": {
+            "onboarding": [
+              { "id": "ob-kicker", "type": "text", "role": "label", "content": "Getting started", "style": { "color": "coral" } },
+              { "id": "ob-title", "type": "text", "role": "title", "content": "What's your goal?", "style": { "color": "ink" } },
+              { "id": "ob-sub", "type": "text", "role": "caption", "content": "We'll build your plan around it.", "style": { "color": "slate" } },
+              { "id": "goal-strength", "use": "goal-option", "with": { "label": "Build strength" } },
+              { "id": "goal-weight", "use": "goal-option", "with": { "label": "Lose weight" } },
+              { "id": "goal-endurance", "use": "goal-option", "with": { "label": "Improve endurance" } },
+              { "id": "goal-active", "use": "goal-option", "with": { "label": "Stay active" } },
+              { "id": "ob-spacer", "type": "shape", "shape": "rect", "layout": { "height": 90 }, "style": { "fill": "paper/0" } },
+              { "id": "continue-btn", "type": "button", "label": "Continue", "variant": "solid",
+                "style": { "fill": "line", "color": "slate", "radius": 14 },
+                "states": { "ready": { "style": { "fill": "coral", "color": "paper" } } } }
+            ],
+            "home": [
+              { "id": "home-head", "type": "stack", "direction": "horizontal", "align": "center", "justify": "space-between",
+                "children": [
+                  { "id": "home-hello", "type": "text", "role": "subtitle", "content": "Good morning", "style": { "color": "ink" } },
+                  { "id": "home-avatar", "type": "shape", "shape": "circle", "layout": { "width": 40, "height": 40 }, "style": { "fill": "coral" } }
+                ] },
+              { "id": "goal-chip", "type": "button", "variant": "outline", "label": "Goal · Build strength",
+                "layout": { "width": "auto" },
+                "style": { "color": "coral", "stroke": "coral", "size": 13 } },
+              { "id": "home-hero", "type": "image", "asset": "hero-athlete", "fit": "cover",
+                "layout": { "height": 220 }, "style": { "radius": 20 } },
+              { "id": "week-card", "type": "stack", "direction": "vertical", "gap": 6,
+                "style": { "fill": "ink", "radius": 20, "padding": 18 },
+                "children": [
+                  { "id": "week-label", "type": "text", "role": "label", "content": "Your plan", "style": { "color": "volt" } },
+                  { "id": "week-text", "type": "text", "role": "body", "content": "4 sessions a week, built for strength.", "style": { "color": "paper" } }
+                ] },
+              { "id": "today-label", "type": "text", "role": "label", "content": "Today's workout", "style": { "color": "slate" } },
+              { "id": "today-card", "use": "workout-card",
+                "with": { "photo": "workout-strength", "tag": "35 min · 6 exercises", "title": "Upper-body strength",
+                          "meta": "Bench press, rows, overhead press", "cta": "Start workout", "variant": "solid" } },
+              { "id": "next-label", "type": "text", "role": "label", "content": "Up next", "style": { "color": "slate" } },
+              { "id": "next-card", "use": "workout-card",
+                "with": { "photo": "workout-mobility", "tag": "20 min · Recovery", "title": "Mobility flow",
+                          "meta": "Hips, shoulders, spine", "cta": "Preview", "variant": "outline" } }
+            ]
+          } }
+      ],
+      "timeline": [
+        { "id": "flow", "behavior": "interaction", "cursor": "touch", "from": "bottom-right", "pace": "normal", "at": 1.1,
+          "steps": [
+            { "id": "pick-goal", "click": "goal-strength",
+              "set": { "goal-strength": "selected", "goal-strength/goal-dot": "on", "continue-btn": "ready" } },
+            { "wait": 0.45 },
+            { "id": "tap-continue", "click": "continue-btn", "navigate": { "phone": "home" } }
+          ] },
+        { "id": "caption-swap", "target": "caption-main", "state": "home", "at": "tap-continue.end+0.15" },
+        { "id": "to-today", "behavior": "scroll", "target": "phone", "to": "today-label",
+          "at": "tap-continue.end+0.9", "duration": 0.9, "ease": "expo.inOut" },
+        { "id": "lift", "target": "phone", "at": "to-today.end", "duration": 0.6, "ease": "cubic.inOut",
+          "animate": { "scale": [1, 1.03] } },
+        { "id": "cta-pulse", "target": "today-card/card-cta", "preset": "pulse", "ring": true, "every": 0.9,
+          "at": "to-today.end+0.2" }
+      ]
+    },
+    {
+      "id": "outro",
+      "duration": 4.2,
+      "background": "coral",
+      "elements": [
+        { "id": "outro-block", "type": "stack", "direction": "vertical", "align": "center", "gap": 56,
+          "layout": { "anchor": "center" },
+          "children": [
+            { "id": "outro-head", "type": "text", "role": "title", "content": "Start training\n*today.*",
+              "style": { "color": "ink", "align": "center" },
+              "enter": { "preset": "lineReveal", "at": 0.35 } },
+            { "id": "outro-cta", "type": "button", "variant": "solid", "label": "Download Pulse",
+              "style": { "fill": "ink", "color": "paper", "size": 40 },
+              "enter": { "preset": "popIn", "at": 1.0 } }
+          ] },
+        { "id": "outro-brand", "type": "stack", "direction": "horizontal", "align": "center", "gap": 14,
+          "layout": { "anchor": "top", "inset": [220, 0] },
+          "enter": { "preset": "fadeIn", "at": 1.2 },
+          "children": [
+            { "id": "outro-dot", "type": "shape", "shape": "circle", "layout": { "width": 28, "height": 28 }, "style": { "fill": "ink" } },
+            { "id": "outro-word", "type": "text", "role": "subtitle", "content": "Pulse", "style": { "color": "ink", "weight": 700 } }
+          ] }
+      ],
+      "timeline": [
+        { "target": "outro-cta", "preset": "pulse", "ring": true, "every": 0.9, "at": 1.7 }
+      ]
+    }
+  ],
+  "notes": [
+    "Invented copy: tagline 'Your goal. Your plan.', captions 'Pick your goal.' / 'Today's workout, ready.', 'Getting started', 'What's your goal?', 'We'll build your plan around it.', 'Good morning', 'Goal · Build strength', 'Your plan', 'Start training today.', 'Download Pulse', 'Up next', 'Preview'.",
+    "Invented goals besides 'Build strength': 'Lose weight', 'Improve endurance', 'Stay active'.",
+    "Invented plan/workout details: '4 sessions a week, built for strength.', 'Upper-body strength', '35 min · 6 exercises', 'Bench press, rows, overhead press', 'Mobility flow', '20 min · Recovery', 'Hips, shoulders, spine'. Replace with real app content.",
+    "Brand colours and fonts are assumptions; replace with Pulse's brand.",
+    "Images are placeholders: athlete hero, strength workout, mobility workout.",
+    "CTA 'Download Pulse' assumes an app-store CTA; no URL or store badge given."
+  ]
+}
