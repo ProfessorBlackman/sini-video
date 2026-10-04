@@ -4,7 +4,7 @@
 
 Describe a video in plain language. Your AI writes it as a Sini spec, checks it, shows you frames, and refines it with you. Sini renders it deterministically to MP4, with no video-generation model involved.
 
-> **Status:** early development. The vertical slice works end to end ([plan](docs/VERTICAL_SLICE_PLAN.md)), plus icons, cursor/finger interactions, device screens with `navigate`, device overlays, scrolling, toasts, progress trackers, charts, camera moves and match cuts. Specified but not rendered yet: `focusCycle`, and the `svg` and `template` elements (lint warns when a spec uses them).
+> **Status:** early development. The vertical slice works end to end ([plan](docs/VERTICAL_SLICE_PLAN.md)), plus icons, cursor/finger interactions, device screens with `navigate`, device overlays, scrolling, toasts, progress trackers, charts, camera moves, match cuts and focus cycles. Specified but not rendered yet: the `svg` and `template` elements (lint warns when a spec uses them).
 
 ## How it works
 

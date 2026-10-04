@@ -219,8 +219,8 @@
           "label": "Weekends only",
           "shape": "pill",
           "style": {
-            "fill": "roast",
-            "color": "butter",
+            "fill": "butter",
+            "color": "roast",
             "rotation": -9,
             "size": 26
           },

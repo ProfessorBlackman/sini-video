@@ -152,7 +152,7 @@ export function createProgram(): Command {
         console.log(`t = ${d.time}s`);
         for (const s of d.scenes) console.log(`scene ${s.id} at ${s.local}s${s.transition ? `, ${s.transition}` : ""}`);
         for (const e of d.elements) {
-          const state = e.visible ? (e.opacity !== undefined ? `visible (opacity ${e.opacity})` : "visible") : "hidden";
+          const state = e.visible ? `${e.highlighted ? "highlighted" : "visible"}${e.opacity !== undefined ? ` (opacity ${e.opacity})` : ""}` : "hidden";
           const anim = e.animating.length ? `  ⟳ ${e.animating.join(", ")}` : "";
           console.log(`  ${e.ref} [${e.type}] ${state}${e.text ? ` "${e.text}"` : ""}${anim}`);
         }

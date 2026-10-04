@@ -287,3 +287,31 @@ describe("camera and matchCut", () => {
     expect(plan.scenes[1]!.transition).toMatchObject({ type: "matchCut", matchFrom: "card", matchTo: "background", duration: 0.6 });
   });
 });
+
+describe("focusCycle", () => {
+  const plan = compile(video([{ id: "s", duration: 6, elements: [
+    { id: "a", type: "shape", shape: "rect", layout: { width: 10, height: 10 } },
+    { id: "b", type: "shape", shape: "rect", layout: { width: 10, height: 10 } },
+    { id: "c", type: "shape", shape: "rect", layout: { width: 10, height: 10 } },
+    { id: "after", type: "shape", shape: "rect", enter: { preset: "fadeIn", at: "cycle.end" } },
+  ], timeline: [{ id: "cycle", behavior: "focusCycle", targets: ["a", "b", "c"], at: 1, interval: 1, dim: 0.3, scale: 1.1 }] }]));
+  const p = (ref: string, t: number) => elementFrame(plan, ref, t).props;
+
+  it("highlights each target in turn and dims the rest", () => {
+    expect(p("a", 1.5)).toMatchObject({ focusScale: 1.1, dim: 1 });
+    expect(p("b", 1.5).dim).toBeCloseTo(0.3);
+    expect(p("b", 2.5)).toMatchObject({ focusScale: 1.1, dim: 1 });
+    expect(p("a", 2.5)).toMatchObject({ focusScale: 1 });
+    expect(p("a", 2.5).dim).toBeCloseTo(0.3);
+  });
+  it("returns everything to normal after the last target; end = at + interval × count", () => {
+    expect(p("a", 4.5)).toMatchObject({ dim: 1, focusScale: 1 });
+    expect(p("c", 4.5)).toMatchObject({ dim: 1, focusScale: 1 });
+    expect(plan.tracks.find((t) => t.ref === "after")!.t0).toBeCloseTo(4);
+  });
+  it("is reported by describe_at", () => {
+    const d = describeAt(plan, 2.5).elements;
+    expect(d.find((e) => e.ref === "b")?.highlighted).toBe(true);
+    expect(d.find((e) => e.ref === "a")?.opacity).toBeCloseTo(0.3);
+  });
+});

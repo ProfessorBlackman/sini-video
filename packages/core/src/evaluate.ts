@@ -179,7 +179,7 @@ function baseOf(el: PlanElement | undefined, prop: string): number | string | un
   const v = s[prop];
   if (typeof v === "number" || typeof v === "string") return v;
   if (prop === "x" || prop === "y" || prop === "rotation" || prop === "blur") return 0;
-  if (prop === "draw" || prop === "innerScale" || prop === "press") return 1;
+  if (prop === "draw" || prop === "innerScale" || prop === "press" || prop === "dim" || prop === "focusScale") return 1;
   if (prop === "value") return Number(el.props.value ?? 0);
   if (prop === "innerX" || prop === "innerY") return 0;
   return undefined;

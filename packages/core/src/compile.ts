@@ -39,7 +39,7 @@ export interface CompiledPlan extends Plan {
 }
 
 const UNSUPPORTED_TYPES = new Set(["template", "svg"]);
-const UNSUPPORTED_BEHAVIORS = new Set(["focusCycle"]);
+const UNSUPPORTED_BEHAVIORS = new Set<string>();
 const ENTER = new Set(["fadeIn", "fadeUp", "slideIn", "scaleIn", "popIn", "bounceIn", "blurIn", "wordReveal", "lineReveal", "charReveal", "typewriter", "countUp", "trackIn", "drawOutline", "wipeIn", "grow"]);
 const EXIT = new Set(["fadeOut", "slideOut", "scaleOut", "blurOut", "wordsUp", "wipeOut"]);
 const AMBIENT = new Set(["kenBurns", "float", "pulse", "swing", "drift"]);
@@ -942,6 +942,45 @@ class Compiler {
     return out;
   }
 
+  /**
+   * focusCycle: each target is highlighted in turn (scaled, raised) while the others dim; afterwards
+   * everything returns to normal. Uses the multiplicative `dim` and `focusScale` props so it combines
+   * with any other opacity or scale animation.
+   */
+  focusCycle(sc: J, j: number, t: J, registry: Map<string, { el: PlanElement; src: J; topLevel: boolean }>, timing: ReturnType<Compiler["sceneTiming"]>, sceneStart: number) {
+    const targets: string[] = (t.targets ?? []).map((x: string) => {
+      if (x.includes("#")) {
+        const [base, part] = x.split("#") as [string, string];
+        const owner = registry.get(base)?.el;
+        if (owner && (owner.type === "chart" || owner.type === "progress")) return `${owner.ref}#${part}`;
+        this.warn(`${sc.id}.timeline[${j}]`, "unsupported-feature", `focusCycle can't highlight hotspot '${x}'; only elements, chart bars and progress steps.`);
+        return null;
+      }
+      return registry.get(x)?.el?.ref ?? null;
+    }).filter(Boolean);
+    if (!targets.length) return;
+    const at = sceneStart + timing.evalExpr(t.at);
+    const interval = Number(t.interval ?? 0.9);
+    const dim = Number(t.dim ?? 0.35);
+    const scale = Number(t.scale ?? 1.05);
+    const fade = Math.min(0.25, interval / 2);
+    const label = `focusCycle${t.id ? ` (${t.id})` : ` (timeline[${j}])`}`;
+    const step = (ref: string, prop: string, to: number, t0: number, d = fade) =>
+      this.tracks.push(this.tween(ref, prop, [null, to], t0, t0 + d, "cubic.inOut", label));
+    const n = targets.length;
+    targets.forEach((ref, i) => {
+      const start = at + i * interval;
+      const end = start + interval;
+      // Dimmed from the start of the cycle unless first; full while focused; dimmed again after.
+      if (i > 0) step(ref, "dim", dim, at);
+      step(ref, "dim", 1, start);
+      step(ref, "focusScale", scale, start);
+      step(ref, "focusScale", 1, end);
+      if (i < n - 1) step(ref, "dim", dim, end);
+      step(ref, "dim", 1, at + n * interval, 0.3);
+    });
+  }
+
   /** Screen changes (navigate behaviors and interaction steps) and scrolls. */
   deviceTracks(sc: J, timeline: [number, J][], registry: Map<string, { el: PlanElement; src: J; topLevel: boolean }>, timing: ReturnType<Compiler["sceneTiming"]>, sceneStart: number) {
     const navs: { device: PlanElement; to: string; t0: number; transition: "push" | "fade" | "none"; label: string }[] = [];
@@ -972,6 +1011,7 @@ class Compiler {
           this.tracks.push({ kind: "camera", ref: group.ref, keys, ease: t.ease ?? "cubic.inOut", t0: keys[0]!.t, t1: keys[keys.length - 1]!.t, label: `camera${t.id ? ` (${t.id})` : ` (timeline[${j}])`}` });
         }
       }
+      if (t.behavior === "focusCycle") this.focusCycle(sc, j, t, registry, timing, sceneStart);
       if (t.behavior === "scroll") {
         const device = registry.get(t.target)?.el;
         if (!device) continue;

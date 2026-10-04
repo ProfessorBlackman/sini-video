@@ -5,7 +5,7 @@ import type { Plan } from "./plan.js";
 export interface Description {
   time: number;
   scenes: { id: string; local: number; transition?: string }[];
-  elements: { ref: string; type: string; scene: string; visible: boolean; opacity?: number; text?: string; animating: string[] }[];
+  elements: { ref: string; type: string; scene: string; visible: boolean; opacity?: number; highlighted?: boolean; text?: string; animating: string[] }[];
 }
 
 export function describeAt(plan: Plan, t: number): Description {
@@ -24,7 +24,9 @@ export function describeAt(plan: Plan, t: number): Description {
     if (!active.has(el.sceneId)) continue;
     const visible = isVisible(plan, frame, ref);
     const animating = [...new Set(plan.tracks.filter((tr) => tr.ref === ref && t >= tr.t0 && t < tr.t1).map((tr) => tr.label))];
-    const op = frame.elements[ref]?.props.opacity;
+    const props = frame.elements[ref]?.props ?? {};
+    const op = typeof props.opacity === "number" || typeof props.dim === "number" ? (typeof props.opacity === "number" ? props.opacity : 1) * (typeof props.dim === "number" ? props.dim : 1) : undefined;
+    const highlighted = typeof props.focusScale === "number" && props.focusScale > 1.001;
     elements.push({
       ref,
       type: el.type,
@@ -32,6 +34,7 @@ export function describeAt(plan: Plan, t: number): Description {
       visible,
       ...(typeof op === "number" && op < 1 ? { opacity: round(op) } : {}),
       ...(el.text ? { text: shorten(el.text.plain.replace(/\n/g, " / ")) } : {}),
+      ...(highlighted ? { highlighted: true } : {}),
       animating,
     });
   }

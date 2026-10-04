@@ -745,9 +745,11 @@ function applyProgress(n: Node, value: number) {
     // A small pop as the line reaches each dot.
     const near = Math.abs(v - i);
     const own = currentFrame?.elements[`${el.ref}#${((el.props.steps as string[]) ?? [])[i]}`];
-    const ownScale = own ? num(own.props.scale, 1) : 1;
+    const ownScale = own ? num(own.props.scale, 1) * num(own.props.focusScale, 1) : 1;
     d.style.transform = `scale(${(near < 0.25 ? 1 + (0.25 - near) * 0.8 : 1) * ownScale})`;
-    pr.labels[i]!.style.opacity = done ? "1" : "0.5";
+    const ownDim = own ? num(own.props.dim, 1) : 1;
+    d.style.opacity = String(ownDim);
+    pr.labels[i]!.style.opacity = String((done ? 1 : 0.5) * ownDim);
     pr.labels[i]!.style.fontWeight = i === current ? "700" : String(el.font!.weight);
   });
 }
@@ -983,8 +985,8 @@ function applyChart(n: Node, f: ElementFrame) {
     const pf = currentFrame?.elements[`${el.ref}#${label}`];
     if (pf) {
       const p = pf.props;
-      bar.style.transform = `translate(${px(num(p.x, 0))}, ${px(num(p.y, 0))}) scale(${num(p.scale, 1)})`;
-      bar.style.opacity = String(pf.visible ? clamp01(num(p.opacity, 1)) : 0);
+      bar.style.transform = `translate(${px(num(p.x, 0))}, ${px(num(p.y, 0))}) scale(${num(p.scale, 1) * num(p.focusScale, 1)})`;
+      bar.style.opacity = String(pf.visible ? clamp01(num(p.opacity, 1) * num(p.dim, 1)) : 0);
     }
   });
   if (c.line) {
@@ -1313,9 +1315,12 @@ function applyElement(n: Node, f: ElementFrame | undefined) {
   const x = num(p.x, 0);
   const y = num(p.y, 0);
   const rot = num(p.rotation, s.rotation);
-  const sc = num(p.scale, s.scale) * num(p.press, 1);
+  const focus = num(p.focusScale, 1);
+  const sc = num(p.scale, s.scale) * num(p.press, 1) * focus;
+  // A highlighted element (focusCycle) is drawn above its neighbours.
+  n.outer.style.zIndex = focus > 1.001 ? "50" : String(el.z || 0);
   anim.style.transform = `translate(${px(x)}, ${px(y)}) rotate(${rot}deg) scale(${sc * num(p.scaleX, s.scaleX)}, ${sc * num(p.scaleY, s.scaleY)})`;
-  anim.style.opacity = String(clamp01(num(p.opacity, s.opacity)));
+  anim.style.opacity = String(clamp01(num(p.opacity, s.opacity) * num(p.dim, 1)));
   const blur = num(p.blur, s.blur);
   anim.style.filter = blur > 0.01 ? `blur(${px(blur)})` : "";
   const cl = [num(p.clipTop, 0), num(p.clipRight, 0), num(p.clipBottom, 0), num(p.clipLeft, 0)];
