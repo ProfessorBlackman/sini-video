@@ -50,6 +50,9 @@ export interface PlanTransition {
   push: boolean;
   origin: string;
   direction: "in" | "out";
+  /** matchCut: the outgoing element that opens into the incoming scene, and its target ("background" or an element). */
+  matchFrom?: string;
+  matchTo?: string;
 }
 
 export interface PlanScene {
@@ -237,10 +240,16 @@ export interface ScrollTrack extends TrackBase {
   to: number | string;
   ease: EaseSpec;
 }
+/** A camera moving and zooming a group. Focus targets are resolved to points by the renderer. */
+export interface CameraTrack extends TrackBase {
+  kind: "camera";
+  keys: { t: number; focus: string; zoom: number }[];
+  ease: EaseSpec;
+}
 /** Text typed into a text element by an interaction `type` step. */
 export interface TypedTrack extends TrackBase {
   kind: "typed";
   text: string;
 }
 
-export type Track = TweenTrack | OscTrack | PulseTrack | SwingTrack | TypeTrack | CountTrack | ContentTrack | StepTrack | CursorTrack | TypedTrack | ScreenTrack | ScrollTrack;
+export type Track = TweenTrack | OscTrack | PulseTrack | SwingTrack | TypeTrack | CountTrack | ContentTrack | StepTrack | CursorTrack | TypedTrack | ScreenTrack | ScrollTrack | CameraTrack;

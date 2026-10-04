@@ -39,7 +39,7 @@ export interface CompiledPlan extends Plan {
 }
 
 const UNSUPPORTED_TYPES = new Set(["template", "svg"]);
-const UNSUPPORTED_BEHAVIORS = new Set(["camera", "focusCycle"]);
+const UNSUPPORTED_BEHAVIORS = new Set(["focusCycle"]);
 const ENTER = new Set(["fadeIn", "fadeUp", "slideIn", "scaleIn", "popIn", "bounceIn", "blurIn", "wordReveal", "lineReveal", "charReveal", "typewriter", "countUp", "trackIn", "drawOutline", "wipeIn", "grow"]);
 const EXIT = new Set(["fadeOut", "slideOut", "scaleOut", "blurOut", "wordsUp", "wipeOut"]);
 const AMBIENT = new Set(["kenBurns", "float", "pulse", "swing", "drift"]);
@@ -522,12 +522,8 @@ class Compiler {
     const type = spec.type ?? "cut";
     if (type === "cut") return null;
     const fallbackDur = typeof themeT === "object" && themeT?.duration ? themeT.duration : DEFAULT_TRANSITION_DURATION;
-    let resolved = type;
-    if (type === "matchCut") {
-      this.warn(path, "unsupported-feature", "matchCut isn't rendered yet; using a crossfade.");
-      resolved = "crossfade";
-    }
-    const defaultEase: Record<string, string> = { wipe: "expo.inOut", slide: "expo.inOut", crossfade: "sine.inOut", circle: "cubic.inOut", zoom: "cubic.inOut" };
+    const resolved = type;
+    const defaultEase: Record<string, string> = { wipe: "expo.inOut", slide: "expo.inOut", crossfade: "sine.inOut", circle: "cubic.inOut", zoom: "cubic.inOut", matchCut: "expo.inOut" };
     return {
       type: resolved,
       duration: spec.duration ?? fallbackDur,
@@ -539,6 +535,7 @@ class Compiler {
       push: !!spec.push,
       origin: spec.origin ?? "center",
       direction: spec.direction ?? "in",
+      ...(type === "matchCut" ? { matchFrom: String(spec.from), matchTo: String(spec.to ?? "background") } : {}),
     };
   }
 
@@ -964,6 +961,16 @@ class Compiler {
             navs.push({ device, to, t0: sceneStart + release, transition: st.transition ?? "push", label: `navigate → ${to} (interaction ${j})` });
           }
         });
+      }
+      if (t.behavior === "camera") {
+        const group = registry.get(t.target)?.el;
+        if (!group) continue;
+        const keys = (t.keys ?? [])
+          .map((k: J) => ({ t: sceneStart + timing.evalExpr(k.at), focus: String(k.focus ?? "center"), zoom: Number(k.zoom ?? 1) }))
+          .sort((a: { t: number }, b: { t: number }) => a.t - b.t);
+        if (keys.length) {
+          this.tracks.push({ kind: "camera", ref: group.ref, keys, ease: t.ease ?? "cubic.inOut", t0: keys[0]!.t, t1: keys[keys.length - 1]!.t, label: `camera${t.id ? ` (${t.id})` : ` (timeline[${j}])`}` });
+        }
       }
       if (t.behavior === "scroll") {
         const device = registry.get(t.target)?.el;

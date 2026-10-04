@@ -266,3 +266,24 @@ describe("charts", () => {
     expect(frameAt(plan, 2.2).elements["c#B"]?.props.scale).toBeGreaterThan(1);
   });
 });
+
+describe("camera and matchCut", () => {
+  const plan = compile(video([
+    { id: "a", duration: 4, elements: [
+      { id: "stage", type: "group", layout: { width: 1080, height: 1920 }, children: [{ id: "dot", type: "shape", shape: "circle", layout: { x: 100, y: 100, width: 50, height: 50 } }] },
+      { id: "card", type: "shape", shape: "rect", layout: { x: 200, y: 900, width: 300, height: 400 } },
+    ], timeline: [{ behavior: "camera", target: "stage", ease: "linear", keys: [{ at: 1, focus: "center", zoom: 1 }, { at: 2, focus: "dot", zoom: 3 }] }] },
+    { id: "b", duration: 2, transition: { type: "matchCut", from: "card", to: "background", duration: 0.6 }, elements: [] },
+  ]));
+
+  it("interpolates camera keys and holds before the first and after the last", () => {
+    const cam = (t: number) => elementFrame(plan, "stage", t).camera!;
+    expect(cam(0.5)).toMatchObject({ from: { focus: "center", zoom: 1 }, p: 1 });
+    expect(cam(1.5)).toMatchObject({ from: { focus: "center" }, to: { focus: "dot", zoom: 3 } });
+    expect(cam(1.5).p).toBeCloseTo(0.5);
+    expect(cam(3).to).toMatchObject({ focus: "dot", zoom: 3 });
+  });
+  it("keeps matchCut with its elements", () => {
+    expect(plan.scenes[1]!.transition).toMatchObject({ type: "matchCut", matchFrom: "card", matchTo: "background", duration: 0.6 });
+  });
+});

@@ -28,6 +28,8 @@ export interface ElementFrame {
   ring?: { p: number };
   variant?: string;
   typed?: { text: string; caret: boolean };
+  /** Camera groups: interpolating between two keys (focus targets are resolved by the renderer). */
+  camera?: { from: { focus: string; zoom: number }; to: { focus: string; zoom: number }; p: number };
   /** Devices: the screen showing, or a transition between two screens. */
   screen?: { from: string; to: string; p: number; transition: "push" | "fade" | "none" };
 }
@@ -262,6 +264,16 @@ export function elementFrame(plan: Plan, ref: string, t: number): ElementFrame {
           if (tr.prop === "variant") frame.variant = tr.value;
         }
         break;
+      case "camera": {
+        const keys = tr.keys;
+        let i = 0;
+        while (i < keys.length - 1 && t >= keys[i + 1]!.t) i++;
+        const a = keys[i]!;
+        const b = keys[Math.min(i + 1, keys.length - 1)]!;
+        const p = t <= a.t || b === a ? 0 : easeFn(tr.ease)(clamp01((t - a.t) / (b.t - a.t)));
+        frame.camera = t <= keys[0]!.t ? { from: keys[0]!, to: keys[0]!, p: 1 } : { from: a, to: b, p };
+        break;
+      }
       case "screen":
         if (t >= tr.t0) {
           const p = tr.t1 > tr.t0 ? clamp01((t - tr.t0) / (tr.t1 - tr.t0)) : 1;

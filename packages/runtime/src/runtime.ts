@@ -752,6 +752,111 @@ function applyProgress(n: Node, value: number) {
   });
 }
 
+// ---------------------------------------------------------------- camera and match cuts
+
+type CameraKey = { focus: string; zoom: number };
+
+/** A focus target in the group's own (unzoomed) coordinates. Call with the camera transform reset. */
+function focusPoint(n: Node, layer: HTMLElement, focus: string): [number, number] {
+  const fr = ANCHOR_FRAC[focus];
+  if (fr) return [fr[0] * layer.offsetWidth, fr[1] * layer.offsetHeight];
+  const [x, y] = targetPoint(focus);
+  const st = stage.getBoundingClientRect();
+  const r = layer.getBoundingClientRect();
+  return [x - (r.left - st.left) / scale, y - (r.top - st.top) / scale];
+}
+
+function applyCamera(n: Node, cam: { from: CameraKey; to: CameraKey; p: number }) {
+  const layer = n.box as HTMLElement | undefined;
+  if (!layer || !(layer instanceof HTMLElement)) return;
+  layer.style.transformOrigin = "0 0";
+  layer.style.transform = "";
+  const a = focusPoint(n, layer, cam.from.focus);
+  const b = cam.from.focus === cam.to.focus ? a : focusPoint(n, layer, cam.to.focus);
+  const fx = a[0] + (b[0] - a[0]) * cam.p;
+  const fy = a[1] + (b[1] - a[1]) * cam.p;
+  // Geometric zoom interpolation feels even whether zooming in or out.
+  const z0 = Math.max(0.05, cam.from.zoom);
+  const z1 = Math.max(0.05, cam.to.zoom);
+  const z = z0 * (z1 / z0) ** cam.p;
+  const cx = layer.offsetWidth / 2;
+  const cy = layer.offsetHeight / 2;
+  layer.style.transform = `translate(${px(cx - z * fx)}, ${px(cy - z * fy)}) scale(${z})`;
+}
+
+const matchClones = new Map<string, HTMLElement>();
+
+/** For image elements, a copy of the picture rides the growing rectangle, so the cut reads as continuous. */
+function buildMatchClones() {
+  for (const s of plan.scenes) {
+    const tr = s.transition;
+    if (tr?.type !== "matchCut" || !tr.matchFrom) continue;
+    const from = nodes.get(tr.matchFrom);
+    if (!from || from.el.type !== "image") continue;
+    const clone = h("div", "match-clone", { position: "absolute", overflow: "hidden", zIndex: "790", display: "none", pointerEvents: "none" });
+    clone.appendChild(picture(from.el.props.image as never, "cover", from.el.props.focus as number[]));
+    sceneEls.get(s.id)!.appendChild(clone);
+    matchClones.set(s.id, clone);
+  }
+}
+
+/** matchCut: reveal the incoming scene inside a rectangle that grows from the outgoing element. */
+function applyMatchCuts(fr: Frame) {
+  for (const c of matchClones.values()) c.style.display = "none";
+  for (const sf of fr.scenes) {
+    const inc = sf.incoming;
+    if (!sf.visible || !inc || inc.transition.type !== "matchCut") continue;
+    const sec = sceneEls.get(sf.id)!;
+    const tr = inc.transition;
+    const fromNode = tr.matchFrom ? nodes.get(tr.matchFrom) : undefined;
+    if (!fromNode) {
+      sec.style.opacity = String(inc.p);
+      continue;
+    }
+    const st = stage.getBoundingClientRect();
+    const fr0 = visualRect(fromNode);
+    const from = { x: (fr0.left - st.left) / scale, y: (fr0.top - st.top) / scale, w: fr0.width / scale, h: fr0.height / scale };
+    const radiusOf = (nd: Node, w: number) => (nd.el.style.radius ?? 0) * (w / Math.max(1, nd.outer.offsetWidth || w));
+    const full = { x: 0, y: 0, w: W, h: H };
+    const toNode = tr.matchTo && tr.matchTo !== "background" ? nodes.get(tr.matchTo) : undefined;
+    const toBox = toNode ? staticBoxes.get(toNode.el.ref) : undefined;
+    const lerp = (a: typeof from, b: typeof from, q: number) => ({ x: a.x + (b.x - a.x) * q, y: a.y + (b.y - a.y) * q, w: a.w + (b.w - a.w) * q, h: a.h + (b.h - a.h) * q });
+    const r0 = radiusOf(fromNode, from.w);
+    let rect: typeof from;
+    let radius: number;
+    if (toNode && toBox) {
+      // Into the target element first, then open out to the whole frame.
+      const to = { x: toBox.x, y: toBox.y, w: toBox.width, h: toBox.height };
+      const r1 = radiusOf(toNode, to.w);
+      if (inc.p < 0.7) {
+        const q = inc.p / 0.7;
+        rect = lerp(from, to, q);
+        radius = r0 + (r1 - r0) * q;
+      } else {
+        const q = (inc.p - 0.7) / 0.3;
+        rect = lerp(to, full, q);
+        radius = r1 * (1 - q);
+      }
+    } else {
+      rect = lerp(from, full, inc.p);
+      radius = r0 * (1 - inc.p);
+    }
+    sec.style.clipPath = inc.p >= 1 ? "" : `inset(${px(rect.y)} ${px(W - rect.x - rect.w)} ${px(H - rect.y - rect.h)} ${px(rect.x)} round ${px(Math.max(0, radius))})`;
+    const clone = matchClones.get(sf.id);
+    if (clone && inc.p < 1) {
+      Object.assign(clone.style, {
+        display: "block",
+        left: px(rect.x),
+        top: px(rect.y),
+        width: px(rect.w),
+        height: px(rect.h),
+        borderRadius: px(Math.max(0, radius)),
+        opacity: String(1 - clamp01((inc.p - 0.35) / 0.5)),
+      });
+    }
+  }
+}
+
 // ---------------------------------------------------------------- charts
 
 function buildChart(node: Node, flow: boolean) {
@@ -1553,6 +1658,11 @@ function render(t: number) {
     const f = fr.elements[n.el.ref];
     if (f && n.pages) applyDevice(n, f, t);
   }
+  for (const n of nodes.values()) {
+    const cam = fr.elements[n.el.ref]?.camera;
+    if (cam) applyCamera(n, cam);
+  }
+  applyMatchCuts(fr);
   applyCursors(fr.cursors);
   for (const [id, layer] of bgLayers) {
     const f = fr.elements[`${id}:background`];
@@ -1656,8 +1766,13 @@ async function boot() {
   await Promise.all([...document.images].map((i) => (i.complete ? Promise.resolve() : i.decode().catch(() => undefined))));
   for (const s of sceneEls.values()) s.style.visibility = "hidden";
   layoutAll();
+  for (const tr of plan.tracks) if (tr.kind === "camera") {
+    const n = nodes.get(tr.ref);
+    if (n) n.outer.style.overflow = "hidden";
+  }
   resolveScrolls();
   buildCursors();
+  buildMatchClones();
   // Static boxes: measured once, before any animation transform is applied.
   const st = stage.getBoundingClientRect();
   for (const n of nodes.values()) {

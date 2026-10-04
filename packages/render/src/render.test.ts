@@ -160,3 +160,46 @@ describe("charts", () => {
     }
   }, 60_000);
 });
+
+describe("camera and matchCut", () => {
+  const p = compile({
+    version: "0.4", video: { format: "1:1" },
+    scenes: [
+      { id: "a", duration: 3, elements: [
+        { id: "stage", type: "group", layout: { x: 0, y: 0, width: 1080, height: 1080 }, children: [
+          { id: "dot", type: "shape", shape: "circle", style: { fill: "#ff0000" }, layout: { x: 100, y: 200, width: 40, height: 40 } },
+        ] },
+        { id: "card", type: "shape", shape: "rect", style: { fill: "#00ff00" }, layout: { x: 300, y: 400, width: 200, height: 300 } },
+      ], timeline: [{ behavior: "camera", target: "stage", keys: [{ at: 0, focus: "center", zoom: 1 }, { at: 1, focus: "dot", zoom: 2 }] }] },
+      { id: "b", duration: 2, background: "#0000ff", transition: { type: "matchCut", from: "card", to: "background", duration: 1, ease: "linear" }, elements: [] },
+    ],
+  } as never);
+
+  it("centres the focus element at the requested zoom", async () => {
+    const s = await RenderSession.open(p, { browser });
+    try {
+      const dot = (await s.layout(2)).elements.find((e) => e.ref === "dot")!.current;
+      expect(dot.width).toBeCloseTo(80, 0);
+      expect(dot.x + dot.width / 2).toBeCloseTo(540, 0);
+      expect(dot.y + dot.height / 2).toBeCloseTo(540, 0);
+    } finally {
+      await s.close();
+    }
+  }, 60_000);
+
+  it("starts the match cut on the outgoing element", async () => {
+    const s = await RenderSession.open(p, { browser });
+    try {
+      await s.render(3.0);
+      const clip = await s.page.evaluate(() => (document.querySelector('[data-scene="b"]') as HTMLElement).style.clipPath);
+      // inset(top right bottom left …): starts at the card's box.
+      const [top, right, bottom, left] = /inset\(([\d.]+)px ([\d.]+)px ([\d.]+)px ([\d.]+)px/.exec(clip)!.slice(1).map(Number) as [number, number, number, number];
+      expect(top).toBeCloseTo(400, 0);
+      expect(left).toBeCloseTo(300, 0);
+      expect(1080 - right - left).toBeCloseTo(200, 0);
+      expect(1080 - bottom - top).toBeCloseTo(300, 0);
+    } finally {
+      await s.close();
+    }
+  }, 60_000);
+});
