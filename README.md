@@ -30,8 +30,8 @@ The AI describes **what the video shows and when**: scenes, text, images, device
 Sini runs in Docker (it bundles Chromium, FFmpeg and the fonts; the image is about 940 MB). Pull a release for linux/amd64 or linux/arm64 and tag it `sini`, which is the name the examples below use:
 
 ```bash
-docker pull ghcr.io/sinihq/sini:latest
-docker tag ghcr.io/sinihq/sini:latest sini
+docker pull ghcr.io/ProfessorBlackman/sini:latest
+docker tag ghcr.io/ProfessorBlackman/sini:latest sini
 ```
 
 Or build it from this repository:
