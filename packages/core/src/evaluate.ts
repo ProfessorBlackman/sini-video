@@ -268,8 +268,11 @@ export function isVisible(plan: Plan, frame: Frame, ref: string): boolean {
   if (!scene?.visible) return false;
   for (let r: string | undefined = ref; r; r = parent.get(r)) {
     if (!frame.elements[r]?.visible) return false;
-    const op = frame.elements[r]?.props.opacity;
-    if (typeof op === "number" && op <= 0.001) return false;
+    const props = frame.elements[r]?.props ?? {};
+    for (const key of ["opacity", "scale", "scaleX", "scaleY"]) {
+      const v = props[key];
+      if (typeof v === "number" && Math.abs(v) <= 0.001) return false;
+    }
   }
   return true;
 }

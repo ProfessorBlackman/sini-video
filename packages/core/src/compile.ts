@@ -796,7 +796,8 @@ class Compiler {
         const cycles = infinite ? Math.max(1, Math.ceil((sceneEnd - t0) / d)) : (t.repeat ?? 0) + 1;
         for (const [prop, raw] of Object.entries<J>(t.animate)) {
           const vals = Array.isArray(raw) ? raw : [null, raw];
-          this.tracks.push(this.tween(r, prop, vals.map((x: J) => this.animValue(prop, x)), t0, t0 + d * cycles, t.ease ?? this.personality.ease, `animate ${prop}${t.id ? ` (${t.id})` : ` (timeline[${j}])`}`, { repeat: cycles - 1, yoyo: !!t.yoyo }));
+          // An explicit `from` holds until the animation starts (like GSAP's fromTo).
+          this.tracks.push(this.tween(r, prop, vals.map((x: J) => this.animValue(prop, x)), t0, t0 + d * cycles, t.ease ?? this.personality.ease, `animate ${prop}${t.id ? ` (${t.id})` : ` (timeline[${j}])`}`, { repeat: cycles - 1, yoyo: !!t.yoyo, fillBackward: vals[0] !== null }));
         }
       });
     }

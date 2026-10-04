@@ -1,6 +1,6 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { RenderSession, renderVideo, type LayoutReport, type VideoResult } from "@sini/render";
+import { RenderSession, renderSheet, renderVideo, type LayoutReport, type VideoResult } from "@sini/render";
 import type { CompiledPlan } from "@sini/core";
 import { plan, SiniError } from "./project.js";
 
@@ -56,4 +56,14 @@ export async function renderMp4(
     ...(opts.onProgress ? { onProgress: opts.onProgress } : {}),
   });
   return { ...result, warnings: p.report.map((r) => `${r.path}: ${r.message}`) };
+}
+
+/** A contact sheet: a grid of frames with timestamps, as one PNG (out/sheet.png). */
+export async function contactSheet(target: string, opts: { times?: number[]; count?: number; out?: string } = {}): Promise<{ file: string; png: Buffer; times: number[] }> {
+  const { loaded, plan: p } = plan(target);
+  for (const t of opts.times ?? []) checkTime(p, t);
+  const { png, times } = await renderSheet(p, { ...(opts.times ? { times: opts.times } : {}), ...(opts.count ? { count: opts.count } : {}) });
+  const file = opts.out ?? join(outDir(loaded.dir), "sheet.png");
+  writeFileSync(file, png);
+  return { file, png, times };
 }

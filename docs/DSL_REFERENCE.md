@@ -108,7 +108,9 @@ Palette values must be hex.
 
 `fonts` maps three slots to font families: `display`, `body`, `mono`. Families must be bundled with Sini or declared as font assets (§5).
 
-Bundled fonts (all SIL Open Font License, each with regular, bold and italic, and Latin Extended coverage including `₵ € £ ✓ • … → ▶ — “ ”`; no emoji, use `icon` instead): Inter Tight, Instrument Serif, Bricolage Grotesque, Fraunces, DM Serif Display, Space Grotesk, Manrope, JetBrains Mono.
+Bundled fonts (all SIL Open Font License, with Latin Extended coverage). Any glyph a font lacks falls back to Inter Tight, so `₵ € £ ✓ • … → ▶ — “ ”` always render. No emoji: use `icon` instead. Lint flags characters no bundled font can draw.
+
+The bundled families: Inter Tight, Instrument Serif, Bricolage Grotesque, Fraunces, DM Serif Display, Space Grotesk, Manrope, JetBrains Mono.
 
 Text elements pick a **role**, which sets font, size, weight and line height.
 
@@ -671,7 +673,7 @@ Animatable properties: `x`, `y`, `scale`, `scaleX`, `scaleY`, `rotation`, `opaci
 
 Values:
 - `1.04`: animate **to** this value from the current one.
-- `[1, 1.04]`: from → to.
+- `[1, 1.04]`: from → to. The `from` value applies from the start of the scene until the animation starts, so `{ "scaleX": [0, 1] }` keeps a line hidden until it grows.
 - `[0, 1, 0.8]`: three or more values = keyframes spread evenly over the duration.
 - Colours can be palette tokens.
 

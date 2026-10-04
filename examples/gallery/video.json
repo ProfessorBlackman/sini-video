@@ -1,0 +1,96 @@
+{
+  "version": "0.4",
+  "video": { "format": "16:9", "background": "night", "end": { "type": "fade", "duration": 0.6, "color": "night" } },
+  "theme": {
+    "palette": { "night": "#101624", "paper": "#F4F1EA", "sun": "#F2B544", "mint": "#4FD1A5", "rose": "#E5677D", "mute": "#8A93A6" },
+    "fonts": { "display": "Fraunces", "body": "Space Grotesk", "mono": "JetBrains Mono" },
+    "motion": "snappy",
+    "transition": { "type": "crossfade", "duration": 0.5 },
+    "texture": { "grain": 0.04, "vignette": 0.25 }
+  },
+  "assets": {
+    "photo": { "type": "placeholder", "hint": "any landscape photo", "color": "rose" }
+  },
+  "components": {
+    "chip": {
+      "params": { "label": "" },
+      "root": {
+        "id": "box", "type": "stack", "align": "center", "style": { "fill": "paper/0.08", "radius": 18, "padding": [18, 28] },
+        "children": [{ "id": "text", "type": "text", "role": "body", "content": "{{label}}", "style": { "color": "paper" }, "enter": "none" }]
+      }
+    }
+  },
+  "scenes": [
+    {
+      "id": "enters", "duration": "auto", "background": "night",
+      "elements": [
+        { "id": "t1", "type": "text", "role": "title", "content": "Enter presets", "style": { "color": "sun" }, "layout": { "anchor": "top-left", "inset": [80, 120] } },
+        { "id": "row1", "type": "grid", "columns": 4, "gap": 32, "layout": { "below": "t1", "gap": 80, "width": 1680 },
+          "children": [
+            { "id": "e-fade", "use": "chip", "with": { "label": "fadeIn" }, "enter": "fadeIn" },
+            { "id": "e-up", "use": "chip", "with": { "label": "fadeUp" }, "enter": "fadeUp" },
+            { "id": "e-slide", "use": "chip", "with": { "label": "slideIn" }, "enter": { "preset": "slideIn", "from": "left" } },
+            { "id": "e-scale", "use": "chip", "with": { "label": "scaleIn" }, "enter": "scaleIn" },
+            { "id": "e-pop", "use": "chip", "with": { "label": "popIn" }, "enter": "popIn" },
+            { "id": "e-blur", "use": "chip", "with": { "label": "blurIn" }, "enter": "blurIn" },
+            { "id": "e-wipe", "use": "chip", "with": { "label": "wipeIn" }, "enter": { "preset": "wipeIn", "from": "down" } },
+            { "id": "e-bounce", "use": "chip", "with": { "label": "bounceIn" }, "enter": { "preset": "bounceIn", "ease": "bounce.out" } }
+          ] },
+        { "id": "words", "type": "text", "role": "subtitle", "content": "wordReveal *with* [colour]{sun} and **weight**", "style": { "color": "paper" }, "layout": { "below": "row1", "gap": 80 }, "enter": { "preset": "wordReveal", "duration": 0.6, "stagger": 0.08, "ease": "expo.out" } },
+        { "id": "lines", "type": "text", "role": "body", "content": "lineReveal reveals\nline by line\nas written", "style": { "color": "mute" }, "layout": { "below": "words", "gap": 40 }, "enter": { "preset": "lineReveal", "stagger": 0.15, "ease": "expo.out" } }
+      ]
+    },
+    {
+      "id": "text-presets", "duration": "auto", "background": "night",
+      "transition": { "type": "slide", "from": "right", "push": true, "duration": 0.6 },
+      "elements": [
+        { "id": "mark", "type": "text", "role": "display", "content": "charReveal", "style": { "color": "paper" }, "layout": { "anchor": "top", "inset": [120, 0] }, "enter": { "preset": "charReveal", "stagger": 0.05, "duration": 0.6, "ease": "expo.out" } },
+        { "id": "track", "type": "text", "role": "subtitle", "content": "trackIn tightens", "style": { "color": "sun" }, "layout": { "below": "mark", "gap": 40, "align": "center" }, "enter": { "preset": "trackIn", "duration": 1.0, "ease": "expo.out" } },
+        { "id": "type", "type": "text", "role": "mono", "content": "> typewriter types this…", "style": { "color": "mint", "size": 40 }, "layout": { "below": "track", "gap": 60, "align": "center" }, "enter": { "preset": "typewriter", "cps": 24 } },
+        { "id": "price", "type": "text", "role": "title", "content": "GH₵ 4,500/month", "style": { "color": "paper" }, "layout": { "below": "type", "gap": 60, "align": "center" }, "enter": { "preset": "countUp", "duration": 1.4, "ease": "expo.out" } },
+        { "id": "ring", "type": "shape", "shape": "circle", "style": { "stroke": "rose", "strokeWidth": 6 }, "layout": { "anchor": "bottom-left", "inset": [100, 200], "width": 180, "height": 180 }, "enter": { "preset": "drawOutline", "duration": 1.2 } },
+        { "id": "pill", "type": "shape", "shape": "pill", "style": { "stroke": "sun", "strokeWidth": 6 }, "layout": { "anchor": "bottom-right", "inset": [130, 200], "width": 420, "height": 120 }, "enter": { "preset": "drawOutline", "duration": 1.2 } }
+      ]
+    },
+    {
+      "id": "ambient", "duration": 4, "background": "night",
+      "transition": { "type": "circle", "origin": "center", "duration": 0.7 },
+      "elements": [
+        { "id": "pic", "type": "image", "asset": "photo", "style": { "radius": 24 }, "layout": { "anchor": "left", "inset": [0, 120], "width": 720, "height": 520 }, "enter": "none" },
+        { "id": "cap", "type": "text", "role": "caption", "content": "kenBurns zooms inside the frame", "style": { "color": "mute" }, "layout": { "below": "pic", "gap": 20 }, "enter": "none" },
+        { "id": "floaty", "type": "badge", "label": "float", "style": { "fill": "mint" }, "layout": { "anchor": "top-right", "inset": [180, 560] } },
+        { "id": "swingy", "type": "badge", "label": "swing", "shape": "circle", "style": { "fill": "sun" }, "layout": { "anchor": "top-right", "inset": [180, 220] } },
+        { "id": "cta", "type": "button", "label": "pulse", "style": { "fill": "rose", "color": "paper" }, "layout": { "anchor": "bottom-right", "inset": [260, 560] } },
+        { "id": "cta-ring", "type": "button", "label": "pulse ring", "variant": "outline", "style": { "color": "paper", "radius": 60 }, "layout": { "anchor": "bottom-right", "inset": [260, 160] } },
+        { "id": "drifty", "type": "text", "role": "subtitle", "content": "drift", "style": { "color": "paper" }, "layout": { "anchor": "bottom-right", "inset": [100, 400] }, "enter": "none" }
+      ],
+      "timeline": [
+        { "target": "pic", "preset": "kenBurns", "zoom": 1.25, "at": 0 },
+        { "target": "floaty", "preset": "float", "amplitude": 16, "period": 1.6, "at": 0 },
+        { "target": "swingy", "preset": "swing", "angle": 14, "at": 0.5 },
+        { "target": "cta", "preset": "pulse", "scale": 1.08, "every": 0.8, "at": 0.5 },
+        { "target": "cta-ring", "preset": "pulse", "ring": true, "every": 0.8, "at": 0.5 },
+        { "target": "drifty", "preset": "drift", "x": 120, "y": -40, "at": 0 }
+      ]
+    },
+    {
+      "id": "states", "duration": "auto", "background": "paper",
+      "transition": { "type": "wipe", "from": "up", "angle": -10, "bar": "sun", "duration": 0.6 },
+      "elements": [
+        { "id": "t4", "type": "text", "role": "title", "content": "States and exits", "style": { "color": "night" }, "layout": { "anchor": "top-left", "inset": [80, 120] } },
+        { "id": "buy", "type": "button", "label": "Add to bag", "style": { "fill": "night", "color": "paper" },
+          "states": { "added": { "label": "Added to bag ✓", "style": { "fill": "mint" } } },
+          "layout": { "below": "t4", "gap": 80 }, "enter": "popIn" },
+        { "id": "count", "type": "badge", "label": "0", "shape": "circle", "style": { "fill": "rose" }, "states": { "one": { "label": "1" } }, "layout": { "rightOf": "buy", "gap": 30, "align": "center" }, "enter": "popIn" },
+        { "id": "x-fade", "use": "chip", "with": { "label": "fadeOut" }, "style": { "fill": "night" }, "layout": { "anchor": "bottom-left", "inset": [140, 120] }, "enter": "none", "exit": "fadeOut" },
+        { "id": "x-slide", "use": "chip", "with": { "label": "slideOut" }, "style": { "fill": "night" }, "layout": { "anchor": "bottom-left", "inset": [140, 480] }, "enter": "none", "exit": { "preset": "slideOut", "to": "down" } },
+        { "id": "x-wipe", "use": "chip", "with": { "label": "wipeOut" }, "style": { "fill": "night" }, "layout": { "anchor": "bottom-left", "inset": [140, 840] }, "enter": "none", "exit": "wipeOut" },
+        { "id": "x-words", "type": "text", "role": "subtitle", "content": "wordsUp exits upward", "style": { "color": "night" }, "layout": { "anchor": "bottom-right", "inset": [140, 120] }, "enter": "none", "exit": { "preset": "wordsUp", "stagger": 0.05 } }
+      ],
+      "timeline": [
+        { "target": "buy", "state": "added", "at": "buy.enter.end+0.6" },
+        { "target": "count", "state": "one", "at": "buy.enter.end+0.75" }
+      ]
+    }
+  ]
+}

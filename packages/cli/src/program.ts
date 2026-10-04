@@ -1,6 +1,6 @@
 import { createRequire } from "node:module";
 import { Command } from "commander";
-import { describe, layoutAt, renderFrame, renderMp4, SiniError } from "@sini/api";
+import { contactSheet, describe, layoutAt, renderFrame, renderMp4, SiniError } from "@sini/api";
 import { formatIssue, runValidate } from "./validate-command.js";
 
 const require = createRequire(import.meta.url);
@@ -87,6 +87,23 @@ export function createProgram(): Command {
           const extra = [e.visible ? "" : "hidden", e.overflow ? "OVERFLOW" : "", e.shrink ? `shrunk to ${Math.round(e.shrink * 100)}%` : "", e.fontSize ? `${e.fontSize}px` : ""].filter(Boolean).join(", ");
           console.log(`  ${e.ref} [${e.type}] ${b.x},${b.y} ${b.width}×${b.height}${moved}${extra ? `  (${extra})` : ""}`);
         }
+      })(),
+    );
+
+  program
+    .command("sheet")
+    .description("Render a contact sheet: a grid of frames with timestamps")
+    .argument("[project]", "project folder or spec file", ".")
+    .option("--times <list>", "comma-separated times in seconds")
+    .option("--count <n>", "number of evenly spaced frames", "12")
+    .option("-o, --out <file>", "output PNG path (default: out/sheet.png)")
+    .action((project: string, opts: { times?: string; count: string; out?: string }) =>
+      guard(async () => {
+        const r = await contactSheet(project, {
+          ...(opts.times ? { times: opts.times.split(",").map(Number) } : { count: Number(opts.count) }),
+          ...(opts.out ? { out: opts.out } : {}),
+        });
+        console.log(`${r.file}  (${r.times.map((t) => `${t}s`).join(", ")})`);
       })(),
     );
 

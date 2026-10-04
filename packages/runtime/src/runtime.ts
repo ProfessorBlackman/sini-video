@@ -271,7 +271,8 @@ function buildText(node: Node, host: HTMLElement) {
 function fontCss(e: HTMLElement, el: PlanElement) {
   const f = el.font!;
   Object.assign(e.style, {
-    fontFamily: `"${f.family}"`,
+    // Inter Tight covers symbols the display fonts lack (✓ ▶ → ₵ …).
+    fontFamily: `"${f.family}", "Inter Tight"`,
     fontSize: px(f.size),
     fontWeight: String(f.weight),
     lineHeight: String(f.lineHeight),
@@ -323,6 +324,8 @@ function build(el: PlanElement, flow: boolean, sceneId: string): HTMLElement {
   const fillsBox = outer.style.width && outer.style.width !== "max-content" || outer.style.height || outer.style.aspectRatio;
   anim.style.transformOrigin = ORIGIN[el.style.origin] ?? "50% 50%";
   const node: Node = { el, outer, anim, words: [], chars: [], sceneId };
+  // In stacks, grids and device pages the outer box is sized by the container; fill it.
+  if (flow) anim.style.width = "100%";
   nodes.set(el.ref, node);
   if (fillsBox) Object.assign(anim.style, { width: "100%", height: "100%" });
 
@@ -428,7 +431,8 @@ function build(el: PlanElement, flow: boolean, sceneId: string): HTMLElement {
         const p = el.props;
         Object.assign(c.style, { display: "grid", gridTemplateColumns: `repeat(${p.columns}, minmax(0, 1fr))`, columnGap: px(Number(p.gap)), rowGap: px(Number(p.rowGap)), justifyItems: "stretch" });
       }
-      if (fillsBox) Object.assign(c.style, { width: "100%", height: "100%" });
+      if (fillsBox || flow) c.style.width = "100%";
+      if (fillsBox) c.style.height = "100%";
       anim.appendChild(c);
       node.box = c;
       for (const child of el.children) c.appendChild(build(child, el.type !== "group", sceneId));

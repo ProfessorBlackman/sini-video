@@ -16,3 +16,6 @@ inspiration/
 
 # Paper-test scratch
 docs/paper-tests/**/__pycache__/
+
+# Example render outputs
+examples/*/out/
