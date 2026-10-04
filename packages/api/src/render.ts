@@ -1,4 +1,4 @@
-import { mkdirSync, writeFileSync } from "node:fs";
+import { accessSync, constants, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { RenderSession, renderSheet, renderVideo, type LayoutReport, type VideoResult } from "@sini/render";
 import type { CompiledPlan } from "@sini/core";
@@ -6,7 +6,16 @@ import { plan, SiniError } from "./project.js";
 
 export function outDir(projectDir: string): string {
   const d = join(projectDir, "out");
-  mkdirSync(d, { recursive: true });
+  try {
+    mkdirSync(d, { recursive: true });
+    accessSync(d, constants.W_OK);
+  } catch {
+    const uid = typeof process.getuid === "function" ? process.getuid() : undefined;
+    throw new SiniError(
+      `Can't write to ${d}${uid !== undefined ? ` as user ${uid}` : ""}.` +
+        " In Docker, mount a folder you own (the container runs as its owner) or pass --user \"$(id -u):$(id -g)\".",
+    );
+  }
   return d;
 }
 

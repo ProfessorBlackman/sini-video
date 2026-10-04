@@ -16,8 +16,12 @@ export function guard(fn: () => void | Promise<void>) {
       if (e instanceof SiniError) {
         console.error(e.message);
         for (const i of e.issues) console.error(formatIssue(i));
-        process.exitCode = 1;
-      } else throw e;
+      } else if (process.env.SINI_DEBUG) {
+        throw e;
+      } else {
+        console.error(`Error: ${(e as Error).message}\n(set SINI_DEBUG=1 for a stack trace)`);
+      }
+      process.exitCode = 1;
     }
   };
 }

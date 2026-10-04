@@ -35,7 +35,9 @@ COPY LICENSE NOTICE /opt/sini/
 RUN chmod +x /opt/sini/cli/dist/index.js \
  && ln -s /opt/sini/cli/dist/index.js /usr/local/bin/sini
 
-USER pwuser
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+# Chromium needs a writable home whichever user the entrypoint switches to.
+ENV HOME=/tmp
 WORKDIR /work
-ENTRYPOINT ["sini"]
+ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["--help"]
