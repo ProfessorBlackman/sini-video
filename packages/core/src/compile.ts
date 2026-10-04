@@ -39,7 +39,7 @@ export interface CompiledPlan extends Plan {
 }
 
 const UNSUPPORTED_TYPES = new Set(["toast", "progress", "chart", "template", "svg"]);
-const UNSUPPORTED_BEHAVIORS = new Set(["scroll", "camera", "focusCycle", "navigate"]);
+const UNSUPPORTED_BEHAVIORS = new Set(["camera", "focusCycle"]);
 const ENTER = new Set(["fadeIn", "fadeUp", "slideIn", "scaleIn", "popIn", "bounceIn", "blurIn", "wordReveal", "lineReveal", "charReveal", "typewriter", "countUp", "trackIn", "drawOutline", "wipeIn", "grow"]);
 const EXIT = new Set(["fadeOut", "slideOut", "scaleOut", "blurOut", "wordsUp", "wipeOut"]);
 const AMBIENT = new Set(["kenBurns", "float", "pulse", "swing", "drift"]);
@@ -315,26 +315,27 @@ class Compiler {
         ...(type === "browser" ? { url: src.url ?? "" } : { statusBar: src.statusBar ?? true }),
         ...(typeof src.content === "string" ? { content: this.image(src.content, `${ctx.path}.content`), hotspots: this.hotspots(src.content, ctx.path) } : {}),
       };
-      if (src.screens) {
-        this.warn(ctx.path, "unsupported-feature", "Device screens aren't rendered yet; only the first screen is shown.");
-      }
-      if (src.overlay) this.warn(ctx.path, "unsupported-feature", "Device overlays aren't rendered yet.");
     }
 
     const childCtx = { ...ctx, prefix: childPrefix, topLevel: false };
     const kids: J[] = Array.isArray(src.children) ? src.children : [];
     if (type === "browser" || type === "phone") {
       const devCtx = { ...childCtx, inDevice: true, textColour: "rgb(17, 17, 17)" };
-      const firstScreen = src.screens ? src.screens[src.screen] ?? Object.values(src.screens)[0] : null;
-      const pageSrc: J = firstScreen ? (Array.isArray(firstScreen) ? { children: firstScreen } : firstScreen) : { children: kids };
-      const pad = this.style({ padding: pageSrc.padding ?? src.padding ?? 0 }).padding!;
-      el.pages = [{
-        name: src.screen ?? "main",
+      // One page per screen (or a single "main" page for `children`).
+      const screens: [string, J][] = src.screens
+        ? Object.entries<J>(src.screens).map(([name, pg]) => [name, Array.isArray(pg) ? { children: pg } : pg ?? {}])
+        : [["main", { children: kids }]];
+      el.pages = screens.map(([name, pageSrc]) => ({
+        name,
         background: this.paint(pageSrc.background ?? src.background ?? "#FFFFFF") ?? "#FFFFFF",
-        padding: pad,
+        padding: this.style({ padding: pageSrc.padding ?? src.padding ?? 0 }).padding!,
         gap: pageSrc.gap ?? src.gap ?? 0,
-        children: (pageSrc.children ?? []).map((c: J, j: number) => this.element(c, { ...devCtx, path: `${ctx.path}.children[${j}]` }, registry)).filter(Boolean) as PlanElement[],
-      }];
+        children: (pageSrc.children ?? []).map((c: J, j: number) => this.element(c, { ...devCtx, path: `${ctx.path}.screens.${name}[${j}]` }, registry)).filter(Boolean) as PlanElement[],
+      }));
+      el.props.screen = src.screens ? (src.screens[src.screen] !== undefined ? src.screen : screens[0]![0]) : "main";
+      if (Array.isArray(src.overlay)) {
+        el.overlay = src.overlay.map((c: J, j: number) => this.element(c, { ...devCtx, path: `${ctx.path}.overlay[${j}]` }, registry)).filter(Boolean) as PlanElement[];
+      }
     } else {
       el.children = kids.map((c: J, j: number) => this.element(c, { ...childCtx, path: `${ctx.path}.children[${j}]` }, registry)).filter(Boolean) as PlanElement[];
     }
@@ -808,6 +809,7 @@ class Compiler {
       }
     }
     stateItems.sort((a, b) => timing.evalExpr(a[1].at) - timing.evalExpr(b[1].at));
+    this.deviceTracks(sc, timeline, registry, timing, sceneStart);
     for (const [j, t] of timeline) {
       if (!("animate" in t)) continue;
       const targets: string[] = Array.isArray(t.target) ? t.target : [t.target];
@@ -895,6 +897,48 @@ class Compiler {
       });
     }
     return out;
+  }
+
+  /** Screen changes (navigate behaviors and interaction steps) and scrolls. */
+  deviceTracks(sc: J, timeline: [number, J][], registry: Map<string, { el: PlanElement; src: J; topLevel: boolean }>, timing: ReturnType<Compiler["sceneTiming"]>, sceneStart: number) {
+    const navs: { device: PlanElement; to: string; t0: number; transition: "push" | "fade" | "none"; label: string }[] = [];
+    for (const [j, t] of timeline) {
+      if (t.behavior === "navigate") {
+        const device = registry.get(t.target)?.el;
+        if (device) navs.push({ device, to: t.to, t0: sceneStart + timing.evalExpr(t.at), transition: t.transition ?? "push", label: `navigate → ${t.to}${t.id ? ` (${t.id})` : ` (timeline[${j}])`}` });
+      }
+      if (t.behavior === "interaction") {
+        const pace = PACE[(t.pace ?? "normal") as keyof typeof PACE] ?? PACE.normal;
+        const windows = this.interactionSteps(t, (x) => timing.evalExpr(x));
+        (t.steps ?? []).forEach((st: J, i: number) => {
+          for (const [dev, to] of Object.entries<J>(st.navigate ?? {})) {
+            const device = registry.get(dev)?.el;
+            if (!device) continue;
+            const release = windows[i]!.start + pace.move + pace.press;
+            navs.push({ device, to, t0: sceneStart + release, transition: st.transition ?? "push", label: `navigate → ${to} (interaction ${j})` });
+          }
+        });
+      }
+      if (t.behavior === "scroll") {
+        const device = registry.get(t.target)?.el;
+        if (!device) continue;
+        if (device.type !== "phone" && device.type !== "browser") {
+          this.warn(`${sc.id}.timeline[${j}]`, "unsupported-feature", "scroll works on phones and browsers; this target isn't one.");
+          continue;
+        }
+        const start = sceneStart + timing.evalExpr(t.at);
+        const to = typeof t.to === "string" && !["top", "bottom"].includes(t.to) ? registry.get(t.to)?.el?.ref ?? t.to : t.to ?? "bottom";
+        this.tracks.push({ kind: "scroll", ref: device.ref, to, t0: start, t1: start + (t.duration ?? SCROLL_DURATION), ease: t.ease ?? "cubic.inOut", label: `scroll → ${t.to}${t.id ? ` (${t.id})` : ` (timeline[${j}])`}` });
+      }
+    }
+    navs.sort((a, b) => a.t0 - b.t0);
+    const current = new Map<PlanElement, string>();
+    for (const n of navs) {
+      const from = current.get(n.device) ?? String(n.device.props.screen ?? "main");
+      current.set(n.device, n.to);
+      const dur = n.transition === "none" ? 0 : NAVIGATE_DURATION;
+      this.tracks.push({ kind: "screen", ref: n.device.ref, from, to: n.to, transition: n.transition, t0: n.t0, t1: n.t0 + dur, label: n.label });
+    }
   }
 
   animValue(prop: string, v: J): number | string | null {

@@ -223,4 +223,7 @@ Phase 2 then adds devices, components, charts and interactions, and reruns all 8
 
 - **`icon`** elements (bundled Lucide set, aliases for renamed icons, unknown names rejected with suggestions; `drawOutline` draws every stroke).
 - **`interaction`**: arrow, hand-pointer and touch cursors move between targets (aimed at the drawn shape or the text itself), press with a dip on the target and a ripple for touch; step `set` applies states at the end of the press; `type` steps type into text; numeric screenshot hotspots are located. Found while testing through the MCP server: step `set` was previously ignored.
-- Still not rendered: device `screens`/`navigate`/`overlay`, `scroll`, `camera`, `focusCycle`, `matchCut`, `toast`, `progress`, `chart`, `svg`, `template`, and text hotspots (`{ "text": … }`, which aim at the element's centre).
+- **Device screens**: one page per screen with per-screen background/padding/gap; `navigate` (behavior or interaction step) with `push` (iOS-style), `fade` or `none`; a fixed phone status bar; `describe_at` knows which screen is showing.
+- **Device overlays**: elements drawn above the screen in logical pixels (e.g. a banner or toast built from a stack).
+- **`scroll`**: phones and browsers (children pages or tall screenshots); `to` px, `top`, `bottom` or an element (placed 24 logical px below the visible top, under the status bar), clamped to the page; each screen keeps its own scroll position.
+- Still not rendered: `camera`, `focusCycle`, `matchCut`, `toast`, `progress`, `chart`, `svg`, `template`, and text hotspots (`{ "text": … }`, which aim at the element's centre).

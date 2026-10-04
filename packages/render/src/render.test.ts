@@ -90,3 +90,28 @@ describe("video", () => {
     }
   }, 120_000);
 });
+
+describe("device scrolling", () => {
+  it("scrolls a phone page so the target sits near the top", async () => {
+    const items = Array.from({ length: 14 }, (_, i) => ({ id: `row-${i}`, type: "shape", shape: "rect", style: { fill: "#cccccc" }, layout: { height: 120 } }));
+    const p = compile({
+      version: "0.4", video: { format: "9:16" },
+      scenes: [{ id: "s", duration: 3, elements: [
+        { id: "phone", type: "phone", gap: 10, layout: { anchor: "center", width: 500 }, children: items },
+      ], timeline: [{ behavior: "scroll", target: "phone", to: "row-6", at: 0.5, duration: 1 }] }],
+    } as never);
+    const s = await RenderSession.open(p, { browser });
+    try {
+      const y = async (t: number) => (await s.layout(t)).elements.find((e) => e.ref === "row-6")!.current.y;
+      const phoneTop = (await s.layout(0)).elements.find((e) => e.ref === "phone")!.box.y;
+      const before = await y(0);
+      const after = await y(2);
+      expect(after).toBeLessThan(before - 300);
+      // 24 logical px + the 54px status bar below the screen top, scaled to canvas.
+      const scale = (500 * 0.92) / 390;
+      expect(after - (phoneTop + 500 * 0.04)).toBeCloseTo((24 + 54) * scale, 0);
+    } finally {
+      await s.close();
+    }
+  }, 60_000);
+});

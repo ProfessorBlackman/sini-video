@@ -220,10 +220,24 @@ export interface CursorTrack extends TrackBase {
   from: string;
   steps: { target: string | null; start: number; arrive: number; release: number; end: number }[];
 }
+/** A device switching screens (navigate behavior, or an interaction step's navigate). */
+export interface ScreenTrack extends TrackBase {
+  kind: "screen";
+  from: string;
+  to: string;
+  transition: "push" | "fade" | "none";
+}
+/** Scrolling a device's current page. The renderer resolves `to` against real layout. */
+export interface ScrollTrack extends TrackBase {
+  kind: "scroll";
+  /** Logical px, "top", "bottom", or an element ref inside the device. */
+  to: number | string;
+  ease: EaseSpec;
+}
 /** Text typed into a text element by an interaction `type` step. */
 export interface TypedTrack extends TrackBase {
   kind: "typed";
   text: string;
 }
 
-export type Track = TweenTrack | OscTrack | PulseTrack | SwingTrack | TypeTrack | CountTrack | ContentTrack | StepTrack | CursorTrack | TypedTrack;
+export type Track = TweenTrack | OscTrack | PulseTrack | SwingTrack | TypeTrack | CountTrack | ContentTrack | StepTrack | CursorTrack | TypedTrack | ScreenTrack | ScrollTrack;

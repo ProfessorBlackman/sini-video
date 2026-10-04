@@ -24,6 +24,8 @@ export interface ElementFrame {
   ring?: { p: number };
   variant?: string;
   typed?: { text: string; caret: boolean };
+  /** Devices: the screen showing, or a transition between two screens. */
+  screen?: { from: string; to: string; p: number; transition: "push" | "fade" | "none" };
 }
 
 export interface CursorFrame {
@@ -63,6 +65,8 @@ interface Index {
   byRef: Map<string, Track[]>;
   elements: Map<string, PlanElement>;
   parent: Map<string, string>;
+  /** Elements on a device page: which device and which screen. */
+  page: Map<string, { device: string; screen: string }>;
 }
 
 const indexes = new WeakMap<Plan, Index>();
@@ -79,17 +83,21 @@ function index(plan: Plan): Index {
   for (const list of byRef.values()) list.sort((a, b) => a.t0 - b.t0);
   const elements = new Map<string, PlanElement>();
   const parent = new Map<string, string>();
+  const page = new Map<string, { device: string; screen: string }>();
   const walk = (els: PlanElement[], p?: string) => {
     for (const e of els) {
       elements.set(e.ref, e);
       if (p) parent.set(e.ref, p);
       walk(e.children, e.ref);
-      for (const page of e.pages ?? []) walk(page.children, e.ref);
+      for (const pg of e.pages ?? []) {
+        for (const c of pg.children) page.set(c.ref, { device: e.ref, screen: pg.name });
+        walk(pg.children, e.ref);
+      }
       walk(e.overlay ?? [], e.ref);
     }
   };
   for (const s of plan.scenes) walk(s.elements);
-  idx = { byRef, elements, parent };
+  idx = { byRef, elements, parent, page };
   indexes.set(plan, idx);
   return idx;
 }
@@ -245,6 +253,12 @@ export function elementFrame(plan: Plan, ref: string, t: number): ElementFrame {
       case "step":
         if (t >= tr.t0) frame.variant = tr.value;
         break;
+      case "screen":
+        if (t >= tr.t0) {
+          const p = tr.t1 > tr.t0 ? clamp01((t - tr.t0) / (tr.t1 - tr.t0)) : 1;
+          frame.screen = { from: tr.from, to: tr.to, p: p < 1 ? easeFn("cubic.inOut")(p) : 1, transition: tr.transition };
+        }
+        break;
       case "typed":
         if (t >= tr.t0) {
           const cps = tr.t1 > tr.t0 ? tr.text.length / (tr.t1 - tr.t0) : Infinity;
@@ -274,7 +288,14 @@ export function frameAt(plan: Plan, t: number): Frame {
     return f;
   });
   const out: Record<string, ElementFrame> = {};
-  for (const ref of elements.keys()) out[ref] = elementFrame(plan, ref, t);
+  for (const ref of elements.keys()) {
+    out[ref] = elementFrame(plan, ref, t);
+    const el = elements.get(ref)!;
+    if (el.pages && !out[ref]!.screen) {
+      const s = String(el.props.screen ?? el.pages[0]?.name ?? "main");
+      out[ref]!.screen = { from: s, to: s, p: 1, transition: "none" };
+    }
+  }
   for (const s of plan.scenes) {
     const bg = `${s.id}:background`;
     if (index(plan).byRef.has(bg)) out[bg] = elementFrame(plan, bg, t);
@@ -316,13 +337,19 @@ export function frameAt(plan: Plan, t: number): Frame {
 
 /** Is an element (and every ancestor) visible at t? */
 export function isVisible(plan: Plan, frame: Frame, ref: string): boolean {
-  const { parent, elements } = index(plan);
+  const { parent, elements, page } = index(plan);
   const el = elements.get(ref);
   if (!el) return false;
   const scene = frame.scenes.find((s) => s.id === el.sceneId);
   if (!scene?.visible) return false;
   for (let r: string | undefined = ref; r; r = parent.get(r)) {
     if (!frame.elements[r]?.visible) return false;
+    // On a device page that isn't showing (or transitioning)?
+    const pg = page.get(r);
+    if (pg) {
+      const sc = frame.elements[pg.device]?.screen;
+      if (sc && pg.screen !== sc.to && !(sc.p < 1 && pg.screen === sc.from)) return false;
+    }
     const props = frame.elements[r]?.props ?? {};
     for (const key of ["opacity", "scale", "scaleX", "scaleY"]) {
       const v = props[key];

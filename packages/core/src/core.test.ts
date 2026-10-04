@@ -181,3 +181,36 @@ describe("interactions", () => {
     expect(elementFrame(plan, "btn", (tap.t0 + tap.t1) / 2).props.press).toBeLessThan(1);
   });
 });
+
+describe("device screens and scrolling", () => {
+  const plan = compile(video([{ id: "s", duration: 6, elements: [
+    { id: "phone", type: "phone", screen: "home", screens: {
+      home: [{ id: "go", type: "button", label: "Menu" }],
+      menu: { background: "#eeeeee", children: [{ id: "item", type: "text", content: "Jollof" }] },
+      cart: [{ id: "c", type: "text", content: "Cart" }],
+    } },
+  ], timeline: [
+    { behavior: "interaction", at: 1, steps: [{ click: "go", navigate: { phone: "menu" } }] },
+    { id: "down", behavior: "scroll", target: "phone", to: "item", at: 2.5 },
+    { behavior: "navigate", target: "phone", to: "cart", transition: "fade", at: 4 },
+  ] }]));
+  const screens = plan.tracks.filter((t) => t.kind === "screen");
+
+  it("builds one page per screen", () => {
+    expect(plan.scenes[0]!.elements[0]!.pages!.map((p) => p.name)).toEqual(["home", "menu", "cart"]);
+  });
+  it("turns step and behavior navigation into screen changes, in order", () => {
+    expect(screens.map((t) => [t.from, t.to, t.transition])).toEqual([["home", "menu", "push"], ["menu", "cart", "fade"]]);
+    expect(screens[0]!.t0).toBeCloseTo(1.68); // end of the press
+  });
+  it("compiles scrolls with the target element", () => {
+    expect(plan.tracks.find((t) => t.kind === "scroll")).toMatchObject({ ref: "phone", to: "item", t0: 2.5 });
+  });
+  it("hides elements on screens that aren't showing", () => {
+    const at = (t: number) => Object.fromEntries(describeAt(plan, t).elements.map((e) => [e.ref, e.visible]));
+    expect(at(0.5)).toMatchObject({ go: true, item: false, c: false });
+    expect(at(1.9)).toMatchObject({ go: true, item: true }); // mid-push: both
+    expect(at(3)).toMatchObject({ go: false, item: true, c: false });
+    expect(at(5)).toMatchObject({ item: false, c: true });
+  });
+});

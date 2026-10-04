@@ -6,7 +6,7 @@
  * demand with `sini.render(t)`. Rendering is a pure function of t: every call sets every
  * animated style, so frames can be rendered in any order, in parallel.
  */
-import { clamp01, formatLike, frameAt, type CursorFrame, type ElementFrame, type Frame, type PlanElement, type PlanScene, type Plan, type Run } from "@sini/core";
+import { clamp01, easeFn, elementFrame, formatLike, frameAt, type CursorFrame, type ElementFrame, type Frame, type PlanElement, type PlanScene, type Plan, type Run } from "@sini/core";
 
 declare global {
   interface Window {
@@ -74,6 +74,9 @@ interface Node {
   ring?: HTMLElement;
   /** Device screen element (scaled logical-pixel space). */
   screen?: HTMLElement;
+  /** Device pages by screen name. */
+  pages?: Map<string, { page: HTMLElement; background: string }>;
+  statusBar?: HTMLElement;
   sceneId: string;
 }
 
@@ -544,20 +547,114 @@ function buildDevice(node: Node, el: PlanElement, sceneId: string) {
 }
 
 function fillScreen(node: Node, el: PlanElement, screen: HTMLElement, sceneId: string) {
-  const content = el.props.content as never;
-  if (content) {
-    const p = picture(content, "cover");
-    Object.assign(p.style, { height: "auto", minHeight: "100%" });
-    screen.appendChild(p);
-    node.img = screen;
-    return;
-  }
-  const page = el.pages?.[0];
-  if (!page) return;
+  node.pages = new Map();
   const top = el.type === "phone" && el.props.statusBar !== false ? 54 : 0;
-  const pg = h("div", "page", { display: "flex", flexDirection: "column", gap: px(page.gap), padding: page.padding.map((v, i) => px(v + (i === 0 ? top : 0))).join(" "), background: page.background, minHeight: "100%", boxSizing: "border-box" });
-  for (const child of page.children) pg.appendChild(build(child, true, sceneId));
-  screen.appendChild(pg);
+  const content = el.props.content as never;
+  const pageBox = (bg: string) => h("div", "page", { position: "absolute", left: "0", top: "0", width: "100%", minHeight: "100%", boxSizing: "border-box", background: bg, willChange: "transform" });
+  if (content) {
+    // A screenshot is one page, shown at the screen's width; tall ones can scroll.
+    const pg = pageBox("#FFFFFF");
+    const pic = picture(content, "cover");
+    Object.assign(pic.style, { height: "auto" });
+    pg.appendChild(pic);
+    screen.appendChild(pg);
+    node.pages.set("main", { page: pg, background: "#FFFFFF" });
+    node.img = pg;
+  } else {
+    for (const page of el.pages ?? []) {
+      const pg = pageBox(page.background);
+      Object.assign(pg.style, { display: "flex", flexDirection: "column", gap: px(page.gap), padding: page.padding.map((v, i) => px(v + (i === 0 ? top : 0))).join(" ") });
+      pg.dataset.screen = page.name;
+      for (const child of page.children) pg.appendChild(build(child, true, sceneId));
+      screen.appendChild(pg);
+      node.pages.set(page.name, { page: pg, background: page.background });
+    }
+  }
+  if (el.overlay?.length) {
+    const ov = h("div", "overlay", { position: "absolute", inset: "0", zIndex: "20" });
+    for (const child of el.overlay) ov.appendChild(build(child, false, sceneId));
+    screen.appendChild(ov);
+  }
+  if (top) {
+    // A status bar that stays put while pages scroll underneath.
+    const bar = h("div", "statusbar", { position: "absolute", left: "0", top: "0", width: "100%", height: px(top), zIndex: "10", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 30px", boxSizing: "border-box", font: `600 15px "${plan.fonts.body}", "Inter Tight"`, color: "#111" });
+    const time = h("span");
+    time.textContent = "9:41";
+    const battery = h("span", "", { width: "26px", height: "12px", border: "1.5px solid currentColor", borderRadius: "3px", position: "relative", opacity: "0.8" });
+    battery.appendChild(h("i", "", { position: "absolute", left: "2px", top: "2px", bottom: "2px", width: "70%", background: "currentColor", borderRadius: "1px" }));
+    bar.append(time, battery);
+    screen.appendChild(bar);
+    node.statusBar = bar;
+  }
+}
+
+// ---------------------------------------------------------------- device screens and scrolling
+
+interface ResolvedScroll { page: string; t0: number; t1: number; ease: Parameters<typeof easeFn>[0]; to: number }
+const scrolls = new Map<string, ResolvedScroll[]>();
+
+/** Turn scroll targets ("bottom", an element, px) into offsets, using real layout. */
+function resolveScrolls() {
+  for (const tr of plan.tracks) {
+    if (tr.kind !== "scroll") continue;
+    const n = nodes.get(tr.ref);
+    if (!n?.pages || !n.screen) continue;
+    const name = elementFrame(plan, tr.ref, tr.t0).screen?.to ?? String(n.el.props.screen ?? "main");
+    const page = (n.pages.get(name) ?? [...n.pages.values()][0])!.page;
+    const top = n.statusBar ? n.statusBar.offsetHeight : 0;
+    const max = Math.max(0, page.offsetHeight - n.screen.offsetHeight);
+    let to = 0;
+    if (typeof tr.to === "number") to = tr.to;
+    else if (tr.to === "bottom") to = max;
+    else if (tr.to !== "top") {
+      const target = nodes.get(tr.to)?.outer;
+      if (target) {
+        const s = n.screen.getBoundingClientRect().width / (n.screen.offsetWidth || 1);
+        const y = (target.getBoundingClientRect().top - page.getBoundingClientRect().top) / s;
+        to = y - 24 - top;
+      }
+    }
+    const list = scrolls.get(tr.ref) ?? [];
+    list.push({ page: name, t0: tr.t0, t1: tr.t1, ease: tr.ease, to: Math.max(0, Math.min(max, to)) });
+    scrolls.set(tr.ref, list.sort((a, b) => a.t0 - b.t0));
+  }
+}
+
+function scrollOffset(ref: string, page: string, t: number): number {
+  let cur = 0;
+  for (const s of scrolls.get(ref) ?? []) {
+    if (s.page !== page) continue;
+    if (t >= s.t1) cur = s.to;
+    else if (t >= s.t0) return cur + (s.to - cur) * easeFn(s.ease)(clamp01((t - s.t0) / (s.t1 - s.t0)));
+    else break;
+  }
+  return cur;
+}
+
+function applyDevice(n: Node, f: ElementFrame, t: number) {
+  if (!n.pages) return;
+  const sc = f.screen ?? { from: "main", to: "main", p: 1, transition: "none" as const };
+  const moving = sc.p < 1 && sc.from !== sc.to;
+  for (const [name, { page, background }] of n.pages) {
+    const isTo = name === sc.to || n.pages.size === 1;
+    const isFrom = moving && name === sc.from;
+    page.style.visibility = isTo || isFrom ? "inherit" : "hidden";
+    let x = "0%";
+    let opacity = 1;
+    let filter = "";
+    if (moving && sc.transition === "push") {
+      if (isTo) x = `${(1 - sc.p) * 100}%`;
+      if (isFrom) {
+        x = `${-sc.p * 30}%`;
+        filter = `brightness(${1 - 0.15 * sc.p})`;
+      }
+    } else if (moving && sc.transition === "fade" && isTo) opacity = sc.p;
+    page.style.zIndex = isTo ? "2" : "1";
+    page.style.opacity = String(opacity);
+    page.style.filter = filter;
+    page.style.transform = `translateX(${x}) translateY(${-scrollOffset(n.el.ref, name, t)}px)`;
+    if (isTo && n.statusBar) n.statusBar.style.background = background;
+  }
 }
 
 // ---------------------------------------------------------------- scenes
@@ -1109,6 +1206,10 @@ function render(t: number) {
   const fr = frameAt(plan, t);
   applyScenes(fr);
   for (const n of nodes.values()) applyElement(n, fr.elements[n.el.ref]);
+  for (const n of nodes.values()) {
+    const f = fr.elements[n.el.ref];
+    if (f && n.pages) applyDevice(n, f, t);
+  }
   applyCursors(fr.cursors);
   for (const [id, layer] of bgLayers) {
     const f = fr.elements[`${id}:background`];
@@ -1212,6 +1313,7 @@ async function boot() {
   await Promise.all([...document.images].map((i) => (i.complete ? Promise.resolve() : i.decode().catch(() => undefined))));
   for (const s of sceneEls.values()) s.style.visibility = "hidden";
   layoutAll();
+  resolveScrolls();
   buildCursors();
   // Static boxes: measured once, before any animation transform is applied.
   const st = stage.getBoundingClientRect();
