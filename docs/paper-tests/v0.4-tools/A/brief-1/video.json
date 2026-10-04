@@ -1,0 +1,100 @@
+{
+  "version": "0.4",
+  "video": { "format": "9:16", "fps": 30, "background": "cream", "targetDuration": 15, "safeZone": "reels", "end": "hold" },
+  "theme": {
+    "palette": { "cream": "#FBF1E3", "dough": "#F2D9B8", "crust": "#D9A066", "cinnamon": "#8E3F17", "cocoa": "#3B2418", "icing": "#FFFDF8", "berry": "#B8322E" },
+    "fonts": { "display": "Fraunces", "body": "Manrope" },
+    "roles": { "label": { "size": 30 }, "display": { "size": 136 } },
+    "motion": "playful",
+    "transition": { "type": "circle", "duration": 0.6 },
+    "texture": { "grain": 0.05 }
+  },
+  "assets": {
+    "box": { "type": "placeholder", "hint": "open box of iced cinnamon rolls, top-down, on a warm wooden table", "color": "crust" }
+  },
+  "components": {
+    "roll": {
+      "params": {},
+      "root": {
+        "id": "roll-group", "type": "group", "layout": { "width": 520, "height": 520 },
+        "children": [
+          { "id": "r0", "type": "shape", "shape": "circle", "layout": { "anchor": "center", "width": 520, "height": 520 }, "style": { "fill": "crust" } },
+          { "id": "r1", "type": "shape", "shape": "circle", "layout": { "anchor": "center", "width": 420, "height": 420 }, "style": { "fill": "dough", "stroke": "cinnamon", "strokeWidth": 22 } },
+          { "id": "r2", "type": "shape", "shape": "circle", "layout": { "anchor": "center", "width": 290, "height": 290 }, "style": { "fill": "dough", "stroke": "cinnamon", "strokeWidth": 22 } },
+          { "id": "r3", "type": "shape", "shape": "circle", "layout": { "anchor": "center", "width": 160, "height": 160 }, "style": { "fill": "dough", "stroke": "cinnamon", "strokeWidth": 22 } },
+          { "id": "r4", "type": "shape", "shape": "circle", "layout": { "anchor": "center", "width": 50, "height": 50 }, "style": { "fill": "cinnamon" } },
+          { "id": "drip", "type": "shape", "shape": "pill", "layout": { "anchor": "top", "inset": [40, 0], "width": 300, "height": 70 }, "style": { "fill": "icing/0.9", "rotation": -8 } }
+        ]
+      }
+    }
+  },
+  "scenes": [
+    {
+      "id": "hook", "duration": "auto", "background": "cream",
+      "elements": [
+        { "id": "brand-kicker", "type": "text", "role": "label", "content": "Crumb & Co.",
+          "style": { "color": "cinnamon", "align": "center" }, "layout": { "anchor": "top", "inset": [380, 0] }, "enter": { "preset": "fadeIn", "at": 0 } },
+        { "id": "hook-title", "type": "text", "role": "display", "content": "Your weekend\njust got\n*sweeter.*",
+          "style": { "color": "cocoa", "align": "center" }, "layout": { "below": "brand-kicker", "gap": 60, "align": "center" },
+          "enter": { "preset": "bounceIn", "at": 0.1 } },
+        { "id": "hook-roll", "use": "roll", "layout": { "below": "hook-title", "gap": 80, "align": "center", "width": 520, "height": 520 },
+          "enter": { "preset": "popIn", "at": "hook-title.enter.end-0.2" } }
+      ],
+      "timeline": [
+        { "target": "hook-roll", "at": "hook-roll.enter.end", "duration": 3, "ease": "linear", "animate": { "rotation": [0, 90] } }
+      ]
+    },
+    {
+      "id": "product", "duration": "auto", "background": "dough",
+      "elements": [
+        { "id": "product-title", "type": "text", "role": "title", "content": "The Cinnamon\nRoll Box",
+          "style": { "color": "cocoa", "align": "center" }, "layout": { "anchor": "top", "inset": [300, 0] },
+          "enter": { "preset": "bounceIn", "at": 0.2 } },
+        { "id": "box-img", "type": "image", "asset": "box",
+          "layout": { "below": "product-title", "gap": 70, "align": "center", "width": 780, "aspect": "1:1" },
+          "style": { "radius": 40, "shadow": "deep" }, "enter": { "preset": "scaleIn", "from": 0.85, "at": 0.5 } },
+        { "id": "new-badge", "type": "badge", "label": "New!", "shape": "circle",
+          "style": { "fill": "berry", "color": "icing", "rotation": -12, "size": 40, "weight": 800 },
+          "layout": { "pin": { "to": "box-img", "point": "top-right" }, "offset": [-90, 50] }, "enter": { "preset": "popIn", "at": "box-img.enter.end-0.2" } }
+      ],
+      "timeline": [
+        { "target": "new-badge", "preset": "swing", "at": "new-badge.enter.end" },
+        { "target": "box-img", "preset": "float", "at": "box-img.enter.end", "amplitude": 8 }
+      ]
+    },
+    {
+      "id": "weekend", "duration": "auto", "background": "cocoa",
+      "elements": [
+        { "id": "wk-title", "type": "text", "role": "display", "content": "Fresh for\nthe [weekend.]{crust}",
+          "style": { "color": "cream", "align": "center" }, "layout": { "anchor": "center" },
+          "enter": { "preset": "bounceIn", "at": 0.3 } },
+        { "id": "wk-roll", "use": "roll", "layout": { "anchor": "bottom", "inset": [-180, 0], "width": 520, "height": 520 },
+          "enter": { "preset": "slideIn", "from": "down", "at": 0.2 } }
+      ],
+      "timeline": [
+        { "target": "wk-title", "preset": "drift", "at": "wk-title.enter.end", "y": -20, "scale": 1.05 },
+        { "target": "wk-roll", "at": 0.2, "duration": 3, "ease": "linear", "animate": { "rotation": [-30, 60] } }
+      ]
+    },
+    {
+      "id": "cta", "duration": "auto", "background": "cinnamon",
+      "elements": [
+        { "id": "cta-block", "type": "stack", "align": "center", "gap": 56, "layout": { "anchor": "center", "offset": [0, -60] },
+          "children": [
+            { "id": "cta-label", "type": "text", "role": "label", "content": "The weekend box", "style": { "color": "dough" }, "enter": "fadeUp" },
+            { "id": "cta-title", "type": "text", "role": "display", "content": "Pre-order\nby Friday.", "style": { "color": "cream", "align": "center" }, "enter": "bounceIn" },
+            { "id": "cta-btn", "type": "button", "label": "Pre-order now", "variant": "solid", "style": { "fill": "cream", "color": "cinnamon", "size": 56, "weight": 800 }, "enter": "popIn" }
+          ] },
+        { "id": "cta-brand", "type": "text", "role": "subtitle", "content": "Crumb & Co.", "style": { "color": "cream", "align": "center", "size": 76 },
+          "layout": { "below": "cta-block", "gap": 140, "align": "center" }, "enter": { "preset": "fadeUp", "at": "cta-btn.enter.start" } }
+      ],
+      "timeline": [
+        { "target": "cta-btn", "preset": "pulse", "at": "cta-btn.enter.end+0.3" }
+      ]
+    }
+  ],
+  "notes": [
+    "Invented copy: 'Your weekend just got sweeter.', 'Fresh for the weekend.', 'The weekend box', 'Pre-order now' button label.",
+    "The cinnamon roll on the first scene is drawn from shapes; the box image is a placeholder. Replace 'box' with a real photo of the cinnamon roll box."
+  ]
+}

@@ -1,0 +1,782 @@
+{
+  "version": "0.4",
+  "video": {
+    "format": "16:9",
+    "fps": 30,
+    "background": "night",
+    "targetDuration": 15,
+    "end": {
+      "type": "fade",
+      "duration": 0.5,
+      "color": "night"
+    }
+  },
+  "theme": {
+    "palette": {
+      "night": "#0F1A2B",
+      "paper": "#F5F3EE",
+      "mint": "#3DD6A3",
+      "mute": "#8C97A8",
+      "ink": "#16202E",
+      "line": "#E3E0D8"
+    },
+    "fonts": {
+      "display": "Space Grotesk",
+      "body": "Inter Tight"
+    },
+    "motion": "snappy",
+    "transition": {
+      "type": "slide",
+      "from": "right",
+      "push": true,
+      "duration": 0.5
+    }
+  },
+  "components": {
+    "feature-copy": {
+      "params": {
+        "num": "01",
+        "title": "",
+        "body": ""
+      },
+      "root": {
+        "id": "copy",
+        "type": "stack",
+        "gap": 24,
+        "children": [
+          {
+            "id": "num",
+            "type": "text",
+            "role": "label",
+            "content": "NEW · {{num}}",
+            "style": {
+              "color": "mint",
+              "size": 26
+            },
+            "enter": {
+              "preset": "fadeUp",
+              "at": 0.15
+            }
+          },
+          {
+            "id": "title",
+            "type": "text",
+            "role": "title",
+            "content": "{{title}}",
+            "style": {
+              "color": "paper"
+            },
+            "enter": {
+              "preset": "wordReveal",
+              "at": 0.25
+            }
+          },
+          {
+            "id": "body",
+            "type": "text",
+            "role": "body",
+            "content": "{{body}}",
+            "style": {
+              "color": "mute"
+            },
+            "layout": {
+              "maxWidth": 620
+            },
+            "enter": {
+              "preset": "fadeUp",
+              "at": 0.6
+            }
+          }
+        ]
+      }
+    },
+    "invoice-row": {
+      "params": {
+        "client": "",
+        "amount": "",
+        "tag": ""
+      },
+      "root": {
+        "id": "row",
+        "type": "stack",
+        "direction": "horizontal",
+        "align": "center",
+        "justify": "space-between",
+        "style": {
+          "fill": "#FFFFFF",
+          "radius": 16,
+          "padding": [
+            26,
+            32
+          ],
+          "stroke": "line",
+          "strokeWidth": 1
+        },
+        "children": [
+          {
+            "id": "client",
+            "type": "text",
+            "role": "body",
+            "content": "{{client}}",
+            "style": {
+              "color": "ink",
+              "weight": 600,
+              "size": 34
+            }
+          },
+          {
+            "id": "tag",
+            "type": "badge",
+            "label": "{{tag}}",
+            "style": {
+              "fill": "mint/0.18",
+              "color": "#127A57",
+              "size": 22
+            }
+          },
+          {
+            "id": "amount",
+            "type": "text",
+            "role": "body",
+            "content": "{{amount}}",
+            "style": {
+              "color": "ink",
+              "size": 34
+            }
+          }
+        ]
+      }
+    }
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "duration": "auto",
+      "background": "night",
+      "elements": [
+        {
+          "id": "intro-block",
+          "type": "stack",
+          "align": "center",
+          "gap": 28,
+          "layout": {
+            "anchor": "center"
+          },
+          "children": [
+            {
+              "id": "intro-kicker",
+              "type": "text",
+              "role": "label",
+              "content": "Product update",
+              "style": {
+                "color": "mint",
+                "size": 30
+              },
+              "enter": {
+                "preset": "fadeUp",
+                "at": 0.1
+              }
+            },
+            {
+              "id": "intro-title",
+              "type": "text",
+              "role": "display",
+              "content": "Ledgerly 2.0",
+              "style": {
+                "color": "paper",
+                "size": 180
+              },
+              "enter": {
+                "preset": "charReveal",
+                "at": 0.2,
+                "stagger": 0.03
+              }
+            },
+            {
+              "id": "intro-sub",
+              "type": "text",
+              "role": "subtitle",
+              "content": "Three new features.",
+              "style": {
+                "color": "mute"
+              },
+              "enter": {
+                "preset": "fadeUp",
+                "at": "intro-title.enter.end-0.5"
+              }
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "target": "intro-block",
+          "preset": "drift",
+          "at": 0,
+          "y": 0,
+          "scale": 1.04
+        }
+      ]
+    },
+    {
+      "id": "recurring",
+      "duration": "auto",
+      "background": "night",
+      "elements": [
+        {
+          "id": "f1-copy",
+          "use": "feature-copy",
+          "with": {
+            "num": "01",
+            "title": "Recurring\ninvoices",
+            "body": "Set once. Sent every month."
+          },
+          "layout": {
+            "anchor": "left",
+            "inset": [
+              0,
+              120
+            ]
+          }
+        },
+        {
+          "id": "f1-browser",
+          "type": "browser",
+          "url": "app.ledgerly.com/invoices",
+          "chrome": "light",
+          "background": "paper",
+          "padding": [
+            56,
+            56
+          ],
+          "gap": 20,
+          "layout": {
+            "anchor": "right",
+            "inset": [
+              0,
+              100
+            ],
+            "width": 1000
+          },
+          "enter": {
+            "preset": "fadeUp",
+            "at": 0.2
+          },
+          "children": [
+            {
+              "id": "f1-h",
+              "type": "text",
+              "role": "title",
+              "content": "Invoices",
+              "style": {
+                "color": "ink",
+                "size": 60
+              }
+            },
+            {
+              "id": "f1-r1",
+              "use": "invoice-row",
+              "with": {
+                "client": "Asante Studio",
+                "amount": "$1,200",
+                "tag": "Monthly"
+              }
+            },
+            {
+              "id": "f1-r2",
+              "use": "invoice-row",
+              "with": {
+                "client": "Kofi & Co.",
+                "amount": "$480",
+                "tag": "Weekly"
+              }
+            },
+            {
+              "id": "f1-r3",
+              "use": "invoice-row",
+              "with": {
+                "client": "Nightfall Labs",
+                "amount": "$3,050",
+                "tag": "Monthly"
+              }
+            },
+            {
+              "id": "f1-r4",
+              "use": "invoice-row",
+              "with": {
+                "client": "Volta Print",
+                "amount": "$760",
+                "tag": "Quarterly"
+              }
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "target": [
+            "f1-r1",
+            "f1-r2",
+            "f1-r3",
+            "f1-r4"
+          ],
+          "preset": "slideIn",
+          "from": "right",
+          "distance": 60,
+          "stagger": 0.1,
+          "at": 0.6
+        }
+      ]
+    },
+    {
+      "id": "currency",
+      "duration": "auto",
+      "background": "night",
+      "elements": [
+        {
+          "id": "f2-copy",
+          "use": "feature-copy",
+          "with": {
+            "num": "02",
+            "title": "Multi-\ncurrency",
+            "body": "Bill clients in their currency."
+          },
+          "layout": {
+            "anchor": "left",
+            "inset": [
+              0,
+              120
+            ]
+          }
+        },
+        {
+          "id": "f2-browser",
+          "type": "browser",
+          "url": "app.ledgerly.com/invoices/new",
+          "chrome": "light",
+          "background": "paper",
+          "padding": [
+            210,
+            80
+          ],
+          "gap": 28,
+          "layout": {
+            "anchor": "right",
+            "inset": [
+              0,
+              100
+            ],
+            "width": 1000
+          },
+          "enter": {
+            "preset": "fadeUp",
+            "at": 0.2
+          },
+          "children": [
+            {
+              "id": "f2-h",
+              "type": "text",
+              "role": "title",
+              "content": "Invoice total",
+              "style": {
+                "color": "mute",
+                "size": 40
+              }
+            },
+            {
+              "id": "f2-total",
+              "type": "text",
+              "role": "display",
+              "content": "$1,200.00",
+              "style": {
+                "color": "ink",
+                "size": 150
+              },
+              "states": {
+                "eur": {
+                  "content": "€1,104.00"
+                },
+                "ghs": {
+                  "content": "GH₵ 14,400.00"
+                }
+              }
+            },
+            {
+              "id": "f2-chips",
+              "type": "stack",
+              "direction": "horizontal",
+              "gap": 16,
+              "children": [
+                {
+                  "id": "f2-usd",
+                  "type": "badge",
+                  "label": "USD",
+                  "style": {
+                    "fill": "ink",
+                    "color": "paper",
+                    "size": 28
+                  },
+                  "states": {
+                    "off": {
+                      "style": {
+                        "fill": "line",
+                        "color": "ink"
+                      }
+                    }
+                  }
+                },
+                {
+                  "id": "f2-eur",
+                  "type": "badge",
+                  "label": "EUR",
+                  "style": {
+                    "fill": "line",
+                    "color": "ink",
+                    "size": 28
+                  },
+                  "states": {
+                    "on": {
+                      "style": {
+                        "fill": "ink",
+                        "color": "paper"
+                      }
+                    },
+                    "off": {
+                      "style": {
+                        "fill": "line",
+                        "color": "ink"
+                      }
+                    }
+                  }
+                },
+                {
+                  "id": "f2-ghs",
+                  "type": "badge",
+                  "label": "GHS",
+                  "style": {
+                    "fill": "line",
+                    "color": "ink",
+                    "size": 28
+                  },
+                  "states": {
+                    "on": {
+                      "style": {
+                        "fill": "ink",
+                        "color": "paper"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "target": "f2-usd",
+          "state": "off",
+          "at": 1.2
+        },
+        {
+          "target": "f2-eur",
+          "state": "on",
+          "at": 1.2
+        },
+        {
+          "target": "f2-total",
+          "state": "eur",
+          "at": 1.2
+        },
+        {
+          "target": "f2-eur",
+          "state": "off",
+          "at": 2.1
+        },
+        {
+          "target": "f2-ghs",
+          "state": "on",
+          "at": 2.1
+        },
+        {
+          "target": "f2-total",
+          "state": "ghs",
+          "at": 2.1
+        }
+      ]
+    },
+    {
+      "id": "pdf",
+      "duration": "auto",
+      "background": "night",
+      "elements": [
+        {
+          "id": "f3-copy",
+          "use": "feature-copy",
+          "with": {
+            "num": "03",
+            "title": "Faster PDF\nexports",
+            "body": "Invoices to PDF, faster."
+          },
+          "layout": {
+            "anchor": "left",
+            "inset": [
+              0,
+              120
+            ]
+          }
+        },
+        {
+          "id": "f3-browser",
+          "type": "browser",
+          "url": "app.ledgerly.com/invoices/INV-2041",
+          "chrome": "light",
+          "background": "paper",
+          "padding": [
+            56,
+            56
+          ],
+          "gap": 28,
+          "layout": {
+            "anchor": "right",
+            "inset": [
+              0,
+              100
+            ],
+            "width": 1000
+          },
+          "enter": {
+            "preset": "fadeUp",
+            "at": 0.2
+          },
+          "children": [
+            {
+              "id": "f3-top",
+              "type": "stack",
+              "direction": "horizontal",
+              "align": "center",
+              "justify": "space-between",
+              "children": [
+                {
+                  "id": "f3-h",
+                  "type": "text",
+                  "role": "title",
+                  "content": "INV-2041",
+                  "style": {
+                    "color": "ink",
+                    "size": 60
+                  }
+                },
+                {
+                  "id": "f3-btn",
+                  "type": "button",
+                  "label": "Export PDF",
+                  "variant": "solid",
+                  "style": {
+                    "fill": "ink",
+                    "color": "paper",
+                    "size": 32
+                  },
+                  "states": {
+                    "done": {
+                      "label": "PDF ready ✓",
+                      "style": {
+                        "fill": "#127A57"
+                      }
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "id": "f3-doc",
+              "type": "stack",
+              "gap": 24,
+              "layout": {
+                "height": 460
+              },
+              "style": {
+                "fill": "#FFFFFF",
+                "stroke": "line",
+                "strokeWidth": 1,
+                "radius": 16,
+                "padding": [
+                  56,
+                  64
+                ]
+              },
+              "children": [
+                {
+                  "id": "f3-l1",
+                  "type": "shape",
+                  "shape": "rect",
+                  "layout": {
+                    "width": 420,
+                    "height": 30
+                  },
+                  "style": {
+                    "fill": "ink/0.85",
+                    "radius": 15
+                  }
+                },
+                {
+                  "id": "f3-l2",
+                  "type": "shape",
+                  "shape": "rect",
+                  "layout": {
+                    "width": 760,
+                    "height": 18
+                  },
+                  "style": {
+                    "fill": "line",
+                    "radius": 9
+                  }
+                },
+                {
+                  "id": "f3-l3",
+                  "type": "shape",
+                  "shape": "rect",
+                  "layout": {
+                    "width": 680,
+                    "height": 18
+                  },
+                  "style": {
+                    "fill": "line",
+                    "radius": 9
+                  }
+                },
+                {
+                  "id": "f3-l4",
+                  "type": "shape",
+                  "shape": "rect",
+                  "layout": {
+                    "width": 720,
+                    "height": 18
+                  },
+                  "style": {
+                    "fill": "line",
+                    "radius": 9
+                  }
+                },
+                {
+                  "id": "f3-l6",
+                  "type": "shape",
+                  "shape": "rect",
+                  "layout": {
+                    "width": 620,
+                    "height": 18
+                  },
+                  "style": {
+                    "fill": "line",
+                    "radius": 9
+                  }
+                },
+                {
+                  "id": "f3-l7",
+                  "type": "shape",
+                  "shape": "rect",
+                  "layout": {
+                    "width": 700,
+                    "height": 18
+                  },
+                  "style": {
+                    "fill": "line",
+                    "radius": 9
+                  }
+                },
+                {
+                  "id": "f3-l5",
+                  "type": "shape",
+                  "shape": "rect",
+                  "layout": {
+                    "width": 300,
+                    "height": 30
+                  },
+                  "style": {
+                    "fill": "mint",
+                    "radius": 15
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "target": "f3-btn",
+          "preset": "pulse",
+          "at": 1,
+          "duration": 0.7
+        },
+        {
+          "target": "f3-btn",
+          "state": "done",
+          "at": 1.7
+        }
+      ]
+    },
+    {
+      "id": "outro",
+      "duration": "auto",
+      "background": "night",
+      "transition": {
+        "type": "circle",
+        "duration": 0.6
+      },
+      "elements": [
+        {
+          "id": "outro-block",
+          "type": "stack",
+          "align": "center",
+          "gap": 40,
+          "layout": {
+            "anchor": "center"
+          },
+          "children": [
+            {
+              "id": "outro-title",
+              "type": "text",
+              "role": "display",
+              "content": "Ledgerly 2.0",
+              "style": {
+                "color": "paper"
+              },
+              "enter": {
+                "preset": "wordReveal",
+                "at": 0.3
+              }
+            },
+            {
+              "id": "outro-btn",
+              "type": "button",
+              "label": "Update today",
+              "variant": "solid",
+              "style": {
+                "fill": "mint",
+                "color": "night"
+              },
+              "enter": {
+                "preset": "popIn",
+                "at": "outro-title.enter.end-0.2"
+              }
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "target": "outro-btn",
+          "preset": "pulse",
+          "at": "outro-btn.enter.end+0.3",
+          "ring": true
+        }
+      ]
+    }
+  ],
+  "notes": [
+    "Copy written by the AI (not in the brief): 'Three new features.', 'Product update', all three feature body lines, client names, amounts, exchange-rate figures, invoice number INV-2041 and the 'PDF ready ✓' state.",
+    "URL app.ledgerly.com is a guess; replace with the real app URL.",
+    "Browser screens are mock UI built from shapes and text since no screenshot exists yet."
+  ]
+}

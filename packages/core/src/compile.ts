@@ -218,7 +218,7 @@ class Compiler {
       src = {
         ...root,
         id: e.id,
-        layout: e.layout ?? root.layout,
+        layout: mergeLayout(root.layout, e.layout),
         style: { ...(root.style ?? {}), ...(e.style ?? {}) },
         states: { ...(root.states ?? {}), ...(e.states ?? {}) },
         ...(e.enter !== undefined ? { enter: e.enter } : {}),
@@ -1047,4 +1047,14 @@ function baseText(el: PlanElement, field: "content" | "label"): string | undefin
   if (field === "content" && el.type === "text") return el.text.plain;
   if (field === "label" && (el.type === "button" || el.type === "badge")) return el.text.plain;
   return undefined;
+}
+
+const PLACEMENT = ["anchor", "inset", "offset", "below", "above", "leftOf", "rightOf", "gap", "align", "pin", "x", "y"];
+
+/** Instance layout over the component root's: sizes merge; the instance's placement replaces the root's. */
+function mergeLayout(root: Record<string, unknown> | undefined, inst: Record<string, unknown> | undefined): Record<string, unknown> {
+  if (!inst) return root ?? {};
+  const base = { ...(root ?? {}) };
+  if (PLACEMENT.some((k) => k in inst)) for (const k of PLACEMENT) delete base[k];
+  return { ...base, ...inst };
 }

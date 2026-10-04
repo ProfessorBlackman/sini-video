@@ -1,0 +1,83 @@
+{
+  "version": "0.4",
+  "video": { "format": "9:16", "fps": 30, "background": "night", "targetDuration": 12, "safeZone": "reels", "end": "hold" },
+  "theme": {
+    "palette": { "night": "#0B0B0F", "coal": "#1A1A22", "sun": "#FFB81C", "bone": "#F4F1EA", "mute": "#A29FAB" },
+    "fonts": { "display": "Bricolage Grotesque", "body": "Inter Tight" },
+    "roles": { "label": { "size": 32 }, "display": { "weight": 800 }, "title": { "weight": 800 } },
+    "motion": "snappy",
+    "transition": { "type": "wipe", "angle": 12, "bar": "sun", "duration": 0.5 },
+    "texture": { "grain": 0.08, "vignette": 0 }
+  },
+  "assets": {
+    "akosua": { "type": "placeholder", "hint": "portrait of Akosua Mensah, studio light, dark background", "color": "coal" }
+  },
+  "scenes": [
+    {
+      "id": "episode", "duration": "auto", "background": "night",
+      "elements": [
+        { "id": "show-name", "type": "text", "role": "title", "content": "Built\nin Accra",
+          "style": { "color": "bone" }, "layout": { "anchor": "top-left", "inset": [300, 90] },
+          "enter": { "preset": "wordReveal", "at": 0.1 } },
+        { "id": "ep-label", "type": "text", "role": "label", "content": "Episode",
+          "style": { "color": "sun" }, "layout": { "below": "show-name", "gap": 120 }, "enter": "fadeIn" },
+        { "id": "ep-num", "type": "text", "role": "display", "content": "12",
+          "style": { "color": "sun", "size": 900, "lineHeight": 0.8, "letterSpacing": -0.05 },
+          "layout": { "below": "ep-label", "gap": 10 }, "enter": { "preset": "countUp", "from": 1, "duration": 0.8 } }
+      ],
+      "timeline": [
+        { "target": "ep-num", "preset": "drift", "at": "ep-num.enter.end", "y": -10, "scale": 1.04 }
+      ]
+    },
+    {
+      "id": "guest", "duration": "auto", "background": "coal",
+      "elements": [
+        { "id": "guest-ring", "type": "shape", "shape": "circle",
+          "layout": { "anchor": "top", "inset": [270, 0], "width": 760, "height": 760 },
+          "style": { "stroke": "sun", "strokeWidth": 8 }, "enter": "drawOutline" },
+        { "id": "guest-photo", "type": "image", "asset": "akosua",
+          "layout": { "pin": { "to": "guest-ring", "point": "center" }, "width": 700, "height": 700 },
+          "style": { "radius": 350 }, "enter": { "preset": "scaleIn", "at": 0.2 } },
+        { "id": "guest-label", "type": "text", "role": "label", "content": "This week's guest",
+          "style": { "color": "sun", "align": "center" }, "layout": { "below": "guest-ring", "gap": 70, "align": "center" } },
+        { "id": "guest-name", "type": "text", "role": "title", "content": "Akosua\nMensah",
+          "style": { "color": "bone", "align": "center" }, "layout": { "below": "guest-label", "gap": 24, "align": "center" } },
+        { "id": "guest-role", "type": "text", "role": "body", "content": "Founder of a solar startup",
+          "style": { "color": "mute", "align": "center" }, "layout": { "below": "guest-name", "gap": 28, "align": "center" } }
+      ],
+      "timeline": [
+        { "target": "guest-photo", "preset": "kenBurns", "at": 0.6, "zoom": 1.08 }
+      ]
+    },
+    {
+      "id": "release", "duration": "auto", "background": "sun",
+      "elements": [
+        { "id": "out-disc", "type": "shape", "shape": "circle",
+          "layout": { "anchor": "bottom-right", "inset": [-120, -260], "width": 980, "height": 980 },
+          "style": { "fill": "night" }, "enter": { "preset": "scaleIn", "from": 0.6, "at": 0 } },
+        { "id": "out-block", "type": "stack", "gap": 56, "layout": { "anchor": "top-left", "inset": [360, 90] },
+          "children": [
+            { "id": "out-badge", "type": "badge", "label": "New episode", "shape": "pill",
+              "style": { "fill": "night", "color": "sun", "size": 32 }, "enter": { "preset": "popIn", "at": 0.15 } },
+            { "id": "out-title", "type": "text", "role": "display", "content": "Out\nThursday.",
+              "style": { "color": "night", "size": 190, "lineHeight": 0.86, "letterSpacing": -0.03 },
+              "enter": { "preset": "wordReveal", "at": 0.3, "stagger": 0.12 } },
+            { "id": "out-show", "type": "text", "role": "subtitle", "content": "Built in Accra · Ep 12\nwith Akosua Mensah",
+              "style": { "color": "night", "weight": 700 }, "enter": { "preset": "fadeUp", "at": "out-title.enter.end" } }
+          ] },
+        { "id": "out-12", "type": "text", "role": "display", "content": "12",
+          "style": { "color": "sun", "size": 360, "letterSpacing": -0.05 },
+          "layout": { "pin": { "to": "out-disc", "point": "center" }, "offset": [-200, -260] },
+          "enter": { "preset": "popIn", "at": 0.5 } }
+      ],
+      "timeline": [
+        { "target": "out-badge", "preset": "pulse", "at": "out-show.enter.end+0.2", "scale": 1.05, "every": 0.9 },
+        { "target": "out-disc", "preset": "drift", "at": "out-disc.enter.end", "x": -20, "y": -30, "scale": 1.03 }
+      ]
+    }
+  ],
+  "notes": [
+    "Invented copy: 'This week's guest', 'New episode' badge.",
+    "Placeholder: replace 'akosua' with a real photo of Akosua Mensah."
+  ]
+}

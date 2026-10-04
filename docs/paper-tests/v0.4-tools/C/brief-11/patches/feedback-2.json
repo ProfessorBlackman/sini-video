@@ -1,0 +1,6 @@
+[
+  { "op": "set", "path": "video.targetDuration", "value": 17.5 },
+  { "op": "set", "path": "recurring.duration", "value": 4.0 },
+  { "op": "set", "path": "currency.duration", "value": 4.0 },
+  { "op": "set", "path": "pdf.duration", "value": 4.0 }
+]

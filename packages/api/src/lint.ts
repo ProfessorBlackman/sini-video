@@ -194,6 +194,23 @@ export function layoutRules(plan: CompiledPlan, report: LayoutReport): Issue[] {
         }
       }
       if (!bg && (el.type === "button" || el.type === "badge") && el.style.fill && el.props.variant !== "outline") bg = solid(el.style.fill);
+      // Text sitting on a filled shape or container drawn before it: measure against that fill.
+      if (!bg && !el.inDevice) {
+        const tb = lb.box;
+        const cx = tb.x + tb.width / 2;
+        const cy = tb.y + tb.height / 2;
+        const myIndex = entries.findIndex((x) => x.el === el);
+        for (let i = myIndex - 1; i >= 0; i--) {
+          const o = entries[i]!;
+          if (o.el.sceneId !== el.sceneId || o.el.inDevice || !o.el.style.fill) continue;
+          if (!["shape", "stack", "grid", "group", "badge", "button"].includes(o.el.type)) continue;
+          const ob = boxes.get(o.el.ref)?.box;
+          if (ob && cx >= ob.x && cx <= ob.x + ob.width && cy >= ob.y && cy <= ob.y + ob.height) {
+            bg = solid(o.el.style.fill);
+            break;
+          }
+        }
+      }
       const scene = sceneOf.get(el.sceneId);
       if (!bg && scene?.background.kind === "paint") bg = solid(scene.background.css);
       const fg = parseCss(el.font.color);
@@ -204,6 +221,41 @@ export function layoutRules(plan: CompiledPlan, report: LayoutReport): Issue[] {
         if (ratio < min) {
           issues.push(warn(el.ref, "low-contrast", `'${el.ref}' has a contrast of ${ratio.toFixed(1)}:1 against its background (minimum ${min}:1).`, "Use a lighter or darker text colour from the palette."));
         }
+      }
+    }
+  }
+
+  // Text that is too small to read once drawn (in-device text is scaled down).
+  for (const { el } of entries) {
+    const lb = boxes.get(el.ref);
+    if (!lb?.screenFontSize || !el.text || el.text.readingWords === 0) continue;
+    if (lb.screenFontSize < 20 * k - 0.05) {
+      issues.push(warn(el.ref, "tiny-text", `'${el.ref}' is drawn at ${r1(lb.screenFontSize)}px on the canvas, too small to read on a phone.`,
+        el.inDevice ? "Raise its style.size (in-device sizes are scaled with the device), or make the device larger." : "Use a larger role or style.size (at least 20px on a 1080px canvas)."));
+    }
+  }
+
+  // Text covered by a later element (drawn on top) while both are on screen.
+  const order = new Map(entries.map(({ el }, i) => [el.ref, i]));
+  const opaque = new Set(["shape", "image", "badge", "button", "browser", "phone"]);
+  for (const t of entries) {
+    if (!textual.has(t.el.type) || t.el.inDevice || !boxes.has(t.el.ref)) continue;
+    const tb = boxes.get(t.el.ref)!.box;
+    const scene = sceneOf.get(t.el.sceneId)!;
+    const tSpan = [t.el.appearAt ?? scene.start, t.el.hideAt ?? scene.visibleUntil] as const;
+    for (const o of entries) {
+      if (o.el === t.el || o.el.sceneId !== t.el.sceneId || o.el.inDevice || !boxes.has(o.el.ref)) continue;
+      if (o.parents.includes(t.el) || t.parents.includes(o.el)) continue;
+      const isOpaque = opaque.has(o.el.type) || (["stack", "grid", "group"].includes(o.el.type) && !!o.el.style.fill);
+      if (!isOpaque) continue;
+      const above = (o.el.z ?? 0) > (t.el.z ?? 0) || ((o.el.z ?? 0) === (t.el.z ?? 0) && order.get(o.el.ref)! > order.get(t.el.ref)!);
+      if (!above) continue;
+      const oSpan = [o.el.appearAt ?? scene.start, o.el.hideAt ?? scene.visibleUntil] as const;
+      if (Math.min(tSpan[1], oSpan[1]) - Math.max(tSpan[0], oSpan[0]) <= 0.05) continue;
+      const area = intersect(tb, boxes.get(o.el.ref)!.box);
+      if (tb.width * tb.height > 0 && area / (tb.width * tb.height) > 0.15) {
+        issues.push(warn(t.el.ref, "covered", `'${t.el.ref}' is partly covered by '${o.el.ref}', which is drawn on top of it.`, "Move one of them, or give the text a higher z."));
+        break;
       }
     }
   }

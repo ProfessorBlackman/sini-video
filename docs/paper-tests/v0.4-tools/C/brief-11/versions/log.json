@@ -1,0 +1,22 @@
+[
+  {
+    "version": 1,
+    "time": "2026-10-04T05:09:58.388Z",
+    "message": "round 1"
+  },
+  {
+    "version": 2,
+    "time": "2026-10-04T05:12:39.809Z",
+    "message": "round 4: pre-feedback"
+  },
+  {
+    "version": 3,
+    "time": "2026-10-04T05:13:03.448Z",
+    "message": "feedback: slower features at ~0:06, bigger Update today button"
+  },
+  {
+    "version": 4,
+    "time": "2026-10-04T05:13:29.801Z",
+    "message": "feedback: fit target duration"
+  }
+]

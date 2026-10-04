@@ -1,7 +1,7 @@
 import { createRequire } from "node:module";
 import { Command } from "commander";
 import { readFileSync } from "node:fs";
-import { contactSheet, describe, initProject, layoutAt, lint, listVersions, patchProject, renderFrame, renderMp4, restoreVersion, SiniError, snapshot, type PatchOp } from "@sini/api";
+import { contactSheet, describe, initProject, inspect, layoutAt, lint, listVersions, patchProject, renderFrame, renderMp4, restoreVersion, SiniError, snapshot, type PatchOp } from "@sini/api";
 import { formatIssue, runValidate } from "./validate-command.js";
 
 const require = createRequire(import.meta.url);
@@ -115,6 +115,23 @@ export function createProgram(): Command {
         for (const i of r.issues) console.log(formatIssue(i));
         const n = r.issues.length;
         console.log(n === 0 ? `✓ No problems found (${r.duration.toFixed(2)}s video).` : `\n${n} warning${n === 1 ? "" : "s"} (${r.duration.toFixed(2)}s video).`);
+      })(),
+    );
+
+  program
+    .command("inspect")
+    .description("Show scene timings: where the seconds go")
+    .argument("[project]", "project folder or spec file", ".")
+    .option("--json", "machine-readable output")
+    .action((project: string, opts: { json?: boolean }) =>
+      guard(() => {
+        const r = inspect(project);
+        if (opts.json) return void console.log(JSON.stringify(r, null, 2));
+        const t = r.timing;
+        console.log(`Video ${r.duration.toFixed(2)}s${t.target ? ` (target ${t.target}s, natural ${t.natural.toFixed(2)}s)` : ""}`);
+        for (const s of r.scenes) {
+          console.log(`  ${s.id.padEnd(16)} ${s.start.toFixed(2).padStart(6)} → ${s.end.toFixed(2).padStart(6)}  ${s.duration.toFixed(2)}s${s.auto ? " (auto)" : ""}  ${s.elements} elements${s.transition ? `  enters by ${s.transition}` : ""}`);
+        }
       })(),
     );
 

@@ -1,0 +1,75 @@
+{
+  "version": "0.4",
+  "video": { "format": "1:1", "fps": 30, "background": "ink", "targetDuration": 10 },
+  "theme": {
+    "palette": { "ink": "#0B0A08", "gold": "#CFAE6B", "pale": "#EADFC6", "mute": "#7D6F55" },
+    "fonts": { "display": "Fraunces", "body": "Manrope" },
+    "motion": "editorial",
+    "transition": { "type": "wipe", "from": "left", "angle": 12, "bar": "gold", "barWidth": 18, "duration": 0.6 },
+    "texture": { "grain": 0.05, "vignette": 0.35 }
+  },
+  "scenes": [
+    {
+      "id": "intro", "duration": "auto", "background": "ink",
+      "elements": [
+        { "id": "intro-block", "type": "stack", "align": "center", "gap": 28,
+          "layout": { "anchor": "center" },
+          "children": [
+            { "id": "kicker", "type": "text", "role": "label", "content": "Design studio",
+              "style": { "color": "gold/0.85", "size": 30, "letterSpacing": 0.3 }, "enter": { "preset": "fadeIn", "at": 0.3 } },
+            { "id": "wordmark", "type": "text", "role": "display", "content": "LUMEN",
+              "style": { "color": "gold", "size": 220, "letterSpacing": 0.12 },
+              "enter": { "preset": "charReveal", "at": 0.5, "stagger": 0.08 } }
+          ] }
+      ],
+      "timeline": [
+        { "target": "wordmark", "preset": "trackIn", "from": 0.3, "at": 0.5, "duration": 1.4 },
+        { "target": "intro-block", "preset": "drift", "y": 0, "scale": 1.04, "at": 0.5 }
+      ]
+    },
+    {
+      "id": "award", "duration": "auto", "background": { "radial": ["#1C170F", "ink"] },
+      "elements": [
+        { "id": "award-block", "type": "stack", "align": "center", "gap": 36,
+          "layout": { "anchor": "center", "width": "84%" },
+          "children": [
+            { "id": "winner", "type": "badge", "label": "Winner", "shape": "pill",
+              "style": { "fill": "ink", "stroke": "gold", "strokeWidth": 2, "color": "gold", "size": 30, "padding": [14, 36] },
+              "enter": { "preset": "fadeUp", "at": 0.2 } },
+            { "id": "award-title", "type": "text", "role": "title", "content": "Agency\nof the Year",
+              "style": { "color": "pale", "align": "center", "size": 130 },
+              "enter": { "preset": "lineReveal", "at": 0.45, "stagger": 0.15 } },
+            { "id": "year", "type": "text", "role": "display", "content": "2026",
+              "style": { "color": "gold", "size": 240 },
+              "enter": { "preset": "trackIn", "from": 0.3, "at": "award-title.enter.end-0.2", "duration": 1.0 } }
+          ] }
+      ],
+      "timeline": [
+        { "target": "winner", "preset": "pulse", "ring": true, "every": 1.2, "at": "year.enter.end" },
+        { "target": "award-block", "preset": "drift", "y": 0, "scale": 1.03, "at": 0.2 }
+      ]
+    },
+    {
+      "id": "outro", "duration": "auto", "background": "ink",
+      "elements": [
+        { "id": "outro-block", "type": "stack", "align": "center", "gap": 32,
+          "layout": { "anchor": "center" },
+          "children": [
+            { "id": "outro-mark", "type": "text", "role": "title", "content": "LUMEN",
+              "style": { "color": "gold", "size": 150, "letterSpacing": 0.12 }, "enter": { "preset": "fadeIn", "at": 0.3 } },
+            { "id": "outro-rule", "type": "shape", "shape": "line", "layout": { "width": 200 },
+              "style": { "stroke": "gold/0.6", "strokeWidth": 2 }, "enter": { "preset": "wipeIn", "at": 0.6 } },
+            { "id": "url", "type": "text", "role": "subtitle", "content": "lumen.studio",
+              "style": { "color": "pale", "size": 80 }, "enter": { "preset": "trackIn", "from": 0.25, "at": 0.8, "duration": 1.0 } }
+          ] }
+      ],
+      "timeline": [
+        { "target": "outro-block", "preset": "drift", "y": 0, "scale": 1.03, "at": 0.3 }
+      ]
+    }
+  ],
+  "notes": [
+    "'Design studio' kicker and 'Winner' badge paraphrase the brief; no awarding body was named, so none is shown.",
+    "LUMEN is set as a typographic wordmark in Fraunces; swap in the real logo SVG if available."
+  ]
+}

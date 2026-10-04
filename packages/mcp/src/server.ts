@@ -69,8 +69,17 @@ export function createServer(root = process.env.SINI_ROOT ?? process.cwd()): Mcp
     return text(`Created ${r.dir}/video.json as version ${r.version.version}.${r.issues.length ? `\n${formatIssues(r.issues)}` : ""}`);
   })());
 
-  server.registerTool("get_video", { title: "Read the current spec", description: "Returns the project's video.json and its version history.", inputSchema: projectArg, annotations: readOnly },
-    (a) => run(() => json({ spec: api.load(project(a.project)).spec, versions: api.listVersions(project(a.project)) }))());
+  server.registerTool("get_video", { title: "Read the current spec", description: "Returns the project's video.json, scene-by-scene timing, and the version history.", inputSchema: projectArg, annotations: readOnly },
+    (a) => run(() => {
+      const dir = project(a.project);
+      let timing: unknown;
+      try {
+        timing = api.inspect(dir);
+      } catch {
+        timing = "unavailable: the spec has errors";
+      }
+      return json({ spec: api.load(dir).spec, timing, versions: api.listVersions(dir) });
+    })());
 
   server.registerTool("validate_video", {
     title: "Validate a spec",

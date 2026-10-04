@@ -1,0 +1,111 @@
+{
+  "version": "0.4",
+  "video": {
+    "format": "9:16",
+    "fps": 30,
+    "background": "#1a1a1a",
+    "safeZone": "reels"
+  },
+  "theme": {
+    "palette": {
+      "dark": "#1a1a1a",
+      "light": "#f5f5f5",
+      "gold": "#d4a574",
+      "accent": "#ff6b35"
+    },
+    "fonts": {
+      "display": "Instrument Serif",
+      "body": "Inter Tight"
+    },
+    "motion": "editorial",
+    "transition": { "type": "wipe", "from": "left", "bar": "gold", "duration": 0.5 }
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "duration": 3.5,
+      "background": "#1a1a1a",
+      "elements": [
+        {
+          "id": "podcast-title",
+          "type": "text",
+          "role": "display",
+          "content": "BUILT IN\nACCRA",
+          "style": { "color": "gold", "weight": 800, "align": "center" },
+          "layout": { "anchor": "center", "inset": [400, 100] },
+          "enter": { "preset": "wordReveal", "stagger": 0.1 }
+        }
+      ]
+    },
+    {
+      "id": "episode",
+      "duration": "auto",
+      "background": "#1a1a1a",
+      "transition": { "type": "crossfade", "duration": 0.4 },
+      "elements": [
+        {
+          "id": "ep-label",
+          "type": "text",
+          "role": "subtitle",
+          "content": "Episode 12",
+          "style": { "color": "accent", "align": "center", "weight": 700 },
+          "layout": { "anchor": "top", "inset": [280, 100] },
+          "enter": "slideIn"
+        },
+        {
+          "id": "guest-name",
+          "type": "text",
+          "role": "display",
+          "content": "Akosua Mensah",
+          "style": { "color": "light", "align": "center", "size": 120 },
+          "layout": { "below": "ep-label", "gap": 60, "align": "center" },
+          "enter": { "preset": "wordReveal", "at": "ep-label.enter.end+0.2", "stagger": 0.08 }
+        },
+        {
+          "id": "guest-title",
+          "type": "text",
+          "role": "body",
+          "content": "Solar startup founder\n& sustainability advocate",
+          "style": { "color": "gold", "align": "center" },
+          "layout": { "below": "guest-name", "gap": 40, "align": "center" },
+          "enter": { "preset": "fadeUp", "at": "guest-name.enter.end+0.1", "distance": 30 }
+        }
+      ]
+    },
+    {
+      "id": "closer",
+      "duration": "auto",
+      "background": "#1a1a1a",
+      "transition": { "type": "wipe", "from": "up", "bar": "gold", "duration": 0.4 },
+      "elements": [
+        {
+          "id": "out-label",
+          "type": "text",
+          "role": "title",
+          "content": "Out Thursday",
+          "style": { "color": "light", "align": "center", "weight": 700 },
+          "layout": { "anchor": "center", "inset": [600, 100] },
+          "enter": "slideIn"
+        },
+        {
+          "id": "podcast-name",
+          "type": "text",
+          "role": "subtitle",
+          "content": "Built in Accra",
+          "style": { "color": "gold", "align": "center" },
+          "layout": { "below": "out-label", "gap": 40, "align": "center" },
+          "enter": { "preset": "fadeUp", "at": "out-label.enter.end+0.2", "distance": 20 }
+        },
+        {
+          "id": "cta",
+          "type": "text",
+          "role": "label",
+          "content": "Listen everywhere",
+          "style": { "color": "accent", "align": "center", "uppercase": true },
+          "layout": { "below": "podcast-name", "gap": 60, "align": "center" },
+          "enter": "fadeIn"
+        }
+      ]
+    }
+  ]
+}

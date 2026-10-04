@@ -46,6 +46,7 @@ export interface LayoutBox {
   inDevice: boolean;
   text?: string;
   fontSize?: number;
+  screenFontSize?: number;
   overflow?: boolean;
   shrink?: number;
 }

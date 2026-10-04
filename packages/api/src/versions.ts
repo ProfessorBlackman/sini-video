@@ -162,7 +162,8 @@ function findById(spec: J, id: string): Found | undefined {
 const ROOT_KEYS = new Set(["version", "video", "theme", "assets", "components", "scenes", "notes"]);
 
 function setPath(spec: J, path: string, value: unknown) {
-  const parts = path.split(".");
+  // Accept both "timeline.3.at" and "timeline[3].at".
+  const parts = path.replace(/\[(\d+)\]/g, ".$1").split(".").filter(Boolean);
   let obj: J;
   let rest: string[];
   if (ROOT_KEYS.has(parts[0]!)) {

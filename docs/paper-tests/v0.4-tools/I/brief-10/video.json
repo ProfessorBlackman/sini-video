@@ -1,0 +1,109 @@
+{
+  "version": "0.4",
+  "video": {
+    "format": "1:1",
+    "fps": 30,
+    "background": "#0a0a0a",
+    "safeZone": "none"
+  },
+  "theme": {
+    "palette": {
+      "black": "#0a0a0a",
+      "white": "#ffffff",
+      "gold": "#d4a574",
+      "soft": "#f5f5f5"
+    },
+    "fonts": {
+      "display": "Instrument Serif",
+      "body": "Inter Tight"
+    },
+    "motion": "editorial",
+    "transition": { "type": "crossfade", "duration": 0.4 }
+  },
+  "scenes": [
+    {
+      "id": "award",
+      "duration": "auto",
+      "background": "#0a0a0a",
+      "elements": [
+        {
+          "id": "kicker",
+          "type": "text",
+          "role": "label",
+          "content": "2026",
+          "style": { "color": "gold", "align": "center", "uppercase": true, "letterSpacing": 0.15 },
+          "layout": { "anchor": "top", "inset": [100, 0] },
+          "enter": "fadeIn"
+        },
+        {
+          "id": "award-container",
+          "type": "stack",
+          "gap": 50,
+          "align": "center",
+          "layout": { "below": "kicker", "gap": 40, "align": "center" },
+          "children": [
+            {
+              "id": "award-text",
+              "type": "text",
+              "role": "display",
+              "content": "AGENCY OF\nTHE YEAR",
+              "style": { "color": "white", "align": "center", "weight": 800, "size": 140 },
+              "enter": { "preset": "wordReveal", "at": "kicker.enter.end+0.1", "stagger": 0.12 }
+            },
+            {
+              "id": "divider",
+              "type": "shape",
+              "shape": "line",
+              "layout": { "width": 280 },
+              "style": { "stroke": "gold", "strokeWidth": 3 },
+              "enter": { "preset": "wipeIn", "at": "award-text.enter.end+0.2" }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "studio",
+      "duration": "auto",
+      "background": "#0a0a0a",
+      "transition": { "type": "crossfade", "duration": 0.3 },
+      "elements": [
+        {
+          "id": "lumen-name",
+          "type": "text",
+          "role": "display",
+          "content": "LUMEN",
+          "style": { "color": "gold", "align": "center", "weight": 300, "size": 180, "letterSpacing": 0.1 },
+          "layout": { "anchor": "center" },
+          "enter": { "preset": "charReveal", "stagger": 0.08 }
+        }
+      ]
+    },
+    {
+      "id": "closer",
+      "duration": "auto",
+      "background": "#0a0a0a",
+      "transition": { "type": "crossfade", "duration": 0.3 },
+      "elements": [
+        {
+          "id": "site-label",
+          "type": "text",
+          "role": "body",
+          "content": "Visit us",
+          "style": { "color": "soft", "align": "center" },
+          "layout": { "anchor": "top", "inset": [200, 0] },
+          "enter": "fadeUp"
+        },
+        {
+          "id": "site-url",
+          "type": "text",
+          "role": "title",
+          "content": "lumen.studio",
+          "style": { "color": "gold", "align": "center", "weight": 600 },
+          "layout": { "below": "site-label", "gap": 30, "align": "center" },
+          "enter": { "preset": "fadeUp", "at": "site-label.enter.end+0.1", "distance": 20 }
+        }
+      ]
+    }
+  ]
+}

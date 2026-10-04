@@ -1,0 +1,260 @@
+{
+  "version": "0.4",
+  "video": {
+    "format": "9:16",
+    "fps": 30,
+    "background": "ink",
+    "targetDuration": 10,
+    "safeZone": "reels",
+    "end": {
+      "type": "fade",
+      "duration": 0.6,
+      "color": "#000000"
+    }
+  },
+  "theme": {
+    "palette": {
+      "ink": "#0A0908",
+      "gold": "#C9A45C",
+      "pale": "#E8D9B5",
+      "dim": "#6E5E3E"
+    },
+    "fonts": {
+      "display": "Instrument Serif",
+      "body": "Inter Tight"
+    },
+    "motion": "calm",
+    "transition": {
+      "type": "crossfade",
+      "duration": 0.6
+    },
+    "texture": {
+      "grain": 0.05,
+      "vignette": 0.4
+    }
+  },
+  "scenes": [
+    {
+      "id": "s-simplicity",
+      "duration": "auto",
+      "background": "ink",
+      "elements": [
+        {
+          "id": "w-simplicity",
+          "type": "text",
+          "role": "display",
+          "content": "Simplicity",
+          "style": {
+            "color": "gold",
+            "align": "center",
+            "size": 210
+          },
+          "layout": {
+            "anchor": "center"
+          },
+          "enter": {
+            "preset": "trackIn",
+            "at": 0.2,
+            "from": 0.12,
+            "duration": 1
+          }
+        },
+        {
+          "id": "rule-1",
+          "type": "shape",
+          "shape": "line",
+          "layout": {
+            "below": "w-simplicity",
+            "gap": 56,
+            "align": "center",
+            "width": 240
+          },
+          "style": {
+            "stroke": "gold/0.6",
+            "strokeWidth": 2
+          },
+          "enter": {
+            "preset": "wipeIn",
+            "at": "w-simplicity.enter.end-0.5",
+            "duration": 0.7
+          }
+        }
+      ],
+      "timeline": [
+        {
+          "target": "w-simplicity",
+          "preset": "drift",
+          "y": -16,
+          "at": 0.2
+        }
+      ]
+    },
+    {
+      "id": "s-ultimate",
+      "duration": "auto",
+      "background": "ink",
+      "elements": [
+        {
+          "id": "ult-block",
+          "type": "stack",
+          "align": "center",
+          "gap": 20,
+          "layout": {
+            "anchor": "center"
+          },
+          "children": [
+            {
+              "id": "w-is-the",
+              "type": "text",
+              "role": "subtitle",
+              "content": "*is the*",
+              "style": {
+                "color": "pale",
+                "size": 80
+              },
+              "enter": {
+                "preset": "fadeUp",
+                "at": 0.2,
+                "duration": 0.7,
+                "distance": 24
+              }
+            },
+            {
+              "id": "w-ultimate",
+              "type": "text",
+              "role": "display",
+              "content": "ultimate",
+              "style": {
+                "color": "gold",
+                "size": 210
+              },
+              "enter": {
+                "preset": "charReveal",
+                "at": 0.5,
+                "stagger": 0.05,
+                "duration": 0.6
+              }
+            },
+            {
+              "id": "w-sophistication",
+              "type": "text",
+              "role": "display",
+              "content": "*sophistication.*",
+              "style": {
+                "color": "pale",
+                "size": 150
+              },
+              "enter": {
+                "preset": "blurIn",
+                "at": "w-ultimate.enter.end-0.2",
+                "duration": 0.9
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s-full",
+      "duration": "auto",
+      "background": {
+        "radial": [
+          "#1A1510",
+          "ink"
+        ]
+      },
+      "elements": [
+        {
+          "id": "quote-block",
+          "type": "stack",
+          "align": "center",
+          "gap": 48,
+          "layout": {
+            "anchor": "center"
+          },
+          "children": [
+            {
+              "id": "q-full",
+              "type": "text",
+              "role": "title",
+              "content": "Simplicity is the\n[ultimate]{gold}\nsophistication.",
+              "style": {
+                "color": "pale",
+                "align": "center",
+                "size": 124
+              },
+              "enter": {
+                "preset": "lineReveal",
+                "at": 0.3,
+                "stagger": 0.18,
+                "duration": 0.8
+              }
+            },
+            {
+              "id": "q-rule",
+              "type": "shape",
+              "shape": "line",
+              "layout": {
+                "width": 160
+              },
+              "style": {
+                "stroke": "gold",
+                "strokeWidth": 2
+              },
+              "enter": {
+                "preset": "wipeIn",
+                "at": "q-full.enter.end-0.2",
+                "duration": 0.6
+              }
+            },
+            {
+              "id": "q-author",
+              "type": "text",
+              "role": "label",
+              "content": "Leonardo da Vinci",
+              "style": {
+                "color": "gold",
+                "size": 34,
+                "letterSpacing": 0.2
+              },
+              "enter": {
+                "preset": "trackIn",
+                "at": "q-full.enter.end",
+                "duration": 0.8
+              }
+            }
+          ]
+        },
+        {
+          "id": "q-open",
+          "type": "text",
+          "role": "display",
+          "content": "“",
+          "style": {
+            "color": "gold",
+            "size": 300,
+            "lineHeight": 0.25
+          },
+          "enter": {
+            "preset": "fadeIn",
+            "at": 0.2,
+            "duration": 0.8
+          },
+          "layout": {
+            "pin": {
+              "to": "q-full",
+              "point": "top"
+            },
+            "offset": [
+              0,
+              -40
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "notes": [
+    "Quote and attribution exactly as given in the brief; no other copy added."
+  ]
+}

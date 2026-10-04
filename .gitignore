@@ -19,3 +19,7 @@ docs/paper-tests/**/__pycache__/
 
 # Example render outputs
 examples/*/out/
+docs/paper-tests/**/out/
+
+# Generated at build time from docs/ and examples/
+packages/mcp/docs/

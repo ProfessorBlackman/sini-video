@@ -53,3 +53,27 @@ describe("layout rules", () => {
   });
   it("flags overlapping text", () => expect(codes("a")).toContain("overlap"));
 });
+
+describe("layout rules added after the tool-assisted test", () => {
+  const plan = make([{ id: "s", duration: "auto", background: "#000000", elements: [
+    { id: "t", type: "text", content: "Covered words", style: { color: "#ffffff" } },
+    { id: "blob", type: "shape", shape: "circle", style: { fill: "#ff0000" } },
+    { id: "small", type: "text", content: "Tiny words", style: { color: "#ffffff" } },
+    { id: "card", type: "shape", shape: "rect", style: { fill: "#ffffff" } },
+    { id: "on-card", type: "text", content: "Dark on white", style: { color: "#111111" } },
+  ] }]);
+  const box = (ref: string, x: number, y: number, w: number, h: number, extra: Record<string, unknown> = {}) =>
+    ({ ref, type: "text", scene: "s", box: { x, y, width: w, height: h }, current: { x, y, width: w, height: h }, visible: true, inDevice: false, ...extra });
+  const report = { time: 0, width: 1080, height: 1920, elements: [
+    box("t", 200, 400, 400, 100, { screenFontSize: 40 }),
+    box("blob", 300, 380, 150, 150),
+    box("small", 200, 800, 200, 20, { screenFontSize: 13 }),
+    box("card", 100, 1100, 800, 300),
+    box("on-card", 200, 1200, 400, 60, { screenFontSize: 40 }),
+  ] };
+  const codes = (ref: string) => layoutRules(plan, report).filter((i) => i.path === ref).map((i) => i.code);
+
+  it("flags text covered by a later shape", () => expect(codes("t")).toContain("covered"));
+  it("flags text drawn too small", () => expect(codes("small")).toContain("tiny-text"));
+  it("measures contrast against a filled shape behind the text", () => expect(codes("on-card")).not.toContain("low-contrast"));
+});

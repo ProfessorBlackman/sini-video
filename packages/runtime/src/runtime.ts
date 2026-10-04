@@ -32,6 +32,8 @@ export interface LayoutBox {
   inDevice: boolean;
   text?: string;
   fontSize?: number;
+  /** Font size as drawn on the canvas (in-device sizes are scaled). */
+  screenFontSize?: number;
   /** Text wider than its box (a long word) or more lines than maxLines. */
   overflow?: boolean;
   /** Font size after fit: "shrink", as a fraction of the requested size. */
@@ -268,8 +270,15 @@ function buildText(node: Node, host: HTMLElement) {
   }
 }
 
+/** CSS letter-spacing also follows the last glyph; balance it so centred and right-aligned text stays put. */
+function balanceTracking(e: HTMLElement, em: number, align: string) {
+  e.style.paddingLeft = align === "center" && em > 0 ? `${em}em` : "";
+  e.style.marginRight = align === "right" && em > 0 ? `${-em}em` : "";
+}
+
 function fontCss(e: HTMLElement, el: PlanElement) {
   const f = el.font!;
+  balanceTracking(e, f.letterSpacing, f.align);
   Object.assign(e.style, {
     // Inter Tight covers symbols the display fonts lack (✓ ▶ → ₵ …).
     fontFamily: `"${f.family}", "Inter Tight"`,
@@ -326,6 +335,8 @@ function build(el: PlanElement, flow: boolean, sceneId: string): HTMLElement {
   const node: Node = { el, outer, anim, words: [], chars: [], sceneId };
   // In stacks, grids and device pages the outer box is sized by the container; fill it.
   if (flow) anim.style.width = "100%";
+  const grows = typeof (el.layout as Record<string, unknown>).grow === "number";
+  if (grows) anim.style.height = "100%";
   nodes.set(el.ref, node);
   if (fillsBox) Object.assign(anim.style, { width: "100%", height: "100%" });
 
@@ -410,9 +421,9 @@ function build(el: PlanElement, flow: boolean, sceneId: string): HTMLElement {
       node.box = svg;
       node.outline = geo;
       node.box = geo;
-      if (!outer.style.width) outer.style.width = px(shape === "line" ? 360 * k : 120 * k);
-      if (!outer.style.height) outer.style.height = shape === "line" ? px(Math.max(sw, 2)) : outer.style.width;
-      if (shape === "pill") geo.style.setProperty("rx", "9999px");
+      if (!outer.style.width) outer.style.width = flow ? "100%" : px(shape === "line" ? 360 * k : 120 * k);
+      if (!outer.style.height) outer.style.height = shape === "line" ? px(Math.max(sw, 2)) : flow ? px(120 * k) : outer.style.width;
+      if (shape === "pill") pills.push({ outer, geo, sw });
       else if (el.style.radius !== undefined && shape === "rect") geo.style.setProperty("rx", px(el.style.radius));
       break;
     }
@@ -432,7 +443,7 @@ function build(el: PlanElement, flow: boolean, sceneId: string): HTMLElement {
         Object.assign(c.style, { display: "grid", gridTemplateColumns: `repeat(${p.columns}, minmax(0, 1fr))`, columnGap: px(Number(p.gap)), rowGap: px(Number(p.rowGap)), justifyItems: "stretch" });
       }
       if (fillsBox || flow) c.style.width = "100%";
-      if (fillsBox) c.style.height = "100%";
+      if (fillsBox || grows) c.style.height = "100%";
       anim.appendChild(c);
       node.box = c;
       for (const child of el.children) c.appendChild(build(child, el.type !== "group", sceneId));
@@ -657,6 +668,11 @@ function layoutAll() {
     }
   }
   sizeGroups();
+  for (const p of pills) {
+    const r = Math.max(0, p.outer.offsetHeight / 2 - p.sw / 2);
+    p.geo.style.setProperty("rx", px(r));
+    p.geo.style.setProperty("ry", px(r));
+  }
 }
 
 function resolveRef(name: string, from: string): string | undefined {
@@ -687,6 +703,7 @@ function sizeGroups() {
 }
 
 const shrinkRatio = new Map<string, number>();
+const pills: { outer: HTMLElement; geo: SVGGeometryElement; sw: number }[] = [];
 const staticBoxes = new Map<string, { x: number; y: number; width: number; height: number }>();
 const overflowing = new Set<string>();
 
@@ -746,7 +763,10 @@ function applyElement(n: Node, f: ElementFrame | undefined) {
   const cl = [num(p.clipTop, 0), num(p.clipRight, 0), num(p.clipBottom, 0), num(p.clipLeft, 0)];
   anim.style.clipPath = cl.some((c) => c > 0) ? `inset(${cl.map((c) => `${clamp01(c) * 100}%`).join(" ")})` : "";
   if (n.text) {
-    if (p.letterSpacing !== undefined) n.text.style.letterSpacing = `${p.letterSpacing}em`;
+    if (p.letterSpacing !== undefined) {
+      n.text.style.letterSpacing = `${p.letterSpacing}em`;
+      balanceTracking(n.text, Number(p.letterSpacing), el.font?.align ?? "left");
+    }
     if (p.color !== undefined) n.text.style.color = String(p.color);
     if (p.fontWeight !== undefined) n.text.style.fontWeight = String(Math.round(Number(p.fontWeight)));
   }
@@ -975,7 +995,7 @@ function layout(t: number): LayoutReport {
       visible,
       inDevice: n.el.inDevice,
       ...(n.el.text ? { text: n.el.text.plain } : {}),
-      ...(n.el.font ? { fontSize: round((shrinkRatio.get(n.el.ref) ?? 1) * n.el.font.size) } : {}),
+      ...(n.el.font ? { fontSize: round((shrinkRatio.get(n.el.ref) ?? 1) * n.el.font.size), screenFontSize: round((shrinkRatio.get(n.el.ref) ?? 1) * n.el.font.size * screenScale(n)) } : {}),
       ...(overflowing.has(n.el.ref) ? { overflow: true } : {}),
       ...(shrinkRatio.has(n.el.ref) ? { shrink: round(shrinkRatio.get(n.el.ref)!) } : {}),
     });
@@ -984,6 +1004,13 @@ function layout(t: number): LayoutReport {
 }
 
 const round = (x: number) => Math.round(x * 10) / 10;
+
+/** Canvas pixels per CSS pixel for an element (devices scale their logical pixels). */
+function screenScale(n: Node): number {
+  const t = n.text ?? n.outer;
+  const w = t.offsetWidth;
+  return w > 0 ? t.getBoundingClientRect().width / scale / w : 1;
+}
 
 // ---------------------------------------------------------------- boot
 

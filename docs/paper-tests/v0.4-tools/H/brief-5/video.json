@@ -1,0 +1,89 @@
+{
+  "version": "0.4",
+  "video": {
+    "format": "9:16",
+    "fps": 30,
+    "background": "#000000",
+    "targetDuration": 10
+  },
+  "theme": {
+    "palette": {
+      "black": "#000000",
+      "gold": "#FFD700",
+      "white": "#FFFFFF",
+      "muted": "#808080"
+    },
+    "fonts": {
+      "display": "Instrument Serif",
+      "body": "Inter Tight"
+    },
+    "motion": "calm",
+    "transition": { "type": "crossfade", "duration": 0.6 }
+  },
+  "assets": {},
+  "scenes": [
+    {
+      "id": "quote",
+      "duration": "auto",
+      "background": "black",
+      "elements": [
+        {
+          "id": "quote-text",
+          "type": "text",
+          "role": "display",
+          "content": "Simplicity is the ultimate\nsophistication.",
+          "style": {
+            "color": "gold",
+            "align": "center",
+            "weight": 400,
+            "lineHeight": 1.15
+          },
+          "layout": {
+            "anchor": "center",
+            "inset": [300, 120],
+            "maxWidth": 840,
+            "width": "90%"
+          },
+          "enter": {
+            "preset": "lineReveal",
+            "duration": 1.2,
+            "stagger": 0.4,
+            "ease": "cubic.inOut"
+          }
+        }
+      ]
+    },
+    {
+      "id": "attribution",
+      "duration": "auto",
+      "background": "black",
+      "transition": "theme",
+      "elements": [
+        {
+          "id": "attribution-text",
+          "type": "text",
+          "role": "subtitle",
+          "content": "— Leonardo da Vinci",
+          "style": {
+            "color": "gold",
+            "align": "center",
+            "weight": 300,
+            "italic": true
+          },
+          "layout": {
+            "anchor": "center",
+            "inset": [300, 120],
+            "maxWidth": 840,
+            "width": "90%"
+          },
+          "enter": {
+            "preset": "fadeUp",
+            "duration": 0.8,
+            "distance": 40,
+            "ease": "cubic.inOut"
+          }
+        }
+      ]
+    }
+  ]
+}

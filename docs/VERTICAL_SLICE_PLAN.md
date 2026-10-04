@@ -1,6 +1,6 @@
 # Sini — Vertical Slice Plan
 
-**Status:** Draft plan
+**Status:** ✅ Complete (2026-10-04). See §10 for results against the "done" criteria.
 **DSL:** [DSL_REFERENCE.md](DSL_REFERENCE.md) v0.4
 **Goal:** prove the whole pipeline end to end on a narrow feature set, then test whether an AI with real tools (`validate`, `lint`, `layout`, contact sheets) makes better videos than it did on paper.
 
@@ -197,3 +197,24 @@ Phase 2 then adds devices, components, charts and interactions, and reruns all 8
 1. ~~**Licence**~~ — decided: **Apache-2.0**.
 2. **GitHub org:** `sinihq` is free; reserve it and the `@sini` npm scope before M0.
 3. **FFmpeg build:** GPL libx264, or LGPL + OpenH264 (§3).
+
+---
+
+## 10. Results
+
+| Criterion | Result |
+|---|---|
+| Novaé scenes 1–2 recognisable from JSON | ✅ [examples/novae](../examples/novae/video.json), compared frame by frame with the original reel |
+| Byte-identical frames run to run | ✅ CI test: two renders with different worker counts give identical frame hashes |
+| Byte-identical frames across machines | ✅ A frame rendered in the Docker image (Ubuntu 24.04, Node 24) matches one rendered on the host (Ubuntu 22.04, Node 23), SHA-256 identical |
+| CLI and MCP share one core | ✅ Both call `@sini/api`; 13 MCP tools mirror the CLI; MCP tested in-memory and over stdio, locally and through Docker |
+| AI can create → check → look → patch → render | ✅ [Tool-assisted test](paper-tests/v0.4-tools/FINDINGS.md): 9 videos, 0 errors in final specs, agents iterated on their own contact sheets (they used the CLI; the MCP server exposes the same functions) |
+| Draft of a 15s video under 30s | ✅ 15.5s video in 8.6s |
+| Final of a 15s video under 2 minutes | ✅ 15.5s 1080×1920 in 80s (was 593s before switching frame capture to JPEG) |
+
+### Still open
+
+- **Reserve the names:** `sinihq` GitHub org and `@sini` npm scope (needs you).
+- **FFmpeg build:** the image uses Ubuntu's FFmpeg (libx264, GPL). Decide before publishing the image (§3).
+- **Image size:** 2.56 GB on the Playwright base image; a Chromium-only base would roughly halve it.
+- **Phase 2** features and the known limitations listed in [paper-tests/v0.4-tools/FINDINGS.md](paper-tests/v0.4-tools/FINDINGS.md).

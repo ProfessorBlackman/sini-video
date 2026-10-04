@@ -1,0 +1,14 @@
+[
+  { "op": "set", "path": "video.targetDuration", "value": 17 },
+  { "op": "set", "path": "recurring.duration", "value": 4.2 },
+  { "op": "set", "path": "currency.duration", "value": 4.2 },
+  { "op": "set", "path": "pdf.duration", "value": 4.2 },
+  { "op": "set", "path": "currency.timeline.3.at", "value": 2.6 },
+  { "op": "set", "path": "currency.timeline.4.at", "value": 2.6 },
+  { "op": "set", "path": "currency.timeline.5.at", "value": 2.6 },
+  { "op": "set", "path": "recurring.timeline.0.stagger", "value": 0.18 },
+  { "op": "set", "path": "pdf.timeline.0.at", "value": 1.4 },
+  { "op": "set", "path": "pdf.timeline.1.at", "value": 2.2 },
+  { "op": "set", "path": "outro-btn.style.size", "value": 60 },
+  { "op": "set", "path": "outro-block.gap", "value": 56 }
+]

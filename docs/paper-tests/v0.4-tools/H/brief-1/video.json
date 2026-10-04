@@ -1,0 +1,217 @@
+{
+  "version": "0.4",
+  "video": {
+    "format": "9:16",
+    "fps": 30,
+    "background": "#F5E6D3",
+    "safeZone": "reels",
+    "targetDuration": 15
+  },
+  "theme": {
+    "palette": {
+      "cream": "#F5E6D3",
+      "cinnamon": "#D4845C",
+      "dark": "#3D2B1F",
+      "gold": "#E8B44F",
+      "accent": "#C85A4A",
+      "white": "#FFFFFF"
+    },
+    "fonts": {
+      "display": "Instrument Serif",
+      "body": "Inter Tight"
+    },
+    "motion": "editorial",
+    "transition": { "type": "wipe", "from": "left", "angle": 10, "bar": "cinnamon", "duration": 0.5 }
+  },
+  "assets": {
+    "cinnamon-roll": {
+      "type": "placeholder",
+      "hint": "fresh cinnamon rolls in a box",
+      "color": "cinnamon"
+    }
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "duration": "auto",
+      "background": "cream",
+      "elements": [
+        {
+          "id": "bakery-name",
+          "type": "text",
+          "role": "display",
+          "content": "Crumb & Co.",
+          "style": {
+            "color": "dark",
+            "align": "center",
+            "weight": 700
+          },
+          "layout": {
+            "anchor": "center",
+            "inset": [400, 150],
+            "maxWidth": 800
+          },
+          "enter": "wordReveal"
+        },
+        {
+          "id": "tagline",
+          "type": "text",
+          "role": "subtitle",
+          "content": "Fresh baked daily",
+          "style": {
+            "color": "dark",
+            "align": "center",
+            "italic": true
+          },
+          "layout": {
+            "below": "bakery-name",
+            "gap": 32,
+            "align": "center"
+          },
+          "enter": "fadeUp"
+        }
+      ]
+    },
+    {
+      "id": "product",
+      "duration": "auto",
+      "background": "cream",
+      "transition": "theme",
+      "elements": [
+        {
+          "id": "hero-image",
+          "type": "image",
+          "asset": "cinnamon-roll",
+          "layout": {
+            "anchor": "center",
+            "inset": [450, 150],
+            "width": 600,
+            "aspect": "1:1"
+          },
+          "fit": "cover",
+          "enter": "scaleIn"
+        },
+        {
+          "id": "product-name",
+          "type": "text",
+          "role": "title",
+          "content": "Cinnamon Roll Box",
+          "style": {
+            "color": "dark",
+            "align": "center",
+            "weight": 700
+          },
+          "layout": {
+            "below": "hero-image",
+            "gap": 32,
+            "align": "center",
+            "maxWidth": 800
+          },
+          "enter": "wordReveal"
+        },
+        {
+          "id": "launch-text",
+          "type": "text",
+          "role": "body",
+          "content": "Launching this weekend",
+          "style": {
+            "color": "dark",
+            "align": "center",
+            "weight": 600
+          },
+          "layout": {
+            "below": "product-name",
+            "gap": 16,
+            "align": "center",
+            "maxWidth": 800
+          },
+          "enter": "fadeUp"
+        }
+      ]
+    },
+    {
+      "id": "cta",
+      "duration": "auto",
+      "background": "cinnamon",
+      "transition": "theme",
+      "elements": [
+        {
+          "id": "cta-headline",
+          "type": "text",
+          "role": "display",
+          "content": "Pre-order Now",
+          "style": {
+            "color": "#FFFFFF",
+            "align": "center",
+            "weight": 700
+          },
+          "layout": {
+            "anchor": "center",
+            "inset": [350, 150],
+            "maxWidth": 800
+          },
+          "enter": "wordReveal"
+        },
+        {
+          "id": "deadline",
+          "type": "text",
+          "role": "subtitle",
+          "content": "Available by Friday",
+          "style": {
+            "color": "#FFFFFF",
+            "align": "center",
+            "weight": 600
+          },
+          "layout": {
+            "below": "cta-headline",
+            "gap": 40,
+            "align": "center"
+          },
+          "enter": "fadeUp"
+        },
+        {
+          "id": "link-button",
+          "type": "button",
+          "label": "Order Today",
+          "variant": "solid",
+          "style": {
+            "fill": "white",
+            "color": "dark",
+            "weight": 700
+          },
+          "layout": {
+            "below": "deadline",
+            "gap": 60,
+            "align": "center"
+          },
+          "enter": "popIn"
+        }
+      ]
+    },
+    {
+      "id": "close",
+      "duration": "auto",
+      "background": "dark",
+      "transition": "theme",
+      "elements": [
+        {
+          "id": "close-text",
+          "type": "text",
+          "role": "title",
+          "content": "Crumb & Co.",
+          "style": {
+            "color": "gold",
+            "align": "center",
+            "weight": 700
+          },
+          "layout": {
+            "anchor": "center",
+            "inset": [400, 150],
+            "maxWidth": 800
+          },
+          "enter": "charReveal"
+        }
+      ]
+    }
+  ]
+}
