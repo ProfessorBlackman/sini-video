@@ -23,6 +23,8 @@ export interface CompileOptions {
   exists?: (absolutePath: string) => boolean;
   /** Join a project-relative path onto projectDir. Default: POSIX join. */
   resolvePath?: (projectDir: string, rel: string) => string;
+  /** Text hotspots already located (by OCR), per asset: { name: [x, y, w, h] }. */
+  textHotspots?: Record<string, Record<string, number[]>>;
 }
 
 export interface ReadingWindow {
@@ -38,7 +40,7 @@ export interface CompiledPlan extends Plan {
   reading: ReadingWindow[];
 }
 
-const UNSUPPORTED_TYPES = new Set(["template", "svg"]);
+const UNSUPPORTED_TYPES = new Set<string>();
 const UNSUPPORTED_BEHAVIORS = new Set<string>();
 const ENTER = new Set(["fadeIn", "fadeUp", "slideIn", "scaleIn", "popIn", "bounceIn", "blurIn", "wordReveal", "lineReveal", "charReveal", "typewriter", "countUp", "trackIn", "drawOutline", "wipeIn", "grow"]);
 const EXIT = new Set(["fadeOut", "slideOut", "scaleOut", "blurOut", "wordsUp", "wipeOut"]);
@@ -144,8 +146,10 @@ class Compiler {
     const decl = this.assets[id];
     const out: Record<string, number[]> = {};
     for (const [name, h] of Object.entries<J>(decl && typeof decl === "object" ? decl.hotspots ?? {} : {})) {
+      const found = this.opts.textHotspots?.[id]?.[name];
       if (Array.isArray(h)) out[name] = h;
-      else this.warn(path, "unsupported-feature", `Text hotspot '${name}' can't be located yet; the cursor aims at the element's centre. Give it [x, y, width, height] instead.`);
+      else if (found) out[name] = found;
+      else this.warn(path, "hotspot-not-found", `Text hotspot '${name}' ("${h?.text}") wasn't found in the image; the cursor aims at the element's centre.`, "Check the text matches the screenshot, or give [x, y, width, height].");
     }
     return out;
   }
@@ -308,6 +312,13 @@ class Compiler {
       el.props = { icon: src.icon ?? null, title: String(src.title ?? ""), body: src.body === undefined ? null : String(src.body), bodyFont: body };
       const parsed = parseMarkup(`${src.title ?? ""} ${src.body ?? ""}`.trim());
       el.text = { runs: parsed.runs, plain: parsed.plain, words: parsed.words, chars: parsed.chars, lines: 1, readingWords: parsed.readingWords, split: "none", fit: "none" };
+    } else if (type === "svg") {
+      el.props = { image: this.image(src.asset, `${ctx.path}.asset`), ...(src.style?.color ? { color: this.colour(src.style.color) } : {}) };
+    } else if (type === "template") {
+      const params: Record<string, unknown> = src.params ?? {};
+      const escape = (v: unknown) => String(v).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
+      const html = String(src.html ?? "").replace(/\{\{\s*([\w-]+)\s*\}\}/g, (m, k: string) => (k in params ? escape(params[k]) : m));
+      el.props = { html, css: String(src.css ?? ""), vars: src.vars ?? {} };
     } else if (type === "chart") {
       el.font = this.font("caption", src.style, ctx.inDevice, ctx.textColour);
       if (!style.fill) style.fill = el.font.color;

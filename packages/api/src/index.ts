@@ -7,3 +7,4 @@ export {
   type PatchOp, type VersionInfo,
 } from "./versions.js";
 export { validate as validateSpec } from "@sini/schema";
+export { resolveTextHotspots, cachedTextHotspots, findText } from "./ocr.js";

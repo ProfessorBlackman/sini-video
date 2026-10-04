@@ -203,3 +203,32 @@ describe("camera and matchCut", () => {
     }
   }, 60_000);
 });
+
+describe("svg and template", () => {
+  it("sanitises SVG files", async () => {
+    const { sanitizeSvg } = await import("./index.js");
+    const out = sanitizeSvg(`<?xml version="1.0"?><svg onload="x()"><script>alert(1)</script><a href="https://x.y"><rect onclick="y()" fill="url(https://x.y/p)"/></a><use href="#a"/></svg>`);
+    expect(out).not.toMatch(/script|onload|onclick|https:/);
+    expect(out).toContain('href="#a"');
+  });
+
+  it("escapes template params and animates CSS variables", async () => {
+    const p = compile({
+      version: "0.4", video: { format: "1:1" },
+      scenes: [{ id: "s", duration: 2, elements: [
+        { id: "tpl", type: "template", html: "<b class='x'>{{name}}</b>", css: ".x{display:block;width:calc(100px + var(--grow) * 100px)}", params: { name: "<i>hi</i>" }, vars: { "--grow": 0 }, layout: { x: 0, y: 0 } },
+      ], timeline: [{ target: "tpl", at: 0.5, duration: 1, ease: "linear", animate: { "--grow": [0, 1] } }] }],
+    } as never);
+    const s = await RenderSession.open(p, { browser });
+    try {
+      const read = async (t: number) => { await s.render(t); return s.page.evaluate(() => { const root = document.querySelector(".template")!.shadowRoot!; const b = root.querySelector(".x") as HTMLElement; return { text: b.textContent, html: b.innerHTML, width: b.getBoundingClientRect().width }; }); };
+      const before = await read(0.2);
+      expect(before.text).toBe("<i>hi</i>");
+      expect(before.html).not.toContain("<i>");
+      expect(before.width).toBeCloseTo(100, 0);
+      expect((await read(1.0)).width).toBeCloseTo(150, 0);
+    } finally {
+      await s.close();
+    }
+  }, 60_000);
+});

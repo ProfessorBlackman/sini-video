@@ -12,6 +12,7 @@ declare global {
   interface Window {
     __SINI_PLAN__: Plan;
     __SINI_ICONS__?: Record<string, string>;
+    __SINI_SVGS__?: Record<string, string>;
     sini: {
       ready: Promise<void>;
       render(t: number): void;
@@ -70,6 +71,10 @@ interface Node {
   outline?: SVGGeometryElement;
   /** Every stroke of an icon (drawOutline draws them together). */
   outlines?: SVGGeometryElement[];
+  /** SVG shapes that only had a fill: drawOutline traces them, then fades the fill in. */
+  filledOnly?: Set<SVGGeometryElement>;
+  /** Template host (its CSS variables are animated). */
+  host?: HTMLElement;
   body?: HTMLElement;
   ring?: HTMLElement;
   /** Device screen element (scaled logical-pixel space). */
@@ -360,7 +365,7 @@ function build(el: PlanElement, flow: boolean, sceneId: string): HTMLElement {
   if (!flow) {
     outer.style.position = "absolute";
     // Shrink-to-fit would only use the space right of `left`; size to content, capped by maxWidth.
-    if (!(el.layout as Record<string, unknown>).width && ["text", "stack", "grid", "button", "badge"].includes(el.type)) outer.style.width = "max-content";
+    if (!(el.layout as Record<string, unknown>).width && ["text", "stack", "grid", "button", "badge", "template"].includes(el.type)) outer.style.width = "max-content";
   }
   else outer.style.position = "relative";
   outer.style.zIndex = String(el.z || 0);
@@ -512,6 +517,12 @@ function build(el: PlanElement, flow: boolean, sceneId: string): HTMLElement {
     }
     case "chart":
       buildChart(node, flow);
+      break;
+    case "svg":
+      buildSvg(node, flow);
+      break;
+    case "template":
+      buildTemplate(node);
       break;
     case "progress": {
       const f = el.font!;
@@ -752,6 +763,76 @@ function applyProgress(n: Node, value: number) {
     pr.labels[i]!.style.opacity = String((done ? 1 : 0.5) * ownDim);
     pr.labels[i]!.style.fontWeight = i === current ? "700" : String(el.font!.weight);
   });
+}
+
+// ---------------------------------------------------------------- svg and template
+
+function buildSvg(node: Node, flow: boolean) {
+  const { el, outer, anim } = node;
+  const src = el.props.image as { kind: string; src?: string; color?: string; seed?: number };
+  const markup = src.kind === "file" && src.src ? window.__SINI_SVGS__?.[src.src] : undefined;
+  if (!outer.style.width || outer.style.width === "max-content") outer.style.width = flow ? "100%" : px(320 * k);
+  Object.assign(anim.style, { width: "100%", height: "100%" });
+  if (!markup) {
+    if (!outer.style.height && !outer.style.aspectRatio) outer.style.height = outer.style.width;
+    anim.appendChild(picture(src.kind === "file" ? { kind: "placeholder", color: "#8a8178", seed: 1 } : (src as never), "cover"));
+    return;
+  }
+  const holder = h("div", "svg", { width: "100%", height: "100%" });
+  holder.innerHTML = markup;
+  const svg = holder.querySelector("svg");
+  if (!svg) return;
+  if (el.props.color) holder.style.color = String(el.props.color);
+  const vb = (svg.getAttribute("viewBox") ?? "").split(/[\s,]+/).map(Number);
+  const vw = vb[2] || Number.parseFloat(svg.getAttribute("width") ?? "") || 100;
+  const vh = vb[3] || Number.parseFloat(svg.getAttribute("height") ?? "") || 100;
+  if (!svg.getAttribute("viewBox")) svg.setAttribute("viewBox", `0 0 ${vw} ${vh}`);
+  svg.removeAttribute("width");
+  svg.removeAttribute("height");
+  Object.assign(svg.style, { width: "100%", height: "100%", display: "block", overflow: "visible" });
+  if (!outer.style.height && !outer.style.aspectRatio) outer.style.aspectRatio = `${vw} / ${vh}`;
+  anim.appendChild(holder);
+  node.box = svg;
+  const geos = [...svg.querySelectorAll<SVGGeometryElement>("path, circle, rect, line, polyline, polygon, ellipse")];
+  node.outlines = geos;
+  node.filledOnly = new Set();
+  for (const g of geos) g.setAttribute("pathLength", "1");
+  if (plan.tracks.some((t) => t.ref === el.ref && t.kind === "tween" && t.prop === "draw")) pendingSvgs.push({ node, size: Math.max(vw, vh) });
+}
+
+const pendingSvgs: { node: Node; size: number }[] = [];
+
+/** Needs computed styles, so it runs once the stage is in the document. */
+function prepareSvgDrawing() {
+  for (const { node, size } of pendingSvgs) {
+    for (const g of node.outlines ?? []) {
+      const cs = getComputedStyle(g);
+      if ((cs.stroke === "none" || !cs.stroke) && cs.fill && cs.fill !== "none") {
+        g.style.stroke = cs.fill;
+        g.style.strokeWidth = String(size / 110);
+        node.filledOnly!.add(g);
+      }
+    }
+  }
+}
+
+function buildTemplate(node: Node) {
+  const { el, anim } = node;
+  const host = h("div", "template");
+  const root = host.attachShadow({ mode: "open" });
+  root.innerHTML = `<style>*,*::before,*::after{transition:none!important;animation:none!important}:host{display:block}${String(el.props.css ?? "")}</style>${String(el.props.html ?? "")}`;
+  // Defence in depth (the validator already rejects these): nothing in a template may run code or load from outside.
+  for (const bad of root.querySelectorAll("script, iframe, object, embed, link, meta, base, form")) bad.remove();
+  for (const e of root.querySelectorAll("*")) {
+    for (const a of [...e.attributes]) {
+      const v = a.value.trim().toLowerCase();
+      if (a.name.startsWith("on") || ((a.name === "src" || a.name === "href" || a.name.endsWith(":href")) && /^(https?:|javascript:|\/\/)/.test(v))) e.removeAttribute(a.name);
+    }
+  }
+  for (const [k, v] of Object.entries((el.props.vars as Record<string, unknown>) ?? {})) host.style.setProperty(k, String(v));
+  anim.appendChild(host);
+  node.host = host;
+  node.box = host;
 }
 
 // ---------------------------------------------------------------- camera and match cuts
@@ -1367,10 +1448,20 @@ function applyElement(n: Node, f: ElementFrame | undefined) {
     }
   }
   if (n.outlines && p.draw !== undefined) {
+    const d = clamp01(Number(p.draw));
     for (const g of n.outlines) {
       g.style.strokeDasharray = "1";
-      g.style.strokeDashoffset = String(1 - clamp01(Number(p.draw)));
+      g.style.strokeDashoffset = String(1 - (n.filledOnly ? clamp01(d / 0.7) : d));
+      if (n.filledOnly?.has(g)) {
+        // Trace with the fill colour, then let the fill take over.
+        const f = clamp01((d - 0.6) / 0.4);
+        g.style.fillOpacity = String(f);
+        g.style.strokeOpacity = String(1 - f);
+      }
     }
+  }
+  if (n.host) {
+    for (const [k, v] of Object.entries(p)) if (k.startsWith("--")) n.host.style.setProperty(k, String(v));
   }
   // Parts: words, lines, characters.
   if (f.parts.length) {
@@ -1757,6 +1848,7 @@ async function boot() {
   endfade = h("div", "", { position: "absolute", inset: "0", zIndex: "990", pointerEvents: "none", background: plan.end.color, opacity: "0" });
   stage.appendChild(endfade);
   document.body.appendChild(stage);
+  prepareSvgDrawing();
 
   // Wait for every font face and image before measuring anything.
   const faces = new Set<string>();

@@ -23,7 +23,9 @@
     "@sini/core": "workspace:*",
     "@sini/schema": "workspace:*",
     "@sini/render": "workspace:*",
-    "fontkit": "^2.0.4"
+    "fontkit": "^2.0.4",
+    "tesseract.js": "^7.0.0",
+    "@tesseract.js-data/eng": "^1.0.0"
   },
   "devDependencies": {
     "@types/fontkit": "^2.0.9"

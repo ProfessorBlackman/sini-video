@@ -9,6 +9,7 @@ import { contrast, over, parseCss, READING, SAFE_ZONES, TOP_LEVEL_TEXT_MARGIN, t
 import { fontFile, RenderSession, type LayoutReport } from "@sini/render";
 import type { Issue } from "@sini/schema";
 import { plan as loadPlan } from "./project.js";
+import { resolveTextHotspots } from "./ocr.js";
 
 export interface LintResult {
   ok: boolean;
@@ -24,6 +25,7 @@ const warn = (path: string, code: string, message: string, suggestion?: string):
 const r1 = (x: number) => Math.round(x * 10) / 10;
 
 export async function lint(target: string, opts: { layout?: boolean } = {}): Promise<LintResult> {
+  await resolveTextHotspots(target);
   const { plan, validation } = loadPlan(target);
   const issues: Issue[] = [...validation.issues.filter((i) => i.level === "warning"), ...plan.report];
   issues.push(...timelineRules(plan));
