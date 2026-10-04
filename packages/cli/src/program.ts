@@ -1,6 +1,6 @@
 import { createRequire } from "node:module";
 import { Command } from "commander";
-import { describe, SiniError } from "@sini/api";
+import { describe, layoutAt, renderFrame, SiniError } from "@sini/api";
 import { formatIssue, runValidate } from "./validate-command.js";
 
 const require = createRequire(import.meta.url);
@@ -52,6 +52,40 @@ export function createProgram(): Command {
           const state = e.visible ? (e.opacity !== undefined ? `visible (opacity ${e.opacity})` : "visible") : "hidden";
           const anim = e.animating.length ? `  ⟳ ${e.animating.join(", ")}` : "";
           console.log(`  ${e.ref} [${e.type}] ${state}${e.text ? ` "${e.text}"` : ""}${anim}`);
+        }
+      })(),
+    );
+
+  program
+    .command("frame")
+    .description("Render one frame to a PNG")
+    .argument("<time>", "time in seconds")
+    .argument("[project]", "project folder or spec file", ".")
+    .option("-o, --out <file>", "output PNG path (default: out/frame-<time>.png)")
+    .option("--scale <factor>", "output scale, e.g. 0.5", "1")
+    .action((time: string, project: string, opts: { out?: string; scale: string }) =>
+      guard(async () => {
+        const { file } = await renderFrame(project, Number(time), { ...(opts.out ? { out: opts.out } : {}), scale: Number(opts.scale) });
+        console.log(file);
+      })(),
+    );
+
+  program
+    .command("layout")
+    .description("Show the computed box of every element at a time")
+    .argument("<time>", "time in seconds")
+    .argument("[project]", "project folder or spec file", ".")
+    .option("--json", "machine-readable output")
+    .action((time: string, project: string, opts: { json?: boolean }) =>
+      guard(async () => {
+        const r = await layoutAt(project, Number(time));
+        if (opts.json) return void console.log(JSON.stringify(r, null, 2));
+        console.log(`t = ${r.time}s, canvas ${r.width}×${r.height}`);
+        for (const e of r.elements) {
+          const b = e.box;
+          const moved = JSON.stringify(e.box) !== JSON.stringify(e.current) ? `  now ${e.current.x},${e.current.y} ${e.current.width}×${e.current.height}` : "";
+          const extra = [e.visible ? "" : "hidden", e.overflow ? "OVERFLOW" : "", e.shrink ? `shrunk to ${Math.round(e.shrink * 100)}%` : "", e.fontSize ? `${e.fontSize}px` : ""].filter(Boolean).join(", ");
+          console.log(`  ${e.ref} [${e.type}] ${b.x},${b.y} ${b.width}×${b.height}${moved}${extra ? `  (${extra})` : ""}`);
         }
       })(),
     );

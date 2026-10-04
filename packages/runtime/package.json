@@ -1,0 +1,27 @@
+{
+  "name": "@sini/runtime",
+  "version": "0.0.1",
+  "description": "In-browser Sini runtime: builds the DOM from a plan and renders any frame",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    "./bundle": "./dist/runtime.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": "^22.12.0 || >=24"
+  },
+  "scripts": {
+    "build": "node build.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@sini/core": "workspace:*"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2"
+  }
+}

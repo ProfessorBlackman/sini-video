@@ -902,8 +902,8 @@ Lint checks include:
           "padding": [60, 60], "layout": { "x": 64, "y": 1010, "width": 952, "height": 520 },
           "enter": { "preset": "drawOutline", "at": 1.0, "duration": 0.55 },
           "children": [
-            { "id": "h1b", "type": "text", "role": "display", "content": "**YOUR WEBSITE\nSHOULD TOO.**",
-              "style": { "color": "bone", "size": 150, "letterSpacing": -0.045 },
+            { "id": "h1b", "type": "text", "role": "body", "content": "YOUR WEBSITE\nSHOULD TOO.",
+              "style": { "color": "bone", "size": 150, "weight": 800, "lineHeight": 0.98, "letterSpacing": -0.045 },
               "enter": { "preset": "wordReveal", "at": 1.55, "ease": "back.out" } }
           ] }
       ],

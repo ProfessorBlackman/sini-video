@@ -348,7 +348,7 @@ class Compiler {
       out.inset ??= [0, 0];
     }
     if (method === "relative") out.gap ??= 32;
-    if (type === "text" && ctx.topLevel && out.maxWidth === undefined && out.width === undefined) {
+    if (["text", "stack", "grid", "button", "badge"].includes(type) && ctx.topLevel && out.maxWidth === undefined && out.width === undefined) {
       out.maxWidth = this.W - 2 * TOP_LEVEL_TEXT_MARGIN * this.k;
     }
     return out;
@@ -984,10 +984,11 @@ class Compiler {
       }
       case "kenBurns": {
         const end = p.duration !== undefined ? t0 + p.duration : sceneEnd;
-        push("scale", [1, p.zoom ?? 1.12], t0, end, p.ease ?? "linear");
+        // Zooms the picture inside its frame (images, backgrounds); the frame stays put.
+        push("innerScale", [1, p.zoom ?? 1.12], t0, end, p.ease ?? "linear");
         if (p.pan) {
-          push("x", [0, p.pan[0] ?? 0], t0, end, p.ease ?? "linear");
-          push("y", [0, p.pan[1] ?? 0], t0, end, p.ease ?? "linear");
+          push("innerX", [0, p.pan[0] ?? 0], t0, end, p.ease ?? "linear");
+          push("innerY", [0, p.pan[1] ?? 0], t0, end, p.ease ?? "linear");
         }
         break;
       }

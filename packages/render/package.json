@@ -1,7 +1,7 @@
 {
-  "name": "@sini/api",
+  "name": "@sini/render",
   "version": "0.0.1",
-  "description": "Sini operations shared by the CLI and the MCP server",
+  "description": "Renders Sini plans to frames and video with Chromium (Playwright) and FFmpeg",
   "license": "Apache-2.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -10,7 +10,8 @@
     ".": "./dist/index.js"
   },
   "files": [
-    "dist"
+    "dist",
+    "fonts"
   ],
   "engines": {
     "node": "^22.12.0 || >=24"
@@ -21,7 +22,7 @@
   },
   "dependencies": {
     "@sini/core": "workspace:*",
-    "@sini/schema": "workspace:*",
-    "@sini/render": "workspace:*"
+    "@sini/runtime": "workspace:*",
+    "playwright": "1.63.0"
   }
 }
