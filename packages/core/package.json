@@ -1,11 +1,13 @@
 {
-  "name": "@sini/cli",
+  "name": "@sini/core",
   "version": "0.0.1",
-  "description": "Command-line interface for Sini, the AI-programmable motion video engine",
+  "description": "Sini engine core: resolution, timeline compilation and a pure frame evaluator",
   "license": "Apache-2.0",
   "type": "module",
-  "bin": {
-    "sini": "./dist/index.js"
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js"
   },
   "files": [
     "dist"
@@ -18,8 +20,6 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "commander": "^15.0.0",
-    "@sini/schema": "workspace:*",
-    "@sini/api": "workspace:*"
+    "@sini/schema": "workspace:*"
   }
 }
