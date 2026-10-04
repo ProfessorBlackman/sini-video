@@ -38,7 +38,7 @@ export interface CompiledPlan extends Plan {
   reading: ReadingWindow[];
 }
 
-const UNSUPPORTED_TYPES = new Set(["toast", "progress", "chart", "template", "svg"]);
+const UNSUPPORTED_TYPES = new Set(["chart", "template", "svg"]);
 const UNSUPPORTED_BEHAVIORS = new Set(["camera", "focusCycle"]);
 const ENTER = new Set(["fadeIn", "fadeUp", "slideIn", "scaleIn", "popIn", "bounceIn", "blurIn", "wordReveal", "lineReveal", "charReveal", "typewriter", "countUp", "trackIn", "drawOutline", "wipeIn", "grow"]);
 const EXIT = new Set(["fadeOut", "slideOut", "scaleOut", "blurOut", "wordsUp", "wipeOut"]);
@@ -295,6 +295,23 @@ class Compiler {
         if (el.props.variant === "outline" && !style.stroke) style.stroke = el.font.color;
       } else if (!style.fill) style.fill = "#111111";
       if (type === "badge" && !src.style?.color) el.font.color = readableOn(style.fill);
+    } else if (type === "toast") {
+      const fill = this.paint(src.style?.fill) ?? (ctx.inDevice || luminance(parseCss(ctx.textColour) ?? [0, 0, 0, 1]) > 0.5 ? "#FFFFFF" : "#1A1A1A");
+      style.fill = fill;
+      const colour = this.colour(src.style?.color) ?? readableOn(fill);
+      el.font = this.font("body", { ...(src.style ?? {}), weight: src.style?.weight ?? 600 }, ctx.inDevice, colour);
+      el.font.color = colour;
+      const body = this.font("caption", { color: src.style?.color }, ctx.inDevice, colour);
+      body.color = colour;
+      if (src.style?.shadow === undefined) style.shadow = "soft";
+      if (style.radius === undefined) style.radius = el.font.size * 0.7;
+      el.props = { icon: src.icon ?? null, title: String(src.title ?? ""), body: src.body === undefined ? null : String(src.body), bodyFont: body };
+      const parsed = parseMarkup(`${src.title ?? ""} ${src.body ?? ""}`.trim());
+      el.text = { runs: parsed.runs, plain: parsed.plain, words: parsed.words, chars: parsed.chars, lines: 1, readingWords: parsed.readingWords, split: "none", fit: "none" };
+    } else if (type === "progress") {
+      el.font = this.font("caption", src.style, ctx.inDevice, ctx.textColour);
+      if (!style.fill) style.fill = el.font.color;
+      el.props = { steps: (src.steps ?? []).map(String), value: Number(src.value ?? 0) };
     } else if (type === "icon") {
       // Colour and size ride on the font (style.color, style.size); default size = body text.
       el.font = this.font("body", src.style, ctx.inDevice, ctx.textColour);
@@ -349,6 +366,9 @@ class Compiler {
       if (st.label !== undefined) ps.label = st.label;
       if (st.variant !== undefined) ps.variant = st.variant;
       if (st.value !== undefined) ps.value = st.value;
+      if (st.icon !== undefined) ps.icon = st.icon;
+      if (st.title !== undefined) ps.title = st.title;
+      if (st.body !== undefined) ps.body = st.body;
       el.states[name] = ps;
     }
     return el;
@@ -845,15 +865,19 @@ class Compiler {
         if (target === undefined) continue;
         this.tracks.push(this.tween(el.ref, p === "color" ? "color" : p, [null, target as number | string], t0, t1, "cubic.inOut", label));
       }
-      for (const field of ["content", "label"] as const) {
-        const before = prev?.[field] ?? (field === "content" ? baseText(el, "content") : baseText(el, "label"));
-        const after = next?.[field] ?? (field === "content" ? baseText(el, "content") : baseText(el, "label"));
+      for (const field of ["content", "label", "title", "body"] as const) {
+        const before = prev?.[field] ?? baseText(el, field);
+        const after = next?.[field] ?? baseText(el, field);
         if (before !== undefined && after !== undefined && before !== after) {
           this.tracks.push({ kind: "content", ref: el.ref, field, from: before, to: after, t0, t1, ease: "cubic.inOut", label });
         }
       }
       if (next?.value !== undefined || prev?.value !== undefined) {
-        this.tracks.push(this.tween(el.ref, "value", [null, next?.value ?? 0], t0, t1, "cubic.inOut", label));
+        this.tracks.push(this.tween(el.ref, "value", [null, next?.value ?? Number(el.props.value ?? 0)], t0, t1, "cubic.inOut", label));
+      }
+      if (el.type === "toast" && (next?.icon !== undefined || prev?.icon !== undefined)) {
+        const icon = next?.icon ?? (el.props.icon as string | null) ?? "";
+        this.tracks.push({ kind: "step", ref: el.ref, prop: "icon", value: icon, t0, t1: t0, label });
       }
       const variant = next?.variant ?? (el.props.variant as string | undefined);
       if (variant && variant !== (prev?.variant ?? el.props.variant)) this.tracks.push({ kind: "step", ref: el.ref, prop: "variant", value: variant, t0, t1: t0, label });
@@ -949,6 +973,7 @@ class Compiler {
 
   baseValue(el: PlanElement, prop: string): number | string | undefined {
     if (prop === "color") return el.font?.color;
+    if (prop === "value") return Number(el.props.value ?? 0);
     const s = el.style as unknown as Record<string, unknown>;
     if (prop in s) return s[prop] as number | string;
     if (prop === "strokeWidth") return 0;
@@ -1148,7 +1173,8 @@ function readableOn(css: string | undefined): string {
   return (1.05 / (L + 0.05)) >= ((L + 0.05) / (luminance([17, 17, 17, 1]) + 0.05)) ? "rgb(255, 255, 255)" : "rgb(17, 17, 17)";
 }
 
-function baseText(el: PlanElement, field: "content" | "label"): string | undefined {
+function baseText(el: PlanElement, field: "content" | "label" | "title" | "body"): string | undefined {
+  if (el.type === "toast") return field === "title" ? String(el.props.title ?? "") : field === "body" ? String(el.props.body ?? "") : undefined;
   if (!el.text) return undefined;
   if (field === "content" && el.type === "text") return el.text.plain;
   if (field === "label" && (el.type === "button" || el.type === "badge")) return el.text.plain;

@@ -226,4 +226,6 @@ Phase 2 then adds devices, components, charts and interactions, and reruns all 8
 - **Device screens**: one page per screen with per-screen background/padding/gap; `navigate` (behavior or interaction step) with `push` (iOS-style), `fade` or `none`; a fixed phone status bar; `describe_at` knows which screen is showing.
 - **Device overlays**: elements drawn above the screen in logical pixels (e.g. a banner or toast built from a stack).
 - **`scroll`**: phones and browsers (children pages or tall screenshots); `to` px, `top`, `bottom` or an element (placed 24 logical px below the visible top, under the status bar), clamped to the page; each screen keeps its own scroll position.
-- Still not rendered: `camera`, `focusCycle`, `matchCut`, `toast`, `progress`, `chart`, `svg`, `template`, and text hotspots (`{ "text": … }`, which aim at the element's centre).
+- **`toast`**: icon (`loader` spins), title and detail; sized to content with padding, radius and a soft shadow; readable text colour on its fill; states swap the icon and roll title/detail while the box width eases; in-device sizes inside device overlays.
+- **`progress`**: dots joined by a line with labels underneath; `value` animates (line glides, dots and labels switch to done, the current label is bold, a small pop at each dot); steps addressable as `track#Label` for cursors and pins.
+- Still not rendered: `camera`, `focusCycle`, `matchCut`, `chart`, `svg`, `template`, and text hotspots (`{ "text": … }`, which aim at the element's centre).

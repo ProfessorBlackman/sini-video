@@ -140,6 +140,9 @@ export interface PlanState {
   label?: string;
   variant?: string;
   value?: number;
+  icon?: string;
+  title?: string;
+  body?: string;
 }
 
 /** Which part of a split text a track drives. */
@@ -200,7 +203,7 @@ export interface CountTrack extends TrackBase {
 }
 export interface ContentTrack extends TrackBase {
   kind: "content";
-  field: "content" | "label";
+  field: "content" | "label" | "title" | "body";
   from: string;
   to: string;
   ease: EaseSpec;

@@ -32,8 +32,13 @@ export function planIcons(plan: Plan): Record<string, string> {
   const walk = (els: PlanElement[]) => {
     for (const e of els) {
       if (e.type === "icon" && typeof e.props.name === "string") wanted.add(e.props.name);
+      if (e.type === "toast") {
+        if (typeof e.props.icon === "string") wanted.add(e.props.icon);
+        for (const st of Object.values(e.states)) if (st.icon) wanted.add(st.icon);
+      }
       walk(e.children);
       for (const p of e.pages ?? []) walk(p.children);
+      walk(e.overlay ?? []);
     }
   };
   for (const s of plan.scenes) walk(s.elements);

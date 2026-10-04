@@ -47,6 +47,7 @@ function walk(plan: CompiledPlan): { el: PlanElement; parents: PlanElement[] }[]
       out.push({ el, parents });
       rec(el.children, [...parents, el]);
       for (const p of el.pages ?? []) rec(p.children, [...parents, el]);
+      rec(el.overlay ?? [], [...parents, el]);
     }
   };
   for (const s of plan.scenes) rec(s.elements, []);
@@ -160,7 +161,7 @@ export function layoutRules(plan: CompiledPlan, report: LayoutReport): Issue[] {
   const margin = TOP_LEVEL_TEXT_MARGIN * k * 0.99;
   const zone = SAFE_ZONES[plan.safeZone];
   const [zt, zr, zb, zl] = [zone[0] * (H / 1920), zone[1] * (W / 1080), zone[2] * (H / 1920), zone[3] * (W / 1080)];
-  const textual = new Set(["text", "button", "badge"]);
+  const textual = new Set(["text", "button", "badge", "toast"]);
   const entries = walk(plan);
   const sceneOf = new Map(plan.scenes.map((s) => [s.id, s]));
 
@@ -196,7 +197,7 @@ export function layoutRules(plan: CompiledPlan, report: LayoutReport): Issue[] {
           break;
         }
       }
-      if (!bg && (el.type === "button" || el.type === "badge") && el.style.fill && el.props.variant !== "outline") bg = solid(el.style.fill);
+      if (!bg && (el.type === "button" || el.type === "badge" || el.type === "toast") && el.style.fill && el.props.variant !== "outline") bg = solid(el.style.fill);
       // Text sitting on a filled shape or container drawn before it: measure against that fill.
       if (!bg && !el.inDevice) {
         const tb = lb.box;

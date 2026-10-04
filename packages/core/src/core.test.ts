@@ -214,3 +214,29 @@ describe("device screens and scrolling", () => {
     expect(at(5)).toMatchObject({ item: false, c: true });
   });
 });
+
+describe("toast and progress", () => {
+  const plan = compile(video([{ id: "s", duration: 5, elements: [
+    { id: "toast", type: "toast", icon: "loader", title: "Exporting…", states: { done: { icon: "check", title: "Exported", body: "INV-1.pdf" } } },
+    { id: "track", type: "progress", steps: ["A", "B", "C"], value: 0 },
+  ], timeline: [
+    { target: "toast", state: "done", at: 1 },
+    { target: "track", at: 2, duration: 1, ease: "linear", animate: { value: 2 } },
+  ] }]));
+
+  it("rolls the toast's title and body and swaps its icon", () => {
+    const f = elementFrame(plan, "toast", 1.2);
+    expect(f.contents?.title).toMatchObject({ from: "Exporting…", to: "Exported" });
+    expect(f.contents?.body).toMatchObject({ from: "", to: "INV-1.pdf" });
+    expect(f.steps?.icon).toBe("check");
+    expect(elementFrame(plan, "toast", 0.5).steps?.icon).toBeUndefined();
+  });
+  it("counts toast text for reading time", () => {
+    expect(plan.reading.find((r) => r.ref === "toast")?.words).toBe(1);
+  });
+  it("animates progress value from its declared start", () => {
+    expect(elementFrame(plan, "track", 1).props.value).toBe(0);
+    expect(elementFrame(plan, "track", 2.5).props.value).toBeCloseTo(1);
+    expect(elementFrame(plan, "track", 4).props.value).toBeCloseTo(2);
+  });
+});

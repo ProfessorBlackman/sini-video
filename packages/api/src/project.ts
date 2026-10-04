@@ -85,9 +85,14 @@ export function iconIssues(spec: Spec): Issue[] {
     (els ?? []).forEach((e: any, i: number) => {
       if (!e || typeof e !== "object") return;
       const p = `${path}[${i}]`;
-      if (e.type === "icon" && typeof e.name === "string" && !known.has(e.name)) {
-        issues.push({ level: "error", path: `${p}.name`, code: "unknown-icon", message: `Unknown icon '${e.name}'.`, suggestion: didYouMean(e.name, known) ?? "Use a Lucide icon name (lucide.dev/icons)." });
-      }
+      const check = (name: unknown, at: string) => {
+        if (typeof name === "string" && !known.has(name)) {
+          issues.push({ level: "error", path: at, code: "unknown-icon", message: `Unknown icon '${name}'.`, suggestion: didYouMean(name, known) ?? "Use a Lucide icon name (lucide.dev/icons)." });
+        }
+      };
+      if (e.type === "icon") check(e.name, `${p}.name`);
+      if (e.type === "toast") check(e.icon, `${p}.icon`);
+      for (const [sn, st] of Object.entries<any>(e.states ?? {})) check(st?.icon, `${p}.states.${sn}.icon`);
       visit(e.children, `${p}.children`);
       visit(e.overlay, `${p}.overlay`);
       for (const [n, pg] of Object.entries<any>(e.screens ?? {})) visit(Array.isArray(pg) ? pg : pg?.children, `${p}.screens.${n}`);

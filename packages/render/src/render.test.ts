@@ -115,3 +115,24 @@ describe("device scrolling", () => {
     }
   }, 60_000);
 });
+
+describe("progress steps", () => {
+  it("pins elements to a step's dot", async () => {
+    const p = compile({
+      version: "0.4", video: { format: "1:1" },
+      scenes: [{ id: "s", duration: 2, elements: [
+        { id: "track", type: "progress", steps: ["One", "Two", "Three", "Four"], value: 1, layout: { x: 100, y: 500, width: 800 } },
+        { id: "tag", type: "badge", label: "Here", layout: { pin: { to: "track#Three", point: "center" } } },
+      ] }],
+    } as never);
+    const s = await RenderSession.open(p, { browser });
+    try {
+      const r = await s.layout(1);
+      const tag = r.elements.find((e) => e.ref === "tag")!.box;
+      // Four equal columns across 800px from x=100: "Three" is centred at 100 + 800 × 5/8 = 600.
+      expect(tag.x + tag.width / 2).toBeCloseTo(600, 0);
+    } finally {
+      await s.close();
+    }
+  }, 60_000);
+});

@@ -6,7 +6,7 @@
  * demand with `sini.render(t)`. Rendering is a pure function of t: every call sets every
  * animated style, so frames can be rendered in any order, in parallel.
  */
-import { clamp01, easeFn, elementFrame, formatLike, frameAt, type CursorFrame, type ElementFrame, type Frame, type PlanElement, type PlanScene, type Plan, type Run } from "@sini/core";
+import { clamp01, easeFn, elementFrame, formatLike, frameAt, type CursorFrame, type ElementFrame, type Font, type Frame, type PlanElement, type PlanScene, type Plan, type Run } from "@sini/core";
 
 declare global {
   interface Window {
@@ -77,6 +77,8 @@ interface Node {
   /** Device pages by screen name. */
   pages?: Map<string, { page: HTMLElement; background: string }>;
   statusBar?: HTMLElement;
+  toast?: { icon: HTMLElement; iconName: string | null; title: HTMLElement; body: HTMLElement; text: HTMLElement };
+  progress?: { dots: HTMLElement[]; labels: HTMLElement[]; fill: HTMLElement; track: HTMLElement };
   sceneId: string;
 }
 
@@ -282,6 +284,32 @@ function balanceTracking(e: HTMLElement, em: number, align: string) {
   e.style.marginRight = align === "right" && em > 0 ? `${-em}em` : "";
 }
 
+function applyFont(e: HTMLElement, f: Font) {
+  Object.assign(e.style, {
+    fontFamily: `"${f.family}", "Inter Tight"`,
+    fontSize: px(f.size),
+    fontWeight: String(f.weight),
+    lineHeight: String(f.lineHeight),
+    letterSpacing: `${f.letterSpacing}em`,
+    textTransform: f.uppercase ? "uppercase" : "none",
+    fontStyle: f.italic ? "italic" : "normal",
+    color: f.color,
+  });
+}
+
+function iconSvg(name: string, strokeWidth = 2): SVGSVGElement {
+  const svg = document.createElementNS(SVGNS, "svg");
+  svg.setAttribute("viewBox", "0 0 24 24");
+  svg.setAttribute("fill", "none");
+  svg.setAttribute("stroke", "currentColor");
+  svg.setAttribute("stroke-width", String(strokeWidth));
+  svg.setAttribute("stroke-linecap", "round");
+  svg.setAttribute("stroke-linejoin", "round");
+  svg.innerHTML = window.__SINI_ICONS__?.[name] ?? "";
+  Object.assign(svg.style, { display: "block", width: "100%", height: "100%", overflow: "visible" });
+  return svg;
+}
+
 function fontCss(e: HTMLElement, el: PlanElement) {
   const f = el.font!;
   balanceTracking(e, f.letterSpacing, f.align);
@@ -459,6 +487,59 @@ function build(el: PlanElement, flow: boolean, sceneId: string): HTMLElement {
     case "phone":
       buildDevice(node, el, sceneId);
       break;
+    case "toast": {
+      const f = el.font!;
+      const bf = el.props.bodyFont as Font;
+      const box = h("div", "toast", { display: "inline-flex", alignItems: "center", gap: px(f.size * 0.65), padding: `${px(f.size * 0.75)} ${px(f.size * 1.0)}`, boxSizing: "border-box", whiteSpace: "nowrap" });
+      paintBox(box, el);
+      const icon = h("span", "toast-icon", { width: px(f.size * 1.3), height: px(f.size * 1.3), flex: "none", color: el.style.stroke ?? f.color, display: "none" });
+      const text = h("div", "toast-text", { display: "flex", flexDirection: "column", gap: px(bf.size * 0.15), overflow: "hidden" });
+      const title = h("div", "toast-title");
+      applyFont(title, f);
+      const body = h("div", "toast-body", { opacity: "0.72" });
+      applyFont(body, bf);
+      text.append(title, body);
+      box.append(icon, text);
+      anim.appendChild(box);
+      node.box = box;
+      node.toast = { icon, iconName: null, title, body, text };
+      setToastIcon(node, (el.props.icon as string | null) ?? null);
+      title.textContent = String(el.props.title ?? "");
+      body.textContent = String(el.props.body ?? "");
+      body.style.display = el.props.body ? "block" : "none";
+      break;
+    }
+    case "progress": {
+      const f = el.font!;
+      const steps = (el.props.steps as string[]) ?? [];
+      const n = Math.max(1, steps.length);
+      const d = Math.max(f.size * 0.85, 10);
+      const lt = Math.max(f.size * 0.14, 2);
+      const fill = el.style.fill ?? f.color;
+      const base = el.style.stroke ?? fadeColour(fill, 0.25);
+      const grid = h("div", "progress", { display: "grid", gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))`, position: "relative", rowGap: px(f.size * 0.55) });
+      const inset = `${100 / n / 2}%`;
+      const track = h("div", "progress-track", { position: "absolute", top: px(d / 2 - lt / 2), left: inset, right: inset, height: px(lt), background: base, borderRadius: px(lt) });
+      const bar = h("div", "progress-fill", { position: "absolute", top: "0", left: "0", height: "100%", width: "0%", background: fill, borderRadius: px(lt) });
+      track.appendChild(bar);
+      grid.appendChild(track);
+      const dots: HTMLElement[] = [];
+      const labels: HTMLElement[] = [];
+      steps.forEach((label, i) => {
+        const dot = h("div", "progress-dot", { gridRow: "1", gridColumn: String(i + 1), justifySelf: "center", width: px(d), height: px(d), borderRadius: "50%", boxSizing: "border-box", border: `${px(Math.max(2, lt))} solid ${base}`, background: "transparent", position: "relative", zIndex: "1" });
+        const lab = h("div", "progress-label", { gridRow: "2", gridColumn: String(i + 1), textAlign: "center", padding: `0 ${px(f.size * 0.2)}` });
+        applyFont(lab, f);
+        lab.textContent = label;
+        grid.append(dot, lab);
+        dots.push(dot);
+        labels.push(lab);
+      });
+      anim.appendChild(grid);
+      if (!outer.style.width || outer.style.width === "max-content") outer.style.width = flow ? "100%" : px(Math.min(W - 144 * k, 160 * k * n));
+      node.box = grid;
+      node.progress = { dots, labels, fill: bar, track };
+      break;
+    }
     case "icon": {
       const f = el.font!;
       const svg = document.createElementNS(SVGNS, "svg");
@@ -586,6 +667,83 @@ function fillScreen(node: Node, el: PlanElement, screen: HTMLElement, sceneId: s
     screen.appendChild(bar);
     node.statusBar = bar;
   }
+}
+
+// ---------------------------------------------------------------- toast and progress
+
+let currentT = 0;
+
+function fadeColour(css: string, alpha: number): string {
+  const m = /rgba?\((\d+),\s*(\d+),\s*(\d+)/.exec(css);
+  return m ? `rgba(${m[1]}, ${m[2]}, ${m[3]}, ${alpha})` : css;
+}
+
+function setToastIcon(n: Node, name: string | null) {
+  const t = n.toast!;
+  if (t.iconName === name) return;
+  t.iconName = name;
+  t.icon.textContent = "";
+  t.icon.style.display = name ? "block" : "none";
+  if (name) t.icon.appendChild(iconSvg(name, 2.2));
+}
+
+/** Roll `from` up and `to` in, easing the width between the two texts. */
+function rollInto(e: HTMLElement, from: string, to: string, p: number) {
+  if (p >= 1) {
+    e.textContent = to;
+    e.style.width = "";
+    return;
+  }
+  e.textContent = "";
+  const wrap = h("span", "", { display: "inline-grid", overflow: "hidden", verticalAlign: "top" });
+  const a = h("span", "", { gridArea: "1 / 1", transform: `translateY(${-p * 100}%)`, whiteSpace: "nowrap" });
+  const b = h("span", "", { gridArea: "1 / 1", transform: `translateY(${(1 - p) * 100}%)`, whiteSpace: "nowrap" });
+  a.textContent = from;
+  b.textContent = to;
+  wrap.append(a, b);
+  e.appendChild(wrap);
+  const wa = a.offsetWidth;
+  const wb = b.offsetWidth;
+  wrap.style.width = px(wa + (wb - wa) * p);
+}
+
+function applyToast(n: Node, f: ElementFrame) {
+  const t = n.toast!;
+  const el = n.el;
+  setToastIcon(n, f.steps?.icon !== undefined ? f.steps.icon || null : (el.props.icon as string | null) ?? null);
+  // `loader` icons spin.
+  const svg = t.icon.firstElementChild as SVGElement | null;
+  if (svg) svg.style.transform = t.iconName?.startsWith("loader") ? `rotate(${(currentT * 360) % 360}deg)` : "";
+  const c = f.contents ?? {};
+  const title = String(el.props.title ?? "");
+  const body = String(el.props.body ?? "");
+  if (c.title) rollInto(t.title, c.title.from, c.title.to, c.title.p);
+  else t.title.textContent = title;
+  const bodyNow = c.body ? (c.body.p >= 1 ? c.body.to : c.body.from || c.body.to) : body;
+  t.body.style.display = bodyNow ? "block" : "none";
+  if (c.body && (c.body.from || c.body.to)) rollInto(t.body, c.body.from, c.body.to, c.body.p);
+  else t.body.textContent = body;
+}
+
+function applyProgress(n: Node, value: number) {
+  const pr = n.progress!;
+  const el = n.el;
+  const steps = pr.dots.length;
+  const fill = el.style.fill ?? el.font!.color;
+  const base = el.style.stroke ?? fadeColour(fill, 0.25);
+  const v = Math.max(0, Math.min(steps - 1, value));
+  pr.fill.style.width = steps > 1 ? `${(v / (steps - 1)) * 100}%` : "100%";
+  const current = Math.floor(v + 1e-6);
+  pr.dots.forEach((d, i) => {
+    const done = v >= i - 1e-6;
+    d.style.background = done ? fill : "transparent";
+    d.style.borderColor = done ? fill : base;
+    // A small pop as the line reaches each dot.
+    const near = Math.abs(v - i);
+    d.style.transform = `scale(${near < 0.25 ? 1 + (0.25 - near) * 0.8 : 1})`;
+    pr.labels[i]!.style.opacity = done ? "1" : "0.5";
+    pr.labels[i]!.style.fontWeight = i === current ? "700" : String(el.font!.weight);
+  });
 }
 
 // ---------------------------------------------------------------- device screens and scrolling
@@ -740,7 +898,10 @@ function layoutAll() {
       const refName = String(l.pin ? (l.pin as { to: string }).to.split("#")[0] : (l.below ?? l.above ?? l.leftOf ?? l.rightOf));
       const ref = resolveRef(refName, n.el.ref);
       if (ref && !placed.has(ref)) continue;
-      const target = ref ? nodes.get(ref)?.outer : undefined;
+      const pinStep = l.pin ? (l.pin as { to: string }).to.split("#")[1] : undefined;
+      const pinNode = ref ? nodes.get(ref) : undefined;
+      const stepDot = pinStep && pinNode?.progress ? pinNode.progress.dots[((pinNode.el.props.steps as string[]) ?? []).indexOf(pinStep)] : undefined;
+      const target = stepDot ?? (ref ? nodes.get(ref)?.outer : undefined);
       const parent = n.outer.offsetParent as HTMLElement | null ?? n.outer.parentElement!;
       const me = localBox(n.outer, parent);
       const off = (l.offset as [number, number]) ?? [0, 0];
@@ -883,6 +1044,8 @@ function applyElement(n: Node, f: ElementFrame | undefined) {
   const cl = [num(p.clipTop, 0), num(p.clipRight, 0), num(p.clipBottom, 0), num(p.clipLeft, 0)];
   anim.style.clipPath = cl.some((c) => c > 0) ? `inset(${cl.map((c) => `${clamp01(c) * 100}%`).join(" ")})` : "";
   if (el.type === "icon" && p.color !== undefined && n.box instanceof SVGElement) (n.box as SVGElement).style.color = String(p.color);
+  if (n.toast) applyToast(n, f);
+  if (n.progress) applyProgress(n, num(p.value, Number(el.props.value ?? 0)));
   if (n.text) {
     if (p.letterSpacing !== undefined) {
       n.text.style.letterSpacing = `${p.letterSpacing}em`;
@@ -1145,6 +1308,14 @@ function targetPoint(target: string): [number, number] {
   if (!n) return [W / 2, H / 2];
   const st = stage.getBoundingClientRect();
   const toCanvas = (x: number, y: number): [number, number] => [(x - st.left) / scale, (y - st.top) / scale];
+  if (hs && n.progress) {
+    const i = ((n.el.props.steps as string[]) ?? []).indexOf(hs);
+    const dot = n.progress.dots[i];
+    if (dot) {
+      const r = dot.getBoundingClientRect();
+      return toCanvas(r.left + r.width / 2, r.top + r.height / 2);
+    }
+  }
   const spot = hs ? (n.el.props.hotspots as Record<string, number[]> | undefined)?.[hs] : undefined;
   if (spot) {
     const img = (n.screen ?? n.box ?? n.anim).querySelector?.("img") as HTMLImageElement | null;
@@ -1168,7 +1339,7 @@ function targetPoint(target: string): [number, number] {
 
 /** What's actually drawn: the button/badge/icon shape or the text's own bounds, not a stretched layout box. */
 function visualRect(n: Node): DOMRect {
-  if ((n.el.type === "button" || n.el.type === "badge" || n.el.type === "icon") && n.box) return n.box.getBoundingClientRect();
+  if (["button", "badge", "icon", "toast"].includes(n.el.type) && n.box) return n.box.getBoundingClientRect();
   if (n.el.type === "text" && n.text) {
     const range = document.createRange();
     range.selectNodeContents(n.text);
@@ -1203,6 +1374,7 @@ function applyCursors(cursors: CursorFrame[]) {
 }
 
 function render(t: number) {
+  currentT = t;
   const fr = frameAt(plan, t);
   applyScenes(fr);
   for (const n of nodes.values()) applyElement(n, fr.elements[n.el.ref]);

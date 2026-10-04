@@ -21,6 +21,10 @@ export interface ElementFrame {
   type?: { field: "text" | "url"; count: number; caret: boolean };
   count?: number;
   content?: { field: "content" | "label"; from: string; to: string; p: number };
+  /** Every rolling text field (toasts roll title and body together). */
+  contents?: Partial<Record<"content" | "label" | "title" | "body", { from: string; to: string; p: number }>>;
+  /** Discrete values switched by state changes (variant, toast icon). */
+  steps?: Record<string, string>;
   ring?: { p: number };
   variant?: string;
   typed?: { text: string; caret: boolean };
@@ -174,6 +178,7 @@ function baseOf(el: PlanElement | undefined, prop: string): number | string | un
   if (typeof v === "number" || typeof v === "string") return v;
   if (prop === "x" || prop === "y" || prop === "rotation" || prop === "blur") return 0;
   if (prop === "draw" || prop === "innerScale" || prop === "press") return 1;
+  if (prop === "value") return Number(el.props.value ?? 0);
   if (prop === "innerX" || prop === "innerY") return 0;
   return undefined;
 }
@@ -247,11 +252,15 @@ export function elementFrame(plan: Plan, ref: string, t: number): ElementFrame {
       case "content":
         if (t >= tr.t0) {
           const p = tr.t1 > tr.t0 ? easeFn(tr.ease)(clamp01((t - tr.t0) / (tr.t1 - tr.t0))) : 1;
-          frame.content = { field: tr.field, from: tr.from, to: tr.to, p };
+          (frame.contents ??= {})[tr.field] = { from: tr.from, to: tr.to, p };
+          if (tr.field === "content" || tr.field === "label") frame.content = { field: tr.field, from: tr.from, to: tr.to, p };
         }
         break;
       case "step":
-        if (t >= tr.t0) frame.variant = tr.value;
+        if (t >= tr.t0) {
+          (frame.steps ??= {})[tr.prop] = tr.value;
+          if (tr.prop === "variant") frame.variant = tr.value;
+        }
         break;
       case "screen":
         if (t >= tr.t0) {
