@@ -15,7 +15,7 @@ This document records product decisions and reshapes the MVP around them. Where 
 | Audio | **Out of scope for v1** (keep the timing model ready for it) |
 | Interface | **AI-only.** No human editor, no scrubber UI. People describe what they want; the AI builds and iterates |
 | Licence | **Apache-2.0** |
-| Packaging | **Docker image first** (pinned Chromium, FFmpeg, fonts → strongest determinism). npm package later as an alternative |
+| Packaging | **Docker image only** (pinned Chromium, FFmpeg, fonts → strongest determinism). No npm package: it would pull a different Chromium per machine and need a system FFmpeg, breaking byte-identical output. MCP clients run the image directly (decided 2026-10-04) |
 | Name | **Sini** (Twi for "movie"). CLI: `sini`; image: `ghcr.io/<org>/sini` |
 
 One-line pitch:
@@ -278,7 +278,7 @@ States/interactions → phone + scroll → matchCut → camera → modifiers →
 ## 8. Open questions
 
 - **Name: Sini** (Twi for "movie"). Name checks (2026-10-04):
-  - npm: unscoped `sini` is taken (an inactive synonyms CLI, last updated 2022); the `@sini` scope is free → publish as `@sini/cli`
+  - npm: unscoped `sini` is taken (an inactive synonyms CLI, last updated 2022); the `@sini` scope is free; not publishing to npm (Docker only), but worth reserving so it can't be squatted
   - PyPI: `sini` is free
   - GitHub: `sini` and `sini-dev` are taken; `sinihq`, `getsini` and `sini-video` are free
   - Docker Hub: the `sini` namespace is taken, so publish to GHCR

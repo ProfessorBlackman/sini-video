@@ -195,7 +195,7 @@ Phase 2 then adds devices, components, charts and interactions, and reruns all 8
 ## 9. Open decisions
 
 1. ~~**Licence**~~ — decided: **Apache-2.0**.
-2. **GitHub org:** `sinihq` is free; reserve it and the `@sini` npm scope before M0.
+2. **GitHub org:** `sinihq` is free; reserve it (and the `@sini` npm scope, only to prevent squatting) before M0.
 3. **FFmpeg build:** GPL libx264, or LGPL + OpenH264 (§3).
 
 ---
@@ -214,7 +214,7 @@ Phase 2 then adds devices, components, charts and interactions, and reruns all 8
 
 ### Still open
 
-- **Reserve the names:** `sinihq` GitHub org and `@sini` npm scope (needs you).
+- **Reserve the names:** `sinihq` GitHub org, and the `@sini` npm scope just to hold the name; Sini ships as a Docker image only (needs you).
 - **FFmpeg build:** the image builds a minimal FFmpeg with libx264, so that binary is GPL (Sini only runs it as a separate program). Decide before publishing the image (§3).
 - **Phase 2** features and the known limitations listed in [paper-tests/v0.4-tools/FINDINGS.md](paper-tests/v0.4-tools/FINDINGS.md).
 
