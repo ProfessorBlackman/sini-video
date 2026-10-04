@@ -218,3 +218,9 @@ Phase 2 then adds devices, components, charts and interactions, and reruns all 8
 - **FFmpeg build:** the image uses Ubuntu's FFmpeg (libx264, GPL). Decide before publishing the image (§3).
 - **Image size:** 2.56 GB on the Playwright base image; a Chromium-only base would roughly halve it.
 - **Phase 2** features and the known limitations listed in [paper-tests/v0.4-tools/FINDINGS.md](paper-tests/v0.4-tools/FINDINGS.md).
+
+### Added after the slice
+
+- **`icon`** elements (bundled Lucide set, aliases for renamed icons, unknown names rejected with suggestions; `drawOutline` draws every stroke).
+- **`interaction`**: arrow, hand-pointer and touch cursors move between targets (aimed at the drawn shape or the text itself), press with a dip on the target and a ripple for touch; step `set` applies states at the end of the press; `type` steps type into text; numeric screenshot hotspots are located. Found while testing through the MCP server: step `set` was previously ignored.
+- Still not rendered: device `screens`/`navigate`/`overlay`, `scroll`, `camera`, `focusCycle`, `matchCut`, `toast`, `progress`, `chart`, `svg`, `template`, and text hotspots (`{ "text": … }`, which aim at the element's centre).

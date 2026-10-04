@@ -1,7 +1,8 @@
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, resolve, sep } from "node:path";
 import { compile, type CompiledPlan } from "@sini/core";
-import { validate, type Issue, type Spec, type ValidationResult } from "@sini/schema";
+import { didYouMean, validate, type Issue, type Spec, type ValidationResult } from "@sini/schema";
+import { iconNames } from "@sini/render";
 
 export class SiniError extends Error {
   constructor(message: string, public issues: Issue[] = []) {
@@ -39,10 +40,7 @@ export function load(target = "."): Loaded {
 
 export function check(target = "."): ValidationResult & { file: string } {
   const { file, dir, spec } = load(target);
-  const result = validate(spec);
-  result.issues.push(...assetPathIssues(spec, dir));
-  result.ok = !result.issues.some((i) => i.level === "error");
-  return { ...result, file };
+  return { ...validateFull(spec, dir), file };
 }
 
 export function compileSpec(spec: Spec, dir: string): CompiledPlan {
@@ -71,12 +69,39 @@ export function assetPathIssues(spec: Spec, dir: string): Issue[] {
   return issues;
 }
 
+/** Schema validation plus the checks that need the filesystem or bundled data (asset paths, icon names). */
+export function validateFull(spec: Spec, dir: string): ValidationResult {
+  const result = validate(spec);
+  result.issues.push(...assetPathIssues(spec, dir), ...iconIssues(spec));
+  result.ok = !result.issues.some((i) => i.level === "error");
+  return result;
+}
+
+/** Icon names must exist in the bundled Lucide set. */
+export function iconIssues(spec: Spec): Issue[] {
+  const issues: Issue[] = [];
+  const known = iconNames();
+  const visit = (els: any[], path: string) => {
+    (els ?? []).forEach((e: any, i: number) => {
+      if (!e || typeof e !== "object") return;
+      const p = `${path}[${i}]`;
+      if (e.type === "icon" && typeof e.name === "string" && !known.has(e.name)) {
+        issues.push({ level: "error", path: `${p}.name`, code: "unknown-icon", message: `Unknown icon '${e.name}'.`, suggestion: didYouMean(e.name, known) ?? "Use a Lucide icon name (lucide.dev/icons)." });
+      }
+      visit(e.children, `${p}.children`);
+      visit(e.overlay, `${p}.overlay`);
+      for (const [n, pg] of Object.entries<any>(e.screens ?? {})) visit(Array.isArray(pg) ? pg : pg?.children, `${p}.screens.${n}`);
+    });
+  };
+  (spec.scenes ?? []).forEach((s: any, i: number) => visit(s?.elements, `scenes[${i}].elements`));
+  for (const [name, c] of Object.entries<any>(spec.components ?? {})) visit([c?.root], `components.${name}.root`);
+  return issues;
+}
+
 /** Load, validate and compile. Throws SiniError with the issues if the spec is invalid. */
 export function plan(target = "."): { loaded: Loaded; plan: CompiledPlan; validation: ValidationResult } {
   const loaded = load(target);
-  const validation = validate(loaded.spec);
-  validation.issues.push(...assetPathIssues(loaded.spec, loaded.dir));
-  validation.ok = !validation.issues.some((i) => i.level === "error");
+  const validation = validateFull(loaded.spec, loaded.dir);
   if (!validation.ok) throw new SiniError("The video spec has errors; run validate for details.", validation.issues);
   return { loaded, plan: compileSpec(loaded.spec, loaded.dir), validation };
 }

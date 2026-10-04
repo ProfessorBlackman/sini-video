@@ -147,3 +147,37 @@ describe("evaluator", () => {
     expect(p.scenes[0]!.elements[0]!.text!.split).toBe("words");
   });
 });
+
+describe("interactions", () => {
+  const plan = compile(video([{ id: "s", duration: 5, elements: [
+    { id: "field", type: "text", content: "Search…" },
+    { id: "btn", type: "button", label: "Reserve", states: { done: { label: "Reserved ✓" } } },
+  ], timeline: [
+    { behavior: "interaction", cursor: "touch", at: 1, steps: [
+      { type: "field", text: "Akua" },
+      { click: "btn", set: { btn: "done" } },
+    ] },
+  ] }]));
+
+  it("turns a step's set into a state change at the end of the press", () => {
+    // type: move 0.5 + press 0.18 + 4 chars at 12 cps; then click: move 0.5 + press 0.18
+    const roll = plan.tracks.find((t) => t.kind === "content" && t.ref === "btn")!;
+    expect(roll.t0).toBeCloseTo(1 + 0.68 + 4 / 12 + 0.68, 3);
+  });
+  it("types text into the field", () => {
+    const typed = plan.tracks.find((t) => t.kind === "typed")!;
+    expect(typed).toMatchObject({ ref: "field", text: "Akua" });
+    expect(elementFrame(plan, "field", typed.t0 + 0.2).typed?.text).toBe("Ak");
+  });
+  it("moves a cursor between targets and presses", () => {
+    const f = (t: number) => frameAt(plan, t).cursors[0]!;
+    expect(frameAt(plan, 0.5).cursors).toHaveLength(0);
+    expect(f(1.25)).toMatchObject({ from: "bottom-right", to: "field" });
+    expect(f(1.6).press).toBeGreaterThan(0);
+    expect(f(2.3)).toMatchObject({ from: "field", to: "btn" });
+  });
+  it("dips the clicked element while pressed", () => {
+    const tap = plan.tracks.find((t) => t.kind === "tween" && t.prop === "press" && t.ref === "btn")!;
+    expect(elementFrame(plan, "btn", (tap.t0 + tap.t1) / 2).props.press).toBeLessThan(1);
+  });
+});

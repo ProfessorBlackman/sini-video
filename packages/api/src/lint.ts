@@ -169,7 +169,10 @@ export function layoutRules(plan: CompiledPlan, report: LayoutReport): Issue[] {
     if (!lb || el.inDevice) continue;
     const b = lb.box;
     if (textual.has(el.type) || el.type === "browser" || el.type === "phone") {
-      const off = b.x < -1 || b.y < -1 || b.x + b.width > W + 1 || b.y + b.height > H + 1;
+      const outside = b.x < -1 || b.y < -1 || b.x + b.width > W + 1 || b.y + b.height > H + 1;
+      // Devices often bleed off an edge on purpose; only flag them when most of the device is off-canvas.
+      const onCanvas = intersect(b, { x: 0, y: 0, width: W, height: H }) / Math.max(1, b.width * b.height);
+      const off = textual.has(el.type) ? outside : outside && onCanvas < 0.5;
       if (off) {
         issues.push(warn(el.ref, "off-canvas", `'${el.ref}' extends past the canvas (${r1(b.x)},${r1(b.y)} ${r1(b.width)}×${r1(b.height)} on ${W}×${H}).`, "Reduce its size or move it inside the frame."));
       } else if (textual.has(el.type) && (b.x < margin || b.y < margin || b.x + b.width > W - margin || b.y + b.height > H - margin)) {

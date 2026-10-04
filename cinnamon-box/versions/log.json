@@ -1,0 +1,27 @@
+[
+  {
+    "version": 1,
+    "time": "2026-10-04T14:30:58.306Z",
+    "message": "create"
+  },
+  {
+    "version": 2,
+    "time": "2026-10-04T14:32:26.538Z",
+    "message": "Fix lint: swap unrendered icons for dots, trim to 15s, pull badge inside the reels safe area, enlarge phone + in-device text, add explicit button state change"
+  },
+  {
+    "version": 3,
+    "time": "2026-10-04T14:33:07.513Z",
+    "message": "Fill the lower frame in scenes 2-3, enlarge kicker/badge/end-sub for phone legibility, land the Reserved state earlier"
+  },
+  {
+    "version": 4,
+    "time": "2026-10-04T14:40:59.469Z",
+    "message": "Real brand: Sweet Dough, @sweetdoughgh, GH₵ 90 a box (price on the box scene and the order card)"
+  },
+  {
+    "version": 5,
+    "time": "2026-10-04T14:41:16.575Z",
+    "message": "Overlap the price reveal and tighten the opening to hold 15.00s"
+  }
+]

@@ -23,6 +23,22 @@ export interface ElementFrame {
   content?: { field: "content" | "label"; from: string; to: string; p: number };
   ring?: { p: number };
   variant?: string;
+  typed?: { text: string; caret: boolean };
+}
+
+export interface CursorFrame {
+  ref: string;
+  sceneId: string;
+  cursor: "arrow" | "pointer" | "touch";
+  opacity: number;
+  /** Moving from `from` to `to` (targets or a canvas anchor), with eased progress. */
+  from: string;
+  to: string;
+  p: number;
+  /** 0 → 1 → 0 during a press. */
+  press: number;
+  /** Seconds since the last press ended (for a touch ripple), or null. */
+  sincePress: number | null;
 }
 
 export interface SceneFrame {
@@ -39,6 +55,7 @@ export interface Frame {
   frame: number;
   scenes: SceneFrame[];
   elements: Record<string, ElementFrame>;
+  cursors: CursorFrame[];
   endFade: number;
 }
 
@@ -148,7 +165,7 @@ function baseOf(el: PlanElement | undefined, prop: string): number | string | un
   const v = s[prop];
   if (typeof v === "number" || typeof v === "string") return v;
   if (prop === "x" || prop === "y" || prop === "rotation" || prop === "blur") return 0;
-  if (prop === "draw" || prop === "innerScale") return 1;
+  if (prop === "draw" || prop === "innerScale" || prop === "press") return 1;
   if (prop === "innerX" || prop === "innerY") return 0;
   return undefined;
 }
@@ -228,6 +245,13 @@ export function elementFrame(plan: Plan, ref: string, t: number): ElementFrame {
       case "step":
         if (t >= tr.t0) frame.variant = tr.value;
         break;
+      case "typed":
+        if (t >= tr.t0) {
+          const cps = tr.t1 > tr.t0 ? tr.text.length / (tr.t1 - tr.t0) : Infinity;
+          const n = Math.min(tr.text.length, Math.floor((t - tr.t0) * cps + 1e-9));
+          frame.typed = { text: tr.text.slice(0, n), caret: t < tr.t1 || Math.floor(t * 2.5) % 2 === 0 };
+        }
+        break;
     }
   }
   return frame;
@@ -255,8 +279,39 @@ export function frameAt(plan: Plan, t: number): Frame {
     const bg = `${s.id}:background`;
     if (index(plan).byRef.has(bg)) out[bg] = elementFrame(plan, bg, t);
   }
+  const cursors: CursorFrame[] = [];
+  for (const tr of plan.tracks) {
+    if (tr.kind !== "cursor" || t < tr.t0 || t > tr.t1) continue;
+    const first = tr.steps[0]!;
+    const last = tr.steps[tr.steps.length - 1]!;
+    const opacity = Math.min(clamp01((t - tr.t0) / 0.2), 1 - clamp01((t - last.end) / 0.3));
+    let from = tr.from;
+    let to = tr.from;
+    let p = 1;
+    let press = 0;
+    let sincePress: number | null = null;
+    let at = tr.from;
+    for (const st of tr.steps) {
+      if (st.target === null) continue; // wait: stay put
+      if (t < st.start) break;
+      if (t < st.arrive) {
+        from = at;
+        to = st.target;
+        p = easeFn("cubic.inOut")(clamp01((t - st.start) / (st.arrive - st.start)));
+        at = st.target;
+        break;
+      }
+      at = st.target;
+      from = to = st.target;
+      p = 1;
+      if (t < st.release) press = Math.sin(clamp01((t - st.arrive) / (st.release - st.arrive)) * Math.PI);
+      else sincePress = t - st.release;
+    }
+    if (t < first.start) from = to = tr.from;
+    cursors.push({ ref: tr.ref, sceneId: tr.sceneId, cursor: tr.cursor, opacity, from, to, p, press, sincePress });
+  }
   const endFade = plan.end.type === "fade" && plan.end.duration > 0 ? clamp01((t - plan.end.start) / plan.end.duration) : 0;
-  return { t, frame: Math.round(t * plan.fps), scenes, elements: out, endFade };
+  return { t, frame: Math.round(t * plan.fps), scenes, elements: out, cursors, endFade };
 }
 
 /** Is an element (and every ancestor) visible at t? */

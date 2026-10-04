@@ -6,11 +6,12 @@
  * demand with `sini.render(t)`. Rendering is a pure function of t: every call sets every
  * animated style, so frames can be rendered in any order, in parallel.
  */
-import { clamp01, formatLike, frameAt, type ElementFrame, type Frame, type PlanElement, type PlanScene, type Plan, type Run } from "@sini/core";
+import { clamp01, formatLike, frameAt, type CursorFrame, type ElementFrame, type Frame, type PlanElement, type PlanScene, type Plan, type Run } from "@sini/core";
 
 declare global {
   interface Window {
     __SINI_PLAN__: Plan;
+    __SINI_ICONS__?: Record<string, string>;
     sini: {
       ready: Promise<void>;
       render(t: number): void;
@@ -67,6 +68,8 @@ interface Node {
   urlText?: string;
   caret?: HTMLElement;
   outline?: SVGGeometryElement;
+  /** Every stroke of an icon (drawOutline draws them together). */
+  outlines?: SVGGeometryElement[];
   body?: HTMLElement;
   ring?: HTMLElement;
   /** Device screen element (scaled logical-pixel space). */
@@ -453,6 +456,26 @@ function build(el: PlanElement, flow: boolean, sceneId: string): HTMLElement {
     case "phone":
       buildDevice(node, el, sceneId);
       break;
+    case "icon": {
+      const f = el.font!;
+      const svg = document.createElementNS(SVGNS, "svg");
+      svg.setAttribute("viewBox", "0 0 24 24");
+      svg.setAttribute("fill", "none");
+      svg.setAttribute("stroke", "currentColor");
+      svg.setAttribute("stroke-width", String(el.style.strokeWidth ?? 2));
+      svg.setAttribute("stroke-linecap", "round");
+      svg.setAttribute("stroke-linejoin", "round");
+      svg.innerHTML = window.__SINI_ICONS__?.[String(el.props.name)] ?? "";
+      Object.assign(svg.style, { display: "block", width: "100%", height: "100%", color: f.color, overflow: "visible" });
+      if (!outer.style.width || outer.style.width === "max-content") outer.style.width = px(f.size);
+      if (!outer.style.height) outer.style.height = outer.style.width;
+      Object.assign(anim.style, { width: "100%", height: "100%" });
+      anim.appendChild(svg);
+      node.box = svg;
+      node.outlines = [...svg.querySelectorAll<SVGGeometryElement>("path, circle, rect, line, polyline, polygon, ellipse")];
+      for (const g of node.outlines) g.setAttribute("pathLength", "1");
+      break;
+    }
   }
   return outer;
 }
@@ -755,13 +778,14 @@ function applyElement(n: Node, f: ElementFrame | undefined) {
   const x = num(p.x, 0);
   const y = num(p.y, 0);
   const rot = num(p.rotation, s.rotation);
-  const sc = num(p.scale, s.scale);
+  const sc = num(p.scale, s.scale) * num(p.press, 1);
   anim.style.transform = `translate(${px(x)}, ${px(y)}) rotate(${rot}deg) scale(${sc * num(p.scaleX, s.scaleX)}, ${sc * num(p.scaleY, s.scaleY)})`;
   anim.style.opacity = String(clamp01(num(p.opacity, s.opacity)));
   const blur = num(p.blur, s.blur);
   anim.style.filter = blur > 0.01 ? `blur(${px(blur)})` : "";
   const cl = [num(p.clipTop, 0), num(p.clipRight, 0), num(p.clipBottom, 0), num(p.clipLeft, 0)];
   anim.style.clipPath = cl.some((c) => c > 0) ? `inset(${cl.map((c) => `${clamp01(c) * 100}%`).join(" ")})` : "";
+  if (el.type === "icon" && p.color !== undefined && n.box instanceof SVGElement) (n.box as SVGElement).style.color = String(p.color);
   if (n.text) {
     if (p.letterSpacing !== undefined) {
       n.text.style.letterSpacing = `${p.letterSpacing}em`;
@@ -799,6 +823,12 @@ function applyElement(n: Node, f: ElementFrame | undefined) {
       n.outline.style.strokeDashoffset = String(1 - clamp01(d));
     }
   }
+  if (n.outlines && p.draw !== undefined) {
+    for (const g of n.outlines) {
+      g.style.strokeDasharray = "1";
+      g.style.strokeDashoffset = String(1 - clamp01(Number(p.draw)));
+    }
+  }
   // Parts: words, lines, characters.
   if (f.parts.length) {
     for (const part of f.parts) {
@@ -826,8 +856,12 @@ function applyElement(n: Node, f: ElementFrame | undefined) {
   }
   // countUp.
   if (f.count !== undefined && n.num && el.text?.number) n.num.textContent = formatLike(f.count, el.text.number);
-  // State content rolls.
-  if (n.text && f.content) {
+  // Text typed by an interaction step.
+  if (n.text && f.typed) {
+    n.text.dataset.rolled = "1";
+    n.text.textContent = f.typed.text;
+    setCaret(n, n.text, f.typed.caret, true);
+  } else if (n.text && f.content) {
     const { from, to, p: q } = f.content;
     n.text.dataset.rolled = "1";
     if (q >= 1) n.text.textContent = to;
@@ -956,10 +990,126 @@ function wipe(sec: HTMLElement, tr: { from: string; angle: number; bar: string |
   }
 }
 
+// ---------------------------------------------------------------- cursors
+
+const cursorEls = new Map<string, { el: HTMLElement; ripple?: HTMLElement; kind: string; tip: [number, number] }>();
+const ARROW = "M4 2 L4 21 L9 16.4 L12.6 24.6 L15.8 23.2 L12.3 15.2 L19 15.2 Z";
+
+function buildCursors() {
+  for (const tr of plan.tracks) {
+    if (tr.kind !== "cursor") continue;
+    const sec = sceneEls.get(tr.sceneId);
+    if (!sec) continue;
+    const el = h("div", "cursor", { position: "absolute", left: "0", top: "0", zIndex: "800", pointerEvents: "none", display: "none", transformOrigin: "0 0" });
+    let tip: [number, number] = [0, 0];
+    let ripple: HTMLElement | undefined;
+    if (tr.cursor === "touch") {
+      const d = 78 * k;
+      Object.assign(el.style, { width: px(d), height: px(d) });
+      const dot = h("div", "", { position: "absolute", inset: "0", borderRadius: "50%", background: "rgba(255,255,255,0.55)", border: `${px(3 * k)} solid rgba(20,20,20,0.35)`, boxShadow: `0 ${px(6 * k)} ${px(18 * k)} rgba(0,0,0,0.25)`, boxSizing: "border-box" });
+      ripple = h("div", "", { position: "absolute", inset: "0", borderRadius: "50%", border: `${px(3 * k)} solid rgba(255,255,255,0.8)`, boxSizing: "border-box" });
+      el.append(ripple, dot);
+      tip = [d / 2, d / 2];
+    } else {
+      const size = (tr.cursor === "pointer" ? 54 : 46) * k;
+      Object.assign(el.style, { width: px(size), height: px(size) });
+      const svg = document.createElementNS(SVGNS, "svg");
+      svg.setAttribute("viewBox", "0 0 24 26");
+      Object.assign(svg.style, { width: "100%", height: "100%", overflow: "visible", filter: `drop-shadow(0 ${px(3 * k)} ${px(5 * k)} rgba(0,0,0,0.35))` });
+      if (tr.cursor === "pointer" && window.__SINI_ICONS__?.pointer) {
+        svg.setAttribute("viewBox", "0 0 24 24");
+        svg.innerHTML = window.__SINI_ICONS__.pointer;
+        Object.assign(svg.style, { color: "#111" });
+        svg.setAttribute("fill", "#fff");
+        svg.setAttribute("stroke", "currentColor");
+        svg.setAttribute("stroke-width", "1.6");
+        svg.setAttribute("stroke-linejoin", "round");
+        tip = [(10 / 24) * size, (2 / 24) * size];
+      } else {
+        svg.innerHTML = `<path d="${ARROW}" fill="#111" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/>`;
+        tip = [(4 / 24) * size, (2 / 26) * size];
+      }
+      el.appendChild(svg);
+    }
+    sec.appendChild(el);
+    cursorEls.set(tr.ref, { el, ...(ripple ? { ripple } : {}), kind: tr.cursor, tip });
+  }
+}
+
+/** Canvas point for a cursor target: an anchor, an element's centre, or an image hotspot. */
+function targetPoint(target: string): [number, number] {
+  const fr = ANCHOR_FRAC[target];
+  if (fr) {
+    const m = 0.12 * Math.min(W, H);
+    return [fr[0] * W + (fr[0] === 0 ? m : fr[0] === 1 ? -m : 0), fr[1] * H + (fr[1] === 0 ? m : fr[1] === 1 ? -m : 0)];
+  }
+  const [ref, hs] = target.split("#") as [string, string | undefined];
+  const n = nodes.get(ref);
+  if (!n) return [W / 2, H / 2];
+  const st = stage.getBoundingClientRect();
+  const toCanvas = (x: number, y: number): [number, number] => [(x - st.left) / scale, (y - st.top) / scale];
+  const spot = hs ? (n.el.props.hotspots as Record<string, number[]> | undefined)?.[hs] : undefined;
+  if (spot) {
+    const img = (n.screen ?? n.box ?? n.anim).querySelector?.("img") as HTMLImageElement | null;
+    if (img && img.naturalWidth) {
+      const r = img.getBoundingClientRect();
+      const fit = String(n.el.props.fit ?? (n.screen ? "width" : "cover"));
+      const rw = r.width;
+      const rh = r.height;
+      const [cx, cy] = [spot[0]! + spot[2]! / 2, spot[1]! + spot[3]! / 2];
+      if (fit === "width") return toCanvas(r.left + (cx * rw) / img.naturalWidth, r.top + (cy * rw) / img.naturalWidth);
+      const sc = fit === "contain" ? Math.min(rw / img.naturalWidth, rh / img.naturalHeight) : Math.max(rw / img.naturalWidth, rh / img.naturalHeight);
+      const focus = (n.el.props.focus as number[] | undefined) ?? [50, 50];
+      const ox = ((rw - img.naturalWidth * sc) * focus[0]!) / 100;
+      const oy = ((rh - img.naturalHeight * sc) * focus[1]!) / 100;
+      return toCanvas(r.left + ox + cx * sc, r.top + oy + cy * sc);
+    }
+  }
+  const r = visualRect(n);
+  return toCanvas(r.left + r.width / 2, r.top + r.height / 2);
+}
+
+/** What's actually drawn: the button/badge/icon shape or the text's own bounds, not a stretched layout box. */
+function visualRect(n: Node): DOMRect {
+  if ((n.el.type === "button" || n.el.type === "badge" || n.el.type === "icon") && n.box) return n.box.getBoundingClientRect();
+  if (n.el.type === "text" && n.text) {
+    const range = document.createRange();
+    range.selectNodeContents(n.text);
+    const r = range.getBoundingClientRect();
+    if (r.width > 0) return r;
+  }
+  return n.anim.getBoundingClientRect();
+}
+
+function applyCursors(cursors: CursorFrame[]) {
+  for (const c of cursorEls.values()) c.el.style.display = "none";
+  for (const cf of cursors) {
+    const c = cursorEls.get(cf.ref);
+    if (!c) continue;
+    const a = targetPoint(cf.from);
+    const b = cf.from === cf.to ? a : targetPoint(cf.to);
+    const x = a[0] + (b[0] - a[0]) * cf.p;
+    const y = a[1] + (b[1] - a[1]) * cf.p;
+    const pressScale = 1 - (c.kind === "touch" ? 0.18 : 0.12) * cf.press;
+    Object.assign(c.el.style, {
+      display: "block",
+      opacity: String(cf.opacity),
+      transform: `translate(${px(x - c.tip[0] * pressScale)}, ${px(y - c.tip[1] * pressScale)}) scale(${pressScale})`,
+    });
+    if (c.ripple) {
+      const s = cf.sincePress;
+      const on = s !== null && s < 0.5;
+      c.ripple.style.opacity = on ? String((1 - s! / 0.5) * 0.7) : "0";
+      c.ripple.style.transform = on ? `scale(${1 + s! * 2.2})` : "scale(1)";
+    }
+  }
+}
+
 function render(t: number) {
   const fr = frameAt(plan, t);
   applyScenes(fr);
   for (const n of nodes.values()) applyElement(n, fr.elements[n.el.ref]);
+  applyCursors(fr.cursors);
   for (const [id, layer] of bgLayers) {
     const f = fr.elements[`${id}:background`];
     if (!f) continue;
@@ -1062,6 +1212,7 @@ async function boot() {
   await Promise.all([...document.images].map((i) => (i.complete ? Promise.resolve() : i.decode().catch(() => undefined))));
   for (const s of sceneEls.values()) s.style.visibility = "hidden";
   layoutAll();
+  buildCursors();
   // Static boxes: measured once, before any animation transform is applied.
   const st = stage.getBoundingClientRect();
   for (const n of nodes.values()) {

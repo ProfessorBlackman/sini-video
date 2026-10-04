@@ -211,4 +211,19 @@ export interface StepTrack extends TrackBase {
   value: string;
 }
 
-export type Track = TweenTrack | OscTrack | PulseTrack | SwingTrack | TypeTrack | CountTrack | ContentTrack | StepTrack;
+/** A cursor or finger performing interaction steps. Targets are resolved to points by the renderer. */
+export interface CursorTrack extends TrackBase {
+  kind: "cursor";
+  sceneId: string;
+  cursor: "arrow" | "pointer" | "touch";
+  /** Canvas anchor where the cursor first appears. */
+  from: string;
+  steps: { target: string | null; start: number; arrive: number; release: number; end: number }[];
+}
+/** Text typed into a text element by an interaction `type` step. */
+export interface TypedTrack extends TrackBase {
+  kind: "typed";
+  text: string;
+}
+
+export type Track = TweenTrack | OscTrack | PulseTrack | SwingTrack | TypeTrack | CountTrack | ContentTrack | StepTrack | CursorTrack | TypedTrack;

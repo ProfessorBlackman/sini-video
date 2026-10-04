@@ -38,8 +38,8 @@ export interface CompiledPlan extends Plan {
   reading: ReadingWindow[];
 }
 
-const UNSUPPORTED_TYPES = new Set(["icon", "toast", "progress", "chart", "template", "svg"]);
-const UNSUPPORTED_BEHAVIORS = new Set(["scroll", "interaction", "camera", "focusCycle", "navigate"]);
+const UNSUPPORTED_TYPES = new Set(["toast", "progress", "chart", "template", "svg"]);
+const UNSUPPORTED_BEHAVIORS = new Set(["scroll", "camera", "focusCycle", "navigate"]);
 const ENTER = new Set(["fadeIn", "fadeUp", "slideIn", "scaleIn", "popIn", "bounceIn", "blurIn", "wordReveal", "lineReveal", "charReveal", "typewriter", "countUp", "trackIn", "drawOutline", "wipeIn", "grow"]);
 const EXIT = new Set(["fadeOut", "slideOut", "scaleOut", "blurOut", "wordsUp", "wipeOut"]);
 const AMBIENT = new Set(["kenBurns", "float", "pulse", "swing", "drift"]);
@@ -137,6 +137,17 @@ class Compiler {
       return { kind: "placeholder", color: "#8a8178", hint: String(id), seed };
     };
     return fromDecl(decl);
+  }
+
+  /** Numeric hotspots of an image asset ([x, y, w, h] in image pixels). Text hotspots aren't located yet. */
+  hotspots(id: J, path: string): Record<string, number[]> {
+    const decl = this.assets[id];
+    const out: Record<string, number[]> = {};
+    for (const [name, h] of Object.entries<J>(decl && typeof decl === "object" ? decl.hotspots ?? {} : {})) {
+      if (Array.isArray(h)) out[name] = h;
+      else this.warn(path, "unsupported-feature", `Text hotspot '${name}' can't be located yet; the cursor aims at the element's centre. Give it [x, y, width, height] instead.`);
+    }
+    return out;
   }
 
   file(rel: string, path: string, fallback: () => ImageSource): ImageSource {
@@ -284,8 +295,12 @@ class Compiler {
         if (el.props.variant === "outline" && !style.stroke) style.stroke = el.font.color;
       } else if (!style.fill) style.fill = "#111111";
       if (type === "badge" && !src.style?.color) el.font.color = readableOn(style.fill);
+    } else if (type === "icon") {
+      // Colour and size ride on the font (style.color, style.size); default size = body text.
+      el.font = this.font("body", src.style, ctx.inDevice, ctx.textColour);
+      el.props = { name: src.name };
     } else if (type === "image") {
-      el.props = { image: this.image(src.asset, `${ctx.path}.asset`), fit: src.fit ?? "cover", focus: src.focus ?? [50, 50] };
+      el.props = { image: this.image(src.asset, `${ctx.path}.asset`), fit: src.fit ?? "cover", focus: src.focus ?? [50, 50], hotspots: this.hotspots(src.asset, ctx.path) };
     } else if (type === "shape") {
       el.props = { shape: src.shape };
       if (src.shape !== "line" && !style.fill && !style.stroke) style.fill = ctx.textColour;
@@ -298,7 +313,7 @@ class Compiler {
       el.props = {
         chrome: src.chrome ?? "light",
         ...(type === "browser" ? { url: src.url ?? "" } : { statusBar: src.statusBar ?? true }),
-        ...(typeof src.content === "string" ? { content: this.image(src.content, `${ctx.path}.content`) } : {}),
+        ...(typeof src.content === "string" ? { content: this.image(src.content, `${ctx.path}.content`), hotspots: this.hotspots(src.content, ctx.path) } : {}),
       };
       if (src.screens) {
         this.warn(ctx.path, "unsupported-feature", "Device screens aren't rendered yet; only the first screen is shown.");
@@ -784,7 +799,15 @@ class Compiler {
     // Raw animations and state changes.
     const stateNow = new Map<string, string>();
     const timeline = [...timing.timeline.entries()].filter(([, t]) => t && typeof t === "object");
-    const stateItems = timeline.filter(([, t]) => "state" in t).sort((a, b) => timing.evalExpr(a[1].at) - timing.evalExpr(b[1].at));
+    const stateItems: [number | string, J][] = timeline.filter(([, t]) => "state" in t);
+    for (const [j, t] of timeline) {
+      if (t.behavior !== "interaction") continue;
+      for (const ch of this.interactionTracks(sc, j, t, registry, timing, sceneStart)) {
+        if ("state" in ch) stateItems.push([`interaction ${j}`, ch]);
+        else this.tracks.push(ch);
+      }
+    }
+    stateItems.sort((a, b) => timing.evalExpr(a[1].at) - timing.evalExpr(b[1].at));
     for (const [j, t] of timeline) {
       if (!("animate" in t)) continue;
       const targets: string[] = Array.isArray(t.target) ? t.target : [t.target];
@@ -813,7 +836,7 @@ class Compiler {
       const prev = prevName === "default" ? null : el.states[prevName];
       const next = t.state === "default" ? null : el.states[t.state];
       stateNow.set(el.ref, t.state);
-      const label = `state → ${t.state}${t.id ? ` (${t.id})` : ` (timeline[${j}])`}`;
+      const label = `state → ${t.state}${t.id ? ` (${t.id})` : typeof j === "string" ? ` (${j})` : ` (timeline[${j}])`}`;
       const props = new Set([...Object.keys(prev?.style ?? {}), ...Object.keys(next?.style ?? {})]);
       for (const p of props) {
         const target = next?.style[p] ?? this.baseValue(el, p);
@@ -833,6 +856,45 @@ class Compiler {
       const variant = next?.variant ?? (el.props.variant as string | undefined);
       if (variant && variant !== (prev?.variant ?? el.props.variant)) this.tracks.push({ kind: "step", ref: el.ref, prop: "variant", value: variant, t0, t1: t0, label });
     }
+  }
+
+  /** Cursor track, state changes from `set`, typed text and a press dip on clicked elements. */
+  interactionTracks(sc: J, j: number, t: J, registry: Map<string, { el: PlanElement; src: J; topLevel: boolean }>, timing: ReturnType<Compiler["sceneTiming"]>, sceneStart: number): (Track | J)[] {
+    const out: (Track | J)[] = [];
+    const pace = PACE[(t.pace ?? "normal") as keyof typeof PACE] ?? PACE.normal;
+    const windows = this.interactionSteps(t, (x) => timing.evalExpr(x));
+    const abs = (x: number) => sceneStart + x;
+    const steps: { target: string | null; start: number; arrive: number; release: number; end: number }[] = [];
+    (t.steps ?? []).forEach((st: J, i: number) => {
+      const w = windows[i]!;
+      if ("wait" in st) {
+        steps.push({ target: null, start: abs(w.start), arrive: abs(w.start), release: abs(w.start), end: abs(w.end) });
+        return;
+      }
+      const raw: string = st.click ?? st.type;
+      const target = raw.includes("#") ? raw : registry.get(raw)?.el?.ref ?? raw;
+      const arrive = w.start + pace.move;
+      const release = arrive + pace.press;
+      steps.push({ target, start: abs(w.start), arrive: abs(arrive), release: abs(release), end: abs(w.end) });
+      const el = raw.includes("#") ? undefined : registry.get(raw)?.el;
+      if (el) {
+        out.push(this.tween(el.ref, "press", [1, 0.96, 1], abs(arrive), abs(release), "sine.inOut", `tap (interaction ${j})`));
+      }
+      for (const [ref, state] of Object.entries<J>(st.set ?? {})) out.push({ target: ref, state, at: release, ...(st.id ? { id: st.id } : {}) });
+      if ("type" in st && el) {
+        const text = String(st.text ?? "");
+        out.push({ kind: "typed", ref: el.ref, text, t0: abs(release), t1: abs(release + text.length / pace.cps), label: `typing (interaction ${j})` });
+      }
+    });
+    if (steps.length) {
+      const first = steps[0]!;
+      const last = steps[steps.length - 1]!;
+      out.push({
+        kind: "cursor", ref: `${sc.id}:cursor:${j}`, sceneId: sc.id, cursor: t.cursor ?? "pointer", from: t.from ?? "bottom-right",
+        steps, t0: first.start - 0.2, t1: last.end + 0.3, label: `cursor (interaction ${j})`,
+      });
+    }
+    return out;
   }
 
   animValue(prop: string, v: J): number | string | null {

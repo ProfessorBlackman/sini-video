@@ -9,8 +9,8 @@
  */
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
-import { validate, type Issue, type Spec } from "@sini/schema";
-import { load, SiniError, specFile } from "./project.js";
+import type { Issue, Spec } from "@sini/schema";
+import { load, SiniError, specFile, validateFull } from "./project.js";
 
 type J = any;
 
@@ -80,7 +80,7 @@ export function initProject(dir: string, opts: { spec?: Spec; force?: boolean } 
   const abs = resolve(dir);
   if (existsSync(join(abs, "video.json")) && !opts.force) throw new SiniError(`${abs} already has a video.json. Use update/patch, or --force to overwrite.`);
   const spec = opts.spec ?? STARTER;
-  const v = validate(spec);
+  const v = validateFull(spec, abs);
   if (!v.ok) throw new SiniError("The spec has errors; nothing was written.", v.issues);
   mkdirSync(join(abs, "assets"), { recursive: true });
   writeFileSync(join(abs, ".gitignore"), "out/\n");
@@ -90,7 +90,7 @@ export function initProject(dir: string, opts: { spec?: Spec; force?: boolean } 
 /** Record the current video.json as a version (after editing it directly). */
 export function snapshot(target = ".", message = "snapshot"): VersionInfo {
   const { dir, spec } = load(target);
-  const v = validate(spec);
+  const v = validateFull(spec, dir);
   if (!v.ok) throw new SiniError("The spec has errors; fix them before saving a version.", v.issues);
   return saveVersion(dir, spec, message);
 }
@@ -98,7 +98,7 @@ export function snapshot(target = ".", message = "snapshot"): VersionInfo {
 /** Replace the whole spec (validated), as a new version. */
 export function replaceSpec(target: string, spec: Spec, message = "update"): { version: VersionInfo; issues: Issue[] } {
   const dir = projectDir(target);
-  const v = validate(spec);
+  const v = validateFull(spec, dir);
   if (!v.ok) throw new SiniError("The spec has errors; nothing was saved.", v.issues);
   return { version: saveVersion(dir, spec, message), issues: v.issues };
 }
@@ -273,7 +273,7 @@ export function patchProject(target: string, ops: PatchOp[], message?: string): 
   const { dir, spec } = load(target);
   if (!Array.isArray(ops)) throw new SiniError("A patch is a list of operations.");
   const next = applyOps(spec, ops);
-  const v = validate(next);
+  const v = validateFull(next, dir);
   if (!v.ok) throw new SiniError("The patched spec has errors; nothing was saved.", v.issues);
   return { version: saveVersion(dir, next, message ?? `patch (${ops.map((o) => o.op).join(", ")})`), issues: v.issues };
 }

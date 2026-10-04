@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { chromium, type Browser, type BrowserContext, type Page } from "playwright";
 import type { Plan } from "@sini/core";
 import { fontFaceCss } from "./fonts.js";
+import { planIcons } from "./icons.js";
 
 const require = createRequire(import.meta.url);
 
@@ -32,8 +33,9 @@ function runtime(): string {
 export function pageHtml(plan: Plan): string {
   // </script> can't appear inside the inline JSON.
   const json = JSON.stringify(plan).replace(/</g, "\\u003c");
+  const icons = JSON.stringify(planIcons(plan)).replace(/</g, "\\u003c");
   return `<!doctype html><html><head><meta charset="utf-8"><style>${fontFaceCss(plan.fontAssets)}</style></head>` +
-    `<body><script>window.__SINI_PLAN__=${json};</script><script>${runtime()}</script></body></html>`;
+    `<body><script>window.__SINI_PLAN__=${json};window.__SINI_ICONS__=${icons};</script><script>${runtime()}</script></body></html>`;
 }
 
 export interface LayoutBox {

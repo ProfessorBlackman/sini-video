@@ -73,3 +73,18 @@ describe("patch operations", () => {
     expect(() => applyOps(spec(), [{ op: "set", path: "nope.style.size", value: 1 }])).toThrow(/No scene, element or timeline item with id 'nope'/);
   });
 });
+
+describe("icon validation on every write", () => {
+  it("rejects unknown icon names with a suggestion, and accepts Lucide aliases", () => {
+    const d = tmp();
+    initProject(d);
+    expect(() => patchProject(d, [{ op: "add", scene: "intro", element: { id: "i", type: "icon", name: "chek" } }])).toThrow(SiniError);
+    try {
+      patchProject(d, [{ op: "add", scene: "intro", element: { id: "i", type: "icon", name: "chek" } }]);
+    } catch (e) {
+      expect((e as SiniError).issues[0]?.suggestion).toBe("Did you mean 'check'?");
+    }
+    patchProject(d, [{ op: "add", scene: "intro", element: { id: "i", type: "icon", name: "check-circle" } }]);
+    expect(listVersions(d)).toHaveLength(2);
+  });
+});
