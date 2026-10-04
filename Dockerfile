@@ -10,6 +10,9 @@ RUN corepack enable
 WORKDIR /src
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.base.json ./
 COPY packages ./packages
+# The MCP server bundles the DSL reference and examples.
+COPY docs/DSL_REFERENCE.md ./docs/DSL_REFERENCE.md
+COPY examples ./examples
 RUN pnpm install --frozen-lockfile
 RUN pnpm build
 RUN pnpm --filter @sini/cli deploy --prod --legacy /out/cli

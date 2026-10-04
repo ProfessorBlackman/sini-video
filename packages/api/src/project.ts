@@ -1,5 +1,5 @@
 import { existsSync, readFileSync, statSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
+import { dirname, join, resolve, sep } from "node:path";
 import { compile, type CompiledPlan } from "@sini/core";
 import { validate, type Issue, type Spec, type ValidationResult } from "@sini/schema";
 
@@ -38,18 +38,45 @@ export function load(target = "."): Loaded {
 }
 
 export function check(target = "."): ValidationResult & { file: string } {
-  const { file, spec } = load(target);
-  return { ...validate(spec), file };
+  const { file, dir, spec } = load(target);
+  const result = validate(spec);
+  result.issues.push(...assetPathIssues(spec, dir));
+  result.ok = !result.issues.some((i) => i.level === "error");
+  return { ...result, file };
 }
 
 export function compileSpec(spec: Spec, dir: string): CompiledPlan {
   return compile(spec, { projectDir: dir, exists: (p) => existsSync(p), resolvePath: (d, rel) => resolve(d, rel) });
 }
 
+/** Asset files must live inside the project folder (no ../ escapes, no absolute paths elsewhere). */
+export function assetPathIssues(spec: Spec, dir: string): Issue[] {
+  const issues: Issue[] = [];
+  const root = resolve(dir);
+  const check = (src: unknown, path: string) => {
+    if (typeof src !== "string") return;
+    const abs = resolve(root, src);
+    if (abs !== root && !abs.startsWith(root + sep)) {
+      issues.push({ level: "error", path, code: "asset-outside-project", message: `Asset '${src}' is outside the project folder.`, suggestion: "Copy the file into the project (e.g. assets/) and use a relative path." });
+    }
+  };
+  for (const [id, a] of Object.entries((spec.assets ?? {}) as Record<string, any>)) {
+    if (typeof a === "string") check(a, `assets.${id}`);
+    else if (a && typeof a === "object") {
+      check(a.src, `assets.${id}.src`);
+      if (a.fallback && typeof a.fallback === "object") check(a.fallback.src, `assets.${id}.fallback.src`);
+      else check(a.fallback, `assets.${id}.fallback`);
+    }
+  }
+  return issues;
+}
+
 /** Load, validate and compile. Throws SiniError with the issues if the spec is invalid. */
 export function plan(target = "."): { loaded: Loaded; plan: CompiledPlan; validation: ValidationResult } {
   const loaded = load(target);
   const validation = validate(loaded.spec);
+  validation.issues.push(...assetPathIssues(loaded.spec, loaded.dir));
+  validation.ok = !validation.issues.some((i) => i.level === "error");
   if (!validation.ok) throw new SiniError("The video spec has errors; run validate for details.", validation.issues);
   return { loaded, plan: compileSpec(loaded.spec, loaded.dir), validation };
 }

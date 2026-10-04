@@ -817,15 +817,9 @@ When a human asks for changes, send a **patch** instead of rewriting the whole s
   { "op": "add", "scene": "intro", "after": "h1", "element": { "id": "kicker", "type": "text", "content": "New season" } },
   { "op": "remove", "id": "tag" },
   { "op": "move", "id": "tag", "scene": "outro", "after": "cta" },
-  { "op": "addScene", "after": "intro", "scene": { "id": "detail", "duration": "auto", "elements": [] } },
-  { "op": "addTimeline", "scene": "intro", "item": { "target": "kicker", "preset": "fadeUp", "at": 1.2 } },
-  { "op": "remove", "path": "h1.exit" }
+  { "op": "addScene", "after": "intro", "scene": { "id": "detail", "duration": "auto", "elements": [] } }
 ]
 ```
-
-- `set` paths start with an id, or with a top-level key (`"video.targetDuration"`, `"theme.palette.ink"`). `"value": null` deletes the key.
-- `add` and `move` place the element `after` / `before` another element, or inside a container with `"parent": "<id>"`, or at the end of the scene.
-- A patch is all-or-nothing: if the result doesn't validate, nothing is saved.
 
 Every patch creates a new version. Use `describe_at(time)` to find which elements a human means when they refer to a timestamp ("at 0:07 the text is too fast").
 

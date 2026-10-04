@@ -1,6 +1,7 @@
 import { createRequire } from "node:module";
 import { Command } from "commander";
-import { contactSheet, describe, layoutAt, lint, renderFrame, renderMp4, SiniError } from "@sini/api";
+import { readFileSync } from "node:fs";
+import { contactSheet, describe, initProject, layoutAt, lint, listVersions, patchProject, renderFrame, renderMp4, restoreVersion, SiniError, snapshot, type PatchOp } from "@sini/api";
 import { formatIssue, runValidate } from "./validate-command.js";
 
 const require = createRequire(import.meta.url);
@@ -26,6 +27,71 @@ export function createProgram(): Command {
     .name("sini")
     .description("Describe a video; your AI writes it, Sini renders it.")
     .version(version, "-v, --version");
+
+  program
+    .command("init")
+    .description("Create a project folder with a starter video (or --from an existing spec)")
+    .argument("[dir]", "project folder", ".")
+    .option("--from <file>", "start from this spec file")
+    .option("--force", "overwrite an existing video.json")
+    .action((dir: string, opts: { from?: string; force?: boolean }) =>
+      guard(() => {
+        const spec = opts.from ? JSON.parse(readFileSync(opts.from, "utf8")) : undefined;
+        const r = initProject(dir, { ...(spec ? { spec } : {}), ...(opts.force ? { force: true } : {}) });
+        console.log(`✓ Created ${r.dir}/video.json (version ${r.version.version})`);
+      })(),
+    );
+
+  program
+    .command("patch")
+    .description("Apply a JSON patch (list of operations) and save a new version")
+    .argument("<patch>", "patch file, or - for stdin")
+    .argument("[project]", "project folder or spec file", ".")
+    .option("-m, --message <text>", "version message")
+    .action((patchFile: string, project: string, opts: { message?: string }) =>
+      guard(() => {
+        const ops = JSON.parse(readFileSync(patchFile === "-" ? 0 : patchFile, "utf8")) as PatchOp[];
+        const r = patchProject(project, ops, opts.message);
+        for (const i of r.issues) console.log(formatIssue(i));
+        console.log(`✓ Saved version ${r.version.version}: ${r.version.message}`);
+      })(),
+    );
+
+  program
+    .command("save")
+    .description("Record the current video.json as a new version (after editing it directly)")
+    .argument("[project]", "project folder or spec file", ".")
+    .option("-m, --message <text>", "version message", "edit")
+    .action((project: string, opts: { message: string }) =>
+      guard(() => {
+        const v = snapshot(project, opts.message);
+        console.log(`✓ Saved version ${v.version}: ${v.message}`);
+      })(),
+    );
+
+  program
+    .command("versions")
+    .description("List saved versions")
+    .argument("[project]", "project folder or spec file", ".")
+    .action((project: string) =>
+      guard(() => {
+        const vs = listVersions(project);
+        if (!vs.length) return void console.log("No versions yet. Run 'sini save' or 'sini patch'.");
+        for (const v of vs) console.log(`v${v.version}  ${v.time}  ${v.message}`);
+      })(),
+    );
+
+  program
+    .command("checkout")
+    .description("Restore an earlier version (saved as a new version)")
+    .argument("<version>", "version number")
+    .argument("[project]", "project folder or spec file", ".")
+    .action((version: string, project: string) =>
+      guard(() => {
+        const v = restoreVersion(project, Number(version.replace(/^v/, "")));
+        console.log(`✓ Restored as version ${v.version}: ${v.message}`);
+      })(),
+    );
 
   program
     .command("validate")
@@ -148,6 +214,15 @@ export function createProgram(): Command {
         console.log(`✓ ${r.file}  (${r.duration.toFixed(2)}s, ${r.width}×${r.height} @ ${r.fps}fps, ${r.frames} frames, rendered in ${r.seconds.toFixed(1)}s)`);
       })(),
     );
+
+  program
+    .command("mcp")
+    .description("Run the MCP server on stdio (for Claude Desktop, Claude Code, Cursor, …)")
+    .option("--root <dir>", "folder the server may read and write (default: current directory)")
+    .action(async (opts: { root?: string }) => {
+      const { serveStdio } = await import("@sini/mcp");
+      await serveStdio(opts.root);
+    });
 
   return program;
 }

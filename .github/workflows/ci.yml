@@ -39,3 +39,7 @@ jobs:
         run: |
           test "$(docker run --rm sini:ci --version)" = "$(node -p "require('./packages/cli/package.json').version")"
           docker run --rm --entrypoint ffmpeg sini:ci -version | head -1
+          mkdir -p work && cp -r examples/novae work/ && chmod -R a+rwX work
+          docker run --rm -v "$PWD/work":/work sini:ci validate novae
+          docker run --rm -v "$PWD/work":/work sini:ci frame 4.5 novae -o novae/f.png
+          docker run --rm -v "$PWD/work":/work sini:ci render novae --draft

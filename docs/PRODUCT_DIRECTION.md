@@ -107,6 +107,7 @@ my-reel/
 |---|---|---|---|
 | Discover | `sini docs [topic]` | resources + `list_*` | components, presets, transitions, themes |
 | Create | `sini init` | `create_video` | returns project path |
+| Save an edit | `sini save` | (`update_video` with `spec`) | records the current video.json as a version |
 | Validate | `sini validate` | `validate_video` | schema errors with JSON path + suggestions |
 | Lint | `sini lint` | `lint_video` | design checks (see §6) |
 | Patch | `sini patch` | `update_video` | by element ID; creates a new version |
