@@ -27,7 +27,7 @@ The AI describes **what the video shows and when**: scenes, text, images, device
 
 ## Quick start
 
-Sini runs in Docker (it bundles Chromium, FFmpeg and the fonts):
+Sini runs in Docker (it bundles Chromium, FFmpeg and the fonts; the image is about 940 MB):
 
 ```bash
 docker build -t sini .

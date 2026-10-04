@@ -114,7 +114,14 @@ export async function resolveTextHotspots(target: string): Promise<{ resolved: n
   if (todo.length) {
     const { createWorker } = await import("tesseract.js");
     const data = require("@tesseract.js-data/eng") as { langPath: string; gzip: boolean };
-    const worker = await createWorker("eng", 1, { langPath: data.langPath, gzip: data.gzip, cacheMethod: "none", logger: () => {} });
+    let worker: Awaited<ReturnType<typeof createWorker>>;
+    try {
+      // errorHandler: without it, a worker failure is rethrown asynchronously and kills the process.
+      worker = await createWorker("eng", 1, { langPath: data.langPath, gzip: data.gzip, cacheMethod: "none", logger: () => {}, errorHandler: () => {} });
+    } catch (e) {
+      // OCR unavailable: text hotspots fall back to the element's centre (compile warns).
+      return { resolved: spots.length - todo.length - missing.length, missing: [...missing, ...todo.map((s) => `${s.asset}#${s.name}: OCR failed (${(e as Error).message})`)] };
+    }
     try {
       const byFile = new Map<string, Word[]>();
       for (const s of todo) {

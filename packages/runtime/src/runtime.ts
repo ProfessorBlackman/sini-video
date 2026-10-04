@@ -646,7 +646,7 @@ function fillScreen(node: Node, el: PlanElement, screen: HTMLElement, sceneId: s
   node.pages = new Map();
   const top = el.type === "phone" && el.props.statusBar !== false ? 54 : 0;
   const content = el.props.content as never;
-  const pageBox = (bg: string) => h("div", "page", { position: "absolute", left: "0", top: "0", width: "100%", minHeight: "100%", boxSizing: "border-box", background: bg, willChange: "transform" });
+  const pageBox = (bg: string) => h("div", "page", { position: "absolute", left: "0", top: "0", width: "100%", minHeight: "100%", boxSizing: "border-box", background: bg });
   if (content) {
     // A screenshot is one page, shown at the screen's width; tall ones can scroll.
     const pg = pageBox("#FFFFFF");
@@ -820,7 +820,7 @@ function buildTemplate(node: Node) {
   const { el, anim } = node;
   const host = h("div", "template");
   const root = host.attachShadow({ mode: "open" });
-  root.innerHTML = `<style>*,*::before,*::after{transition:none!important;animation:none!important}:host{display:block}${String(el.props.css ?? "")}</style>${String(el.props.html ?? "")}`;
+  root.innerHTML = `<style>*,*::before,*::after{transition:none!important;animation:none!important;will-change:auto!important}:host{display:block}${String(el.props.css ?? "")}</style>${String(el.props.html ?? "")}`;
   // Defence in depth (the validator already rejects these): nothing in a template may run code or load from outside.
   for (const bad of root.querySelectorAll("script, iframe, object, embed, link, meta, base, form")) bad.remove();
   for (const e of root.querySelectorAll("*")) {
@@ -1771,6 +1771,12 @@ function render(t: number) {
     grain.style.transform = `translate(${(fi * 137) % 256 - 256}px, ${(fi * 271) % 256 - 256}px)`;
   }
   endfade.style.opacity = String(fr.endFade);
+  // Chromium re-rasters only what changed since the last frame, and an image redrawn in a
+  // small invalidated area can land a pixel or two off from a full redraw. Taking the stage
+  // out of the tree drops its cached paint, so every frame is drawn as if on a fresh page.
+  stage.style.display = "none";
+  void stage.offsetWidth;
+  stage.style.display = "";
 }
 
 function layout(t: number): LayoutReport {
@@ -1818,7 +1824,9 @@ async function boot() {
   const css = h("style");
   css.textContent = [
     // Rendering is driven only by render(t): no CSS-driven motion, ever.
-    "*,*::before,*::after{transition:none!important;animation:none!important;caret-color:transparent}",
+    // Rendering is driven only by render(t); no CSS motion, and no cached-raster layers
+    // (will-change makes Chromium scale old bitmaps and re-raster later: timing-dependent pixels).
+    "*,*::before,*::after{transition:none!important;animation:none!important;caret-color:transparent;will-change:auto!important}",
     ".w{display:inline-block;vertical-align:top;overflow:hidden;padding:0 .04em .12em;margin:0 -.04em -.12em}",
     ".w.open{overflow:visible}",
     ".wi{display:inline-block}",
@@ -1860,7 +1868,7 @@ async function boot() {
   faces.add(`normal 400 15px "${plan.fonts.body}"`);
   await Promise.all([...faces].map((f) => document.fonts.load(f).catch(() => [])));
   await document.fonts.ready;
-  await Promise.all([...document.images].map((i) => (i.complete ? Promise.resolve() : i.decode().catch(() => undefined))));
+  await decodeImages();
   for (const s of sceneEls.values()) s.style.visibility = "hidden";
   layoutAll();
   for (const tr of plan.tracks) if (tr.kind === "camera") {
@@ -1870,6 +1878,7 @@ async function boot() {
   resolveScrolls();
   buildCursors();
   buildMatchClones();
+  await decodeImages();
   // Static boxes: measured once, before any animation transform is applied.
   const st = stage.getBoundingClientRect();
   for (const n of nodes.values()) {
@@ -1877,6 +1886,11 @@ async function boot() {
     staticBoxes.set(n.el.ref, { x: round(r.left - st.left), y: round(r.top - st.top), width: round(r.width), height: round(r.height) });
   }
   render(0);
+}
+
+/** Decode every image up front (`complete` only means loaded), so the first frame doesn't catch one mid-decode. */
+function decodeImages(): Promise<unknown> {
+  return Promise.all([...document.images].map((i) => i.decode().catch(() => undefined)));
 }
 
 window.sini = {

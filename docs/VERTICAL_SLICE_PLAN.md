@@ -215,11 +215,13 @@ Phase 2 then adds devices, components, charts and interactions, and reruns all 8
 ### Still open
 
 - **Reserve the names:** `sinihq` GitHub org and `@sini` npm scope (needs you).
-- **FFmpeg build:** the image uses Ubuntu's FFmpeg (libx264, GPL). Decide before publishing the image (§3).
-- **Image size:** 2.56 GB on the Playwright base image; a Chromium-only base would roughly halve it.
+- **FFmpeg build:** the image builds a minimal FFmpeg with libx264, so that binary is GPL (Sini only runs it as a separate program). Decide before publishing the image (§3).
 - **Phase 2** features and the known limitations listed in [paper-tests/v0.4-tools/FINDINGS.md](paper-tests/v0.4-tools/FINDINGS.md).
 
 ### Added after the slice
+
+- **Slimmer image: 940 MB** (was 2.67 GB on the Playwright base). Debian slim with Node 24, only Chromium's headless shell, a 2 MB FFmpeg built with just the JPEG/PNG input and H.264/MP4 output Sini uses, and unused Lucide and Tesseract files pruned. Frames are byte-identical to a local render. Videos are now converted and tagged as limited-range BT.709 explicitly instead of relying on the FFmpeg build's defaults.
+- **Two determinism bugs, found while verifying the slim image:** a session's first frame could catch an image mid-decode (every image is now decoded before rendering starts), and Chromium's partial repaints let a frame depend on which frames the same page drew before it (seen as a photo shifted by a pixel or two under text that had just animated; the stage is now repainted in full every frame, about 10% slower). Videos rendered with different worker counts now match frame for frame; a regression test covers the second case.
 
 - **`icon`** elements (bundled Lucide set, aliases for renamed icons, unknown names rejected with suggestions; `drawOutline` draws every stroke).
 - **`interaction`**: arrow, hand-pointer and touch cursors move between targets (aimed at the drawn shape or the text itself), press with a dip on the target and a ripple for touch; step `set` applies states at the end of the press; `type` steps type into text; numeric screenshot hotspots are located. Found while testing through the MCP server: step `set` was previously ignored.

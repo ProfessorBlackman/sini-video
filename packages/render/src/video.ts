@@ -71,11 +71,14 @@ export async function renderVideo(plan: Plan, out: string, opts: VideoOptions = 
       "-y", "-loglevel", "error",
       "-framerate", String(fps),
       "-i", join(dir, "f_%06d.jpg"),
-      "-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2",
+      // JPEG frames are full-range; convert to the limited-range BT.709 every player expects,
+      // and tag it so, whichever ffmpeg build is doing the work.
+      "-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2:out_range=tv:out_color_matrix=bt709,format=yuv420p",
       "-c:v", "libx264",
       "-preset", draft ? "veryfast" : "medium",
       "-crf", draft ? "26" : "19",
       "-pix_fmt", "yuv420p",
+      "-color_range", "tv", "-colorspace", "bt709", "-color_primaries", "bt709", "-color_trc", "bt709",
       "-movflags", "+faststart",
       out,
     ]);

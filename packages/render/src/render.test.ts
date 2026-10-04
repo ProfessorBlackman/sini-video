@@ -1,3 +1,4 @@
+import { createRequire } from "node:module";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { Browser } from "playwright";
 import { compile } from "@sini/core";
@@ -22,6 +23,7 @@ const spec = {
   ],
 };
 
+const require = createRequire(import.meta.url);
 let browser: Browser;
 let session: RenderSession;
 
@@ -62,6 +64,67 @@ describe("frames", () => {
     expect(a.length).toBeGreaterThan(1000);
     expect(Buffer.compare(a, b)).toBe(0);
   });
+});
+
+/** A minimal RGB PNG: a light disc on a dark field, big enough that Chromium scales it. */
+function discPng(w: number, h: number): Buffer {
+  const { deflateSync, crc32 } = require("node:zlib") as typeof import("node:zlib");
+  const raw = Buffer.alloc((w * 3 + 1) * h);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const inside = (x - w / 2) ** 2 + (y - h / 3) ** 2 < (w * 0.35) ** 2;
+      raw.set(inside ? [235, 200, 150] : [120, 40, 48 + (y % 7)], y * (w * 3 + 1) + 1 + x * 3);
+    }
+  }
+  const chunk = (type: string, data: Buffer) => {
+    const len = Buffer.alloc(4);
+    len.writeUInt32BE(data.length);
+    const td = Buffer.concat([Buffer.from(type), data]);
+    const crc = Buffer.alloc(4);
+    crc.writeUInt32BE(crc32(td));
+    return Buffer.concat([len, td, crc]);
+  };
+  const ihdr = Buffer.alloc(13);
+  ihdr.writeUInt32BE(w, 0);
+  ihdr.writeUInt32BE(h, 4);
+  ihdr.set([8, 2, 0, 0, 0], 8);
+  return Buffer.concat([Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]), chunk("IHDR", ihdr), chunk("IDAT", deflateSync(raw)), chunk("IEND", Buffer.alloc(0))]);
+}
+
+describe("frame history", () => {
+  // Regression: text animating over a scaled photo left partially re-rastered areas that
+  // differed from a fresh page, so a frame depended on which frames a worker drew before it.
+  it("draws a frame the same whatever was rendered before it", async () => {
+    const { mkdtempSync, rmSync, writeFileSync } = await import("node:fs");
+    const { tmpdir } = await import("node:os");
+    const { join } = await import("node:path");
+    const dir = mkdtempSync(join(tmpdir(), "sini-hist-"));
+    writeFileSync(join(dir, "photo.png"), discPng(1080, 1920));
+    const p = compile(
+      {
+        version: "0.4",
+        video: { format: "16:9" },
+        theme: { motion: "editorial" },
+        assets: { photo: "photo.png" },
+        scenes: [{ id: "s", duration: 3, background: { asset: "photo", fit: "cover" }, elements: [
+          { id: "t", type: "text", role: "title", content: "Opens into the scene.", style: { color: "#F2EFE8" }, layout: { anchor: "bottom-left", inset: [120, 120] } },
+        ] }],
+      } as never,
+      { projectDir: dir },
+    );
+    const fresh = await RenderSession.open(p, { browser });
+    const walked = await RenderSession.open(p, { browser });
+    try {
+      for (let f = 0; f < 60; f++) await walked.frame(f / 30, "jpeg", 95);
+      const a = await walked.frame(2);
+      const b = await fresh.frame(2);
+      expect(Buffer.compare(a, b)).toBe(0);
+    } finally {
+      await fresh.close();
+      await walked.close();
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }, 120_000);
 });
 
 describe("video", () => {
