@@ -27,11 +27,20 @@ The AI describes **what the video shows and when**: scenes, text, images, device
 
 ## Quick start
 
-Sini runs in Docker (it bundles Chromium, FFmpeg and the fonts; the image is about 940 MB):
+Sini runs in Docker (it bundles Chromium, FFmpeg and the fonts; the image is about 940 MB). Pull a release for linux/amd64 or linux/arm64 and tag it `sini`, which is the name the examples below use:
+
+```bash
+docker pull ghcr.io/sinihq/sini:latest
+docker tag ghcr.io/sinihq/sini:latest sini
+```
+
+Or build it from this repository:
 
 ```bash
 docker build -t sini .
 ```
+
+Renders are byte-identical for the same image on the same architecture; amd64 and arm64 may differ by a few pixel values.
 
 ### With an AI client (MCP)
 
@@ -96,6 +105,12 @@ node packages/cli/dist/index.js --help
 | `@sini/api` | Operations shared by the CLI and MCP: projects, versions, patches, lint |
 | `@sini/cli` | The `sini` command |
 | `@sini/mcp` | The MCP server |
+
+## Releasing
+
+Push a tag matching `packages/cli/package.json`'s version (e.g. `v0.1.0`). [release.yml](.github/workflows/release.yml) runs the checks, builds the image natively on amd64 and arm64, smoke-tests each, and publishes `ghcr.io/<owner>/sini` as `0.1.0`, `0.1` and `latest` (plus `0` from 1.0 on). Running the workflow by hand publishes `edge` and `sha-<commit>`.
+
+The first publish creates the package as private; make it public once in the package settings on GitHub.
 
 ## Licence
 

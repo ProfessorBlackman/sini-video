@@ -4,6 +4,13 @@ on:
   push:
     branches: [main]
   pull_request:
+  # The release workflow runs these checks before publishing.
+  workflow_call:
+    inputs:
+      skip-docker:
+        description: Skip the Docker job (the caller builds and tests the image itself)
+        type: boolean
+        default: false
 
 jobs:
   check:
@@ -32,14 +39,9 @@ jobs:
     name: Docker image
     runs-on: ubuntu-latest
     needs: check
+    if: ${{ !inputs.skip-docker }}
     steps:
       - uses: actions/checkout@v5
       - run: docker build -t sini:ci .
       - name: Smoke test
-        run: |
-          test "$(docker run --rm sini:ci --version)" = "$(node -p "require('./packages/cli/package.json').version")"
-          docker run --rm --entrypoint ffmpeg sini:ci -version | head -1
-          mkdir -p work && cp -r examples/novae work/ && chmod -R a+rwX work
-          docker run --rm -v "$PWD/work":/work sini:ci validate novae
-          docker run --rm -v "$PWD/work":/work sini:ci frame 4.5 novae -o novae/f.png
-          docker run --rm -v "$PWD/work":/work sini:ci render novae --draft
+        run: scripts/smoke-test-image.sh sini:ci
