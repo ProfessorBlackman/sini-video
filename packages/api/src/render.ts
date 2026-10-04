@@ -1,6 +1,6 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { RenderSession, type LayoutReport } from "@sini/render";
+import { RenderSession, renderVideo, type LayoutReport, type VideoResult } from "@sini/render";
 import type { CompiledPlan } from "@sini/core";
 import { plan, SiniError } from "./project.js";
 
@@ -41,4 +41,19 @@ export async function layoutAt(target: string, t: number): Promise<LayoutReport>
   } finally {
     await session.close();
   }
+}
+
+/** Render the whole video to MP4 (out/video.mp4, or out/draft.mp4 for drafts). */
+export async function renderMp4(
+  target: string,
+  opts: { draft?: boolean; out?: string; workers?: number; onProgress?: (done: number, total: number) => void } = {},
+): Promise<VideoResult & { warnings: string[] }> {
+  const { loaded, plan: p } = plan(target);
+  const file = opts.out ?? join(outDir(loaded.dir), opts.draft ? "draft.mp4" : "video.mp4");
+  const result = await renderVideo(p, file, {
+    ...(opts.draft ? { draft: true } : {}),
+    ...(opts.workers ? { workers: opts.workers } : {}),
+    ...(opts.onProgress ? { onProgress: opts.onProgress } : {}),
+  });
+  return { ...result, warnings: p.report.map((r) => `${r.path}: ${r.message}`) };
 }

@@ -1006,7 +1006,11 @@ async function boot() {
   wipebar = h("div", "", { position: "absolute", display: "none", zIndex: "900" });
   stage.appendChild(wipebar);
   grain = h("div", "", { position: "absolute", inset: "-256px", pointerEvents: "none", zIndex: "950", mixBlendMode: "overlay", opacity: String(plan.grain) });
-  if (plan.grain > 0) grain.style.backgroundImage = `url(${noise()})`;
+  if (plan.grain > 0) {
+    grain.style.backgroundImage = `url(${noise()})`;
+    // Grain drawn at 2× reads as film grain and keeps the H.264 bitrate sane.
+    grain.style.backgroundSize = `${512 * k}px ${512 * k}px`;
+  }
   stage.appendChild(grain);
   if (plan.vignette > 0) stage.appendChild(h("div", "", { position: "absolute", inset: "0", zIndex: "960", pointerEvents: "none", background: `radial-gradient(ellipse at center, rgba(0,0,0,0) 55%, rgba(0,0,0,${plan.vignette}))` }));
   endfade = h("div", "", { position: "absolute", inset: "0", zIndex: "990", pointerEvents: "none", background: plan.end.color, opacity: "0" });

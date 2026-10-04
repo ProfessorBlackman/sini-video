@@ -1,6 +1,6 @@
 import { createRequire } from "node:module";
 import { Command } from "commander";
-import { describe, layoutAt, renderFrame, SiniError } from "@sini/api";
+import { describe, layoutAt, renderFrame, renderMp4, SiniError } from "@sini/api";
 import { formatIssue, runValidate } from "./validate-command.js";
 
 const require = createRequire(import.meta.url);
@@ -87,6 +87,32 @@ export function createProgram(): Command {
           const extra = [e.visible ? "" : "hidden", e.overflow ? "OVERFLOW" : "", e.shrink ? `shrunk to ${Math.round(e.shrink * 100)}%` : "", e.fontSize ? `${e.fontSize}px` : ""].filter(Boolean).join(", ");
           console.log(`  ${e.ref} [${e.type}] ${b.x},${b.y} ${b.width}×${b.height}${moved}${extra ? `  (${extra})` : ""}`);
         }
+      })(),
+    );
+
+  program
+    .command("render")
+    .description("Render the video to MP4")
+    .argument("[project]", "project folder or spec file", ".")
+    .option("--draft", "fast preview: half size, 15 fps")
+    .option("-o, --out <file>", "output MP4 path (default: out/video.mp4 or out/draft.mp4)")
+    .option("--workers <n>", "parallel browser pages")
+    .action((project: string, opts: { draft?: boolean; out?: string; workers?: string }) =>
+      guard(async () => {
+        let last = -1;
+        const r = await renderMp4(project, {
+          ...(opts.draft ? { draft: true } : {}),
+          ...(opts.out ? { out: opts.out } : {}),
+          ...(opts.workers ? { workers: Number(opts.workers) } : {}),
+          onProgress: (done, total) => {
+            const pct = Math.floor((done / total) * 10) * 10;
+            if (pct !== last && process.stderr.isTTY) process.stderr.write(`\rRendering ${done}/${total} frames`);
+            last = pct;
+          },
+        });
+        if (process.stderr.isTTY) process.stderr.write("\n");
+        for (const w of r.warnings) console.log(`! ${w}`);
+        console.log(`✓ ${r.file}  (${r.duration.toFixed(2)}s, ${r.width}×${r.height} @ ${r.fps}fps, ${r.frames} frames, rendered in ${r.seconds.toFixed(1)}s)`);
       })(),
     );
 

@@ -20,9 +20,13 @@ jobs:
           node-version: ${{ matrix.node }}
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm typecheck
-      - run: pnpm test
       - run: pnpm build
+      - run: pnpm typecheck
+      - name: Install Chromium and FFmpeg for render tests
+        run: |
+          pnpm --filter @sini/render exec playwright install --with-deps chromium
+          sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
+      - run: pnpm test
 
   docker:
     name: Docker image

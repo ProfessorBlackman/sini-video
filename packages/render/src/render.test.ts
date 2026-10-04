@@ -63,3 +63,30 @@ describe("frames", () => {
     expect(Buffer.compare(a, b)).toBe(0);
   });
 });
+
+describe("video", () => {
+  it("renders byte-identical frames on every run", async () => {
+    const { renderVideo } = await import("./index.js");
+    const { mkdtempSync, rmSync } = await import("node:fs");
+    const { tmpdir } = await import("node:os");
+    const { join } = await import("node:path");
+    const small = compile({
+      ...spec,
+      video: { width: 270, height: 270, fps: 24 },
+      theme: { ...spec.theme, texture: { grain: 0.08 } },
+      scenes: [
+        spec.scenes[0],
+        { id: "b", duration: 1, background: "bone", transition: { type: "wipe", angle: 15, bar: "ink" }, elements: [{ id: "t", type: "text", content: "Same every time" }] },
+      ],
+    } as never);
+    const dir = mkdtempSync(join(tmpdir(), "sini-det-"));
+    try {
+      const a = await renderVideo(small, join(dir, "a.mp4"), { hashes: true, workers: 3 });
+      const b = await renderVideo(small, join(dir, "b.mp4"), { hashes: true, workers: 2 });
+      expect(a.frames).toBe(96);
+      expect(a.frameHashes).toEqual(b.frameHashes);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }, 120_000);
+});
