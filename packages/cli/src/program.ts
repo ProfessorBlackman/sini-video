@@ -1,6 +1,6 @@
 import { createRequire } from "node:module";
 import { Command } from "commander";
-import { contactSheet, describe, layoutAt, renderFrame, renderMp4, SiniError } from "@sini/api";
+import { contactSheet, describe, layoutAt, lint, renderFrame, renderMp4, SiniError } from "@sini/api";
 import { formatIssue, runValidate } from "./validate-command.js";
 
 const require = createRequire(import.meta.url);
@@ -35,6 +35,22 @@ export function createProgram(): Command {
     .action((project: string, opts: { json?: boolean }) => {
       process.exitCode = runValidate(project, opts);
     });
+
+  program
+    .command("lint")
+    .description("Find design problems: reading time, edges, safe zones, overlaps, contrast, glyphs")
+    .argument("[project]", "project folder or spec file", ".")
+    .option("--json", "machine-readable output")
+    .option("--no-layout", "skip checks that need the renderer (faster)")
+    .action((project: string, opts: { json?: boolean; layout?: boolean }) =>
+      guard(async () => {
+        const r = await lint(project, { layout: opts.layout !== false });
+        if (opts.json) return void console.log(JSON.stringify(r, null, 2));
+        for (const i of r.issues) console.log(formatIssue(i));
+        const n = r.issues.length;
+        console.log(n === 0 ? `✓ No problems found (${r.duration.toFixed(2)}s video).` : `\n${n} warning${n === 1 ? "" : "s"} (${r.duration.toFixed(2)}s video).`);
+      })(),
+    );
 
   program
     .command("at")

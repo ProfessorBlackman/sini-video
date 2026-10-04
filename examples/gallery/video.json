@@ -60,7 +60,7 @@
         { "id": "cap", "type": "text", "role": "caption", "content": "kenBurns zooms inside the frame", "style": { "color": "mute" }, "layout": { "below": "pic", "gap": 20 }, "enter": "none" },
         { "id": "floaty", "type": "badge", "label": "float", "style": { "fill": "mint" }, "layout": { "anchor": "top-right", "inset": [180, 560] } },
         { "id": "swingy", "type": "badge", "label": "swing", "shape": "circle", "style": { "fill": "sun" }, "layout": { "anchor": "top-right", "inset": [180, 220] } },
-        { "id": "cta", "type": "button", "label": "pulse", "style": { "fill": "rose", "color": "paper" }, "layout": { "anchor": "bottom-right", "inset": [260, 560] } },
+        { "id": "cta", "type": "button", "label": "pulse", "style": { "fill": "rose", "color": "night" }, "layout": { "anchor": "bottom-right", "inset": [260, 560] } },
         { "id": "cta-ring", "type": "button", "label": "pulse ring", "variant": "outline", "style": { "color": "paper", "radius": 60 }, "layout": { "anchor": "bottom-right", "inset": [260, 160] } },
         { "id": "drifty", "type": "text", "role": "subtitle", "content": "drift", "style": { "color": "paper" }, "layout": { "anchor": "bottom-right", "inset": [100, 400] }, "enter": "none" }
       ],

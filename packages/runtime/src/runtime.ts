@@ -687,6 +687,7 @@ function sizeGroups() {
 }
 
 const shrinkRatio = new Map<string, number>();
+const staticBoxes = new Map<string, { x: number; y: number; width: number; height: number }>();
 const overflowing = new Set<string>();
 
 function textOverflows(n: Node): boolean {
@@ -969,7 +970,7 @@ function layout(t: number): LayoutReport {
       ref: n.el.ref,
       type: n.el.type,
       scene: n.sceneId,
-      box: box(outerRect),
+      box: staticBoxes.get(n.el.ref) ?? box(outerRect),
       current: box(n.anim.getBoundingClientRect()),
       visible,
       inDevice: n.el.inDevice,
@@ -1034,6 +1035,12 @@ async function boot() {
   await Promise.all([...document.images].map((i) => (i.complete ? Promise.resolve() : i.decode().catch(() => undefined))));
   for (const s of sceneEls.values()) s.style.visibility = "hidden";
   layoutAll();
+  // Static boxes: measured once, before any animation transform is applied.
+  const st = stage.getBoundingClientRect();
+  for (const n of nodes.values()) {
+    const r = n.outer.getBoundingClientRect();
+    staticBoxes.set(n.el.ref, { x: round(r.left - st.left), y: round(r.top - st.top), width: round(r.width), height: round(r.height) });
+  }
   render(0);
 }
 

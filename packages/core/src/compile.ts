@@ -280,10 +280,10 @@ class Compiler {
         if (!style.padding) style.padding = [0, el.font.size * BUTTON.padEm, 0, el.font.size * BUTTON.padEm];
         el.props.height = h;
         if (el.props.variant === "solid" && !style.fill) style.fill = "#111111";
-        if (el.props.variant === "solid" && !src.style?.color) el.font.color = luminanceOf(style.fill) > 0.5 ? "rgb(17, 17, 17)" : "rgb(255, 255, 255)";
+        if (el.props.variant === "solid" && !src.style?.color) el.font.color = readableOn(style.fill);
         if (el.props.variant === "outline" && !style.stroke) style.stroke = el.font.color;
       } else if (!style.fill) style.fill = "#111111";
-      if (type === "badge" && !src.style?.color) el.font.color = luminanceOf(style.fill) > 0.5 ? "rgb(17, 17, 17)" : "rgb(255, 255, 255)";
+      if (type === "badge" && !src.style?.color) el.font.color = readableOn(style.fill);
     } else if (type === "image") {
       el.props = { image: this.image(src.asset, `${ctx.path}.asset`), fit: src.fit ?? "cover", focus: src.focus ?? [50, 50] };
     } else if (type === "shape") {
@@ -378,6 +378,9 @@ class Compiler {
 
     // Timing: first pass computes natural auto durations, second pass resolves everything.
     const naturals = built.map((b, i) => this.sceneTiming(b.sc, i, b.registry, null).natural);
+    // Reading time doesn't count under the end fade, so an auto last scene includes it.
+    const endFade = typeof v.end === "object" && v.end ? v.end.duration ?? 0.6 : 0;
+    if (endFade && naturals.length) naturals[naturals.length - 1]! += endFade;
     const durations = sceneSrcs.map((sc, i) => (sc.duration === "auto" ? naturals[i]! : Number(sc.duration)));
     const natural = durations.reduce((a, b) => a + b, 0);
     if (v.targetDuration) this.applyTarget(v.targetDuration, sceneSrcs, durations);
@@ -1031,9 +1034,12 @@ function firstColour(paint: string | null | undefined): string | undefined {
   return m?.[1];
 }
 
-function luminanceOf(css: string | undefined): number {
+/** White or near-black, whichever reads better on the given fill. */
+function readableOn(css: string | undefined): string {
   const c = css ? parseCss(firstColour(css) ?? css) : null;
-  return c ? luminance(c) : 0;
+  if (!c) return "rgb(255, 255, 255)";
+  const L = luminance(c);
+  return (1.05 / (L + 0.05)) >= ((L + 0.05) / (luminance([17, 17, 17, 1]) + 0.05)) ? "rgb(255, 255, 255)" : "rgb(17, 17, 17)";
 }
 
 function baseText(el: PlanElement, field: "content" | "label"): string | undefined {

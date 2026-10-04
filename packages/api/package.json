@@ -22,6 +22,10 @@
   "dependencies": {
     "@sini/core": "workspace:*",
     "@sini/schema": "workspace:*",
-    "@sini/render": "workspace:*"
+    "@sini/render": "workspace:*",
+    "fontkit": "^2.0.4"
+  },
+  "devDependencies": {
+    "@types/fontkit": "^2.0.9"
   }
 }
