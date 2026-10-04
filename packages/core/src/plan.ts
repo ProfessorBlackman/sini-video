@@ -147,7 +147,7 @@ export interface PlanState {
 
 /** Which part of a split text a track drives. */
 export interface PartSelector {
-  kind: "word" | "char" | "line";
+  kind: "word" | "char" | "line" | "bar";
   index: number;
 }
 

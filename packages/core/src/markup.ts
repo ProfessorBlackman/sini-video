@@ -102,3 +102,19 @@ export function formatLike(value: number, n: { decimals: number; separator: stri
   const decSep = n.separator === "." ? "," : ".";
   return (value < 0 ? "-" : "") + grouped + (dec ? decSep + dec : "");
 }
+
+/**
+ * Format a number with a template such as "GH₵ 0,0", "0%", "0.0" or "$0,0.00".
+ * Without a template: thousands separators from 10,000 up, and the given decimals.
+ */
+export function formatNumber(value: number, template?: string, decimals = 0): string {
+  const m = template ? /^(.*?)(0(?:,0+)?(?:\.0+)?)(.*)$/.exec(template) : null;
+  if (!m) {
+    const fixed = value.toFixed(decimals);
+    return Math.abs(value) >= 10000 ? formatLike(value, { decimals, separator: "," }) : fixed;
+  }
+  const [, prefix, pattern, suffix] = m as unknown as [string, string, string, string];
+  const dec = pattern.includes(".") ? pattern.split(".")[1]!.length : 0;
+  const body = formatLike(value, { decimals: dec, separator: pattern.includes(",") ? "," : "" });
+  return `${prefix}${body}${suffix}`;
+}

@@ -136,3 +136,27 @@ describe("progress steps", () => {
     }
   }, 60_000);
 });
+
+describe("charts", () => {
+  it("draws bars proportional to their values and pins to a bar", async () => {
+    const p = compile({
+      version: "0.4", video: { format: "1:1" },
+      scenes: [{ id: "s", duration: 2, elements: [
+        { id: "c", type: "chart", kind: "bar", data: [["A", 10], ["B", 20], ["C", 40]], showValues: false, layout: { x: 100, y: 200, width: 600, height: 500 } },
+        { id: "tag", type: "badge", label: "Top", layout: { pin: { to: "c#C", point: "top" } } },
+      ] }],
+    } as never);
+    const s = await RenderSession.open(p, { browser });
+    try {
+      const heights = await s.page.evaluate(() => [...document.querySelectorAll<HTMLElement>(".chart-bar")].map((b) => b.getBoundingClientRect().height));
+      expect(heights[1]! / heights[0]!).toBeCloseTo(2, 1);
+      expect(heights[2]! / heights[0]!).toBeCloseTo(4, 1);
+      const r = await s.layout(1);
+      const tag = r.elements.find((e) => e.ref === "tag")!.box;
+      const top = await s.page.evaluate(() => { const st = document.getElementById("stage")!.getBoundingClientRect(); const b = document.querySelectorAll<HTMLElement>(".chart-bar")[2]!.getBoundingClientRect(); return b.top - st.top; });
+      expect(tag.y + tag.height / 2).toBeCloseTo(top, 0);
+    } finally {
+      await s.close();
+    }
+  }, 60_000);
+});

@@ -7,7 +7,7 @@ import { easeFn } from "./ease.js";
 import type { Plan, PlanElement, PlanTransition, Track, TweenTrack } from "./plan.js";
 
 export interface PartFrame {
-  kind: "word" | "char" | "line";
+  kind: "word" | "char" | "line" | "bar";
   index: number;
   props: Record<string, number>;
 }
@@ -166,7 +166,7 @@ function propValue(tracks: TweenTrack[], t: number, base: number | string | unde
   return keyframeValue(vals, tweenProgress(tr, t));
 }
 
-const PART_PROPS = new Set(["py", "prot", "opacity", "blur", "pdy"]);
+const PART_PROPS = new Set(["py", "prot", "opacity", "blur", "pdy", "grow"]);
 
 function baseOf(el: PlanElement | undefined, prop: string): number | string | undefined {
   if (!el) return undefined;
@@ -203,7 +203,7 @@ export function elementFrame(plan: Plan, ref: string, t: number): ElementFrame {
   for (const [key, list] of groups) {
     const first = list[0]!;
     if (first.part) {
-      const base = first.prop === "opacity" ? 1 : 0;
+      const base = first.prop === "opacity" || first.prop === "grow" ? 1 : 0;
       const v = propValue(list, t, base);
       if (typeof v !== "number" || !PART_PROPS.has(first.prop)) continue;
       const pk = `${first.part.kind}:${first.part.index}`;
@@ -309,6 +309,8 @@ export function frameAt(plan: Plan, t: number): Frame {
     const bg = `${s.id}:background`;
     if (index(plan).byRef.has(bg)) out[bg] = elementFrame(plan, bg, t);
   }
+  // Parts animated on their own: chart bars and progress steps ("meals#Q4").
+  for (const ref of index(plan).byRef.keys()) if (ref.includes("#")) out[ref] = elementFrame(plan, ref, t);
   const cursors: CursorFrame[] = [];
   for (const tr of plan.tracks) {
     if (tr.kind !== "cursor" || t < tr.t0 || t > tr.t1) continue;

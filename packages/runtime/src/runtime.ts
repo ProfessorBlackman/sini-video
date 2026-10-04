@@ -6,7 +6,7 @@
  * demand with `sini.render(t)`. Rendering is a pure function of t: every call sets every
  * animated style, so frames can be rendered in any order, in parallel.
  */
-import { clamp01, easeFn, elementFrame, formatLike, frameAt, type CursorFrame, type ElementFrame, type Font, type Frame, type PlanElement, type PlanScene, type Plan, type Run } from "@sini/core";
+import { clamp01, easeFn, elementFrame, formatLike, formatNumber, frameAt, type CursorFrame, type ElementFrame, type Font, type Frame, type PlanElement, type PlanScene, type Plan, type Run } from "@sini/core";
 
 declare global {
   interface Window {
@@ -79,6 +79,7 @@ interface Node {
   statusBar?: HTMLElement;
   toast?: { icon: HTMLElement; iconName: string | null; title: HTMLElement; body: HTMLElement; text: HTMLElement };
   progress?: { dots: HTMLElement[]; labels: HTMLElement[]; fill: HTMLElement; track: HTMLElement };
+  chart?: { bars: HTMLElement[]; values: HTMLElement[]; line?: SVGPathElement };
   sceneId: string;
 }
 
@@ -509,6 +510,9 @@ function build(el: PlanElement, flow: boolean, sceneId: string): HTMLElement {
       body.style.display = el.props.body ? "block" : "none";
       break;
     }
+    case "chart":
+      buildChart(node, flow);
+      break;
     case "progress": {
       const f = el.font!;
       const steps = (el.props.steps as string[]) ?? [];
@@ -740,10 +744,177 @@ function applyProgress(n: Node, value: number) {
     d.style.borderColor = done ? fill : base;
     // A small pop as the line reaches each dot.
     const near = Math.abs(v - i);
-    d.style.transform = `scale(${near < 0.25 ? 1 + (0.25 - near) * 0.8 : 1})`;
+    const own = currentFrame?.elements[`${el.ref}#${((el.props.steps as string[]) ?? [])[i]}`];
+    const ownScale = own ? num(own.props.scale, 1) : 1;
+    d.style.transform = `scale(${(near < 0.25 ? 1 + (0.25 - near) * 0.8 : 1) * ownScale})`;
     pr.labels[i]!.style.opacity = done ? "1" : "0.5";
     pr.labels[i]!.style.fontWeight = i === current ? "700" : String(el.font!.weight);
   });
+}
+
+// ---------------------------------------------------------------- charts
+
+function buildChart(node: Node, flow: boolean) {
+  const { el, outer, anim } = node;
+  const f = el.font!;
+  const data = (el.props.data as [string, number][]) ?? [];
+  const max = Number(el.props.max) || 1;
+  const kind = String(el.props.kind);
+  const fill = el.style.fill ?? f.color;
+  const hiColour = el.style.stroke ?? fill;
+  const highlight = el.props.highlight as string | null;
+  const show = el.props.showValues !== false;
+  if (!outer.style.width || outer.style.width === "max-content") outer.style.width = flow ? "100%" : px(Math.min(W - 144 * k, 900 * k));
+  if (!outer.style.height && !outer.style.aspectRatio) outer.style.height = px((kind === "hbar" ? Math.max(3, data.length) * 1.9 * f.size * 1.6 : 560 * k));
+  Object.assign(anim.style, { width: "100%", height: "100%" });
+  const valueFont: Font = { ...f, weight: Math.max(600, f.weight) };
+  const bars: HTMLElement[] = [];
+  const values: HTMLElement[] = [];
+  const valueLabel = (label: string) => {
+    const v = h("div", "chart-value", { whiteSpace: "nowrap", pointerEvents: "none" });
+    applyFont(v, valueFont);
+    if (label === highlight) v.style.fontWeight = "800";
+    values.push(v);
+    return v;
+  };
+  const baseline = `${px(Math.max(1, 1.5 * k))} solid ${fadeColour(f.color, 0.3)}`;
+  if (kind === "hbar") {
+    const grid = h("div", "chart hbar", { display: "grid", gridTemplateColumns: "auto 1fr", alignContent: "space-evenly", columnGap: px(f.size * 0.8), width: "100%", height: "100%" });
+    for (const [label, value] of data) {
+      const lab = h("div", "chart-label", { textAlign: "right", whiteSpace: "nowrap" });
+      applyFont(lab, f);
+      lab.textContent = label;
+      const track = h("div", "", { position: "relative", height: px(f.size * 1.6), borderLeft: baseline, paddingRight: px(f.size * 4) });
+      const bar = h("div", "chart-bar", { position: "relative", height: "100%", width: `${(value / max) * 100}%`, background: label === highlight ? hiColour : fill, borderRadius: `0 ${px(6 * k)} ${px(6 * k)} 0`, transformOrigin: "0% 50%" });
+      if (show) {
+        const v = valueLabel(label);
+        Object.assign(v.style, { position: "absolute", left: "100%", top: "50%", transform: "translateY(-50%)", marginLeft: px(f.size * 0.4) });
+        bar.appendChild(v);
+      }
+      track.appendChild(bar);
+      grid.append(lab, track);
+      bars.push(bar);
+    }
+    anim.appendChild(grid);
+    node.chart = { bars, values };
+  } else {
+    const n = Math.max(1, data.length);
+    const wrap = h("div", "chart", { display: "grid", gridTemplateRows: "1fr auto", rowGap: px(f.size * 0.5), width: "100%", height: "100%" });
+    const plot = h("div", "chart-plot", { position: "relative", display: "grid", gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))`, alignItems: "end", borderBottom: baseline, paddingTop: px(show ? f.size * 1.7 : 0) });
+    const labels = h("div", "chart-labels", { display: "grid", gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))` });
+    let line: SVGPathElement | undefined;
+    if (kind === "line") {
+      const svg = document.createElementNS(SVGNS, "svg");
+      // The real viewBox and path are set after layout, in pixels (see layoutCharts).
+      svg.setAttribute("viewBox", "0 0 100 100");
+      Object.assign(svg.style, { position: "absolute", left: "0", right: "0", bottom: "0", width: "100%", height: `calc(100% - ${px(show ? f.size * 1.7 : 0)})`, overflow: "visible" });
+      const pts = data.map(([, v], i) => `${((i + 0.5) / n) * 100},${100 - (v / max) * 100}`);
+      line = document.createElementNS(SVGNS, "path");
+      line.setAttribute("d", `M${pts.join(" L")}`);
+      line.setAttribute("fill", "none");
+      line.setAttribute("stroke", fill);
+      line.setAttribute("stroke-width", String(Math.max(3, 4 * k)));
+      line.setAttribute("stroke-linecap", "round");
+      line.setAttribute("stroke-linejoin", "round");
+      line.setAttribute("pathLength", "1");
+      svg.appendChild(line);
+      plot.appendChild(svg);
+    }
+    for (const [label, value] of data) {
+      const col = h("div", "", { position: "relative", height: "100%", display: "flex", justifyContent: "center", alignItems: "flex-end" });
+      const pct = `${(value / max) * 100}%`;
+      let bar: HTMLElement;
+      if (kind === "line") {
+        // An invisible column to the point's height; the dot sits on top.
+        bar = h("div", "chart-bar", { position: "relative", width: "0", height: pct });
+        const d = Math.max(10, f.size * 0.55);
+        bar.appendChild(h("div", "chart-dot", { position: "absolute", left: px(-d / 2), top: px(-d / 2), width: px(d), height: px(d), borderRadius: "50%", background: label === highlight ? hiColour : fill, boxShadow: `0 0 0 ${px(3 * k)} ${fadeColour(fill, 0.25)}` }));
+      } else {
+        bar = h("div", "chart-bar", { position: "relative", width: "62%", height: pct, background: label === highlight ? hiColour : fill, borderRadius: `${px(8 * k)} ${px(8 * k)} 0 0`, transformOrigin: "50% 100%" });
+      }
+      if (show) {
+        const v = valueLabel(label);
+        Object.assign(v.style, { position: "absolute", left: "50%", bottom: "100%", transform: "translateX(-50%)", marginBottom: px(f.size * (kind === "line" ? 0.6 : 0.3)) });
+        bar.appendChild(v);
+      }
+      col.appendChild(bar);
+      plot.appendChild(col);
+      bars.push(bar);
+      const lab = h("div", "chart-label", { textAlign: "center", padding: `0 ${px(f.size * 0.2)}` });
+      applyFont(lab, f);
+      if (label === highlight) lab.style.fontWeight = "700";
+      lab.textContent = label;
+      labels.appendChild(lab);
+    }
+    wrap.append(plot, labels);
+    anim.appendChild(wrap);
+    node.chart = { bars, values, ...(line ? { line } : {}) };
+  }
+  node.box = anim;
+}
+
+function applyChart(n: Node, f: ElementFrame) {
+  const c = n.chart!;
+  const el = n.el;
+  const data = (el.props.data as [string, number][]) ?? [];
+  const max = Number(el.props.max) || 1;
+  const kind = String(el.props.kind);
+  const grows = new Map(f.parts.filter((p) => p.kind === "bar").map((p) => [p.index, num(p.props.grow, 1)]));
+  let total = 0;
+  data.forEach(([label, value], i) => {
+    const g = clamp01(grows.get(i) ?? 1);
+    total += g;
+    const bar = c.bars[i]!;
+    const size = `${(value / max) * 100 * (kind === "line" ? 1 : g)}%`;
+    if (kind === "hbar") bar.style.width = size;
+    else bar.style.height = size;
+    if (kind === "line") (bar.firstElementChild as HTMLElement).style.transform = `scale(${g})`;
+    const v = c.values[i];
+    if (v) {
+      v.textContent = formatNumber(value * g, (el.props.format as string | null) ?? undefined, Number(el.props.decimals ?? 0));
+      v.style.opacity = g > 0.02 ? "1" : "0";
+    }
+    // A bar animated on its own (e.g. pulse on "meals#Q4").
+    const pf = currentFrame?.elements[`${el.ref}#${label}`];
+    if (pf) {
+      const p = pf.props;
+      bar.style.transform = `translate(${px(num(p.x, 0))}, ${px(num(p.y, 0))}) scale(${num(p.scale, 1)})`;
+      bar.style.opacity = String(pf.visible ? clamp01(num(p.opacity, 1)) : 0);
+    }
+  });
+  if (c.line) {
+    c.line.style.strokeDasharray = "1";
+    c.line.style.strokeDashoffset = String(1 - (data.length ? total / data.length : 1));
+  }
+}
+
+let currentFrame: Frame | undefined;
+
+/** Line charts: once sizes are known, draw the path in real pixels so its stroke and dash stay even. */
+function layoutCharts() {
+  for (const n of nodes.values()) {
+    const line = n.chart?.line;
+    if (!line) continue;
+    const svg = line.ownerSVGElement!;
+    const w = svg.clientWidth || 100;
+    const hh = svg.clientHeight || 100;
+    svg.setAttribute("viewBox", `0 0 ${w} ${hh}`);
+    const data = (n.el.props.data as [string, number][]) ?? [];
+    const max = Number(n.el.props.max) || 1;
+    const pts = data.map(([, v], i) => `${((i + 0.5) / data.length) * w},${hh - (v / max) * hh}`);
+    line.setAttribute("d", `M${pts.join(" L")}`);
+  }
+}
+
+/** The drawn element for a named part: a chart bar (or line point) or a progress step's dot. */
+function partElement(n: Node, name: string): HTMLElement | undefined {
+  if (n.progress) return n.progress.dots[((n.el.props.steps as string[]) ?? []).indexOf(name)];
+  if (n.chart) {
+    const i = ((n.el.props.data as [string, number][]) ?? []).findIndex(([l]) => l === name);
+    const bar = n.chart.bars[i];
+    return n.el.props.kind === "line" ? (bar?.firstElementChild as HTMLElement | undefined) : bar;
+  }
+  return undefined;
 }
 
 // ---------------------------------------------------------------- device screens and scrolling
@@ -900,7 +1071,7 @@ function layoutAll() {
       if (ref && !placed.has(ref)) continue;
       const pinStep = l.pin ? (l.pin as { to: string }).to.split("#")[1] : undefined;
       const pinNode = ref ? nodes.get(ref) : undefined;
-      const stepDot = pinStep && pinNode?.progress ? pinNode.progress.dots[((pinNode.el.props.steps as string[]) ?? []).indexOf(pinStep)] : undefined;
+      const stepDot = pinStep && pinNode ? partElement(pinNode, pinStep) : undefined;
       const target = stepDot ?? (ref ? nodes.get(ref)?.outer : undefined);
       const parent = n.outer.offsetParent as HTMLElement | null ?? n.outer.parentElement!;
       const me = localBox(n.outer, parent);
@@ -949,6 +1120,7 @@ function layoutAll() {
     }
   }
   sizeGroups();
+  layoutCharts();
   for (const p of pills) {
     const r = Math.max(0, p.outer.offsetHeight / 2 - p.sw / 2);
     p.geo.style.setProperty("rx", px(r));
@@ -1046,6 +1218,7 @@ function applyElement(n: Node, f: ElementFrame | undefined) {
   if (el.type === "icon" && p.color !== undefined && n.box instanceof SVGElement) (n.box as SVGElement).style.color = String(p.color);
   if (n.toast) applyToast(n, f);
   if (n.progress) applyProgress(n, num(p.value, Number(el.props.value ?? 0)));
+  if (n.chart) applyChart(n, f);
   if (n.text) {
     if (p.letterSpacing !== undefined) {
       n.text.style.letterSpacing = `${p.letterSpacing}em`;
@@ -1308,13 +1481,10 @@ function targetPoint(target: string): [number, number] {
   if (!n) return [W / 2, H / 2];
   const st = stage.getBoundingClientRect();
   const toCanvas = (x: number, y: number): [number, number] => [(x - st.left) / scale, (y - st.top) / scale];
-  if (hs && n.progress) {
-    const i = ((n.el.props.steps as string[]) ?? []).indexOf(hs);
-    const dot = n.progress.dots[i];
-    if (dot) {
-      const r = dot.getBoundingClientRect();
-      return toCanvas(r.left + r.width / 2, r.top + r.height / 2);
-    }
+  const part = hs ? partElement(n, hs) : undefined;
+  if (part) {
+    const r = part.getBoundingClientRect();
+    return toCanvas(r.left + r.width / 2, r.top + r.height / 2);
   }
   const spot = hs ? (n.el.props.hotspots as Record<string, number[]> | undefined)?.[hs] : undefined;
   if (spot) {
@@ -1376,6 +1546,7 @@ function applyCursors(cursors: CursorFrame[]) {
 function render(t: number) {
   currentT = t;
   const fr = frameAt(plan, t);
+  currentFrame = fr;
   applyScenes(fr);
   for (const n of nodes.values()) applyElement(n, fr.elements[n.el.ref]);
   for (const n of nodes.values()) {

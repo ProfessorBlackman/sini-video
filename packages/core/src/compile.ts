@@ -38,7 +38,7 @@ export interface CompiledPlan extends Plan {
   reading: ReadingWindow[];
 }
 
-const UNSUPPORTED_TYPES = new Set(["chart", "template", "svg"]);
+const UNSUPPORTED_TYPES = new Set(["template", "svg"]);
 const UNSUPPORTED_BEHAVIORS = new Set(["camera", "focusCycle"]);
 const ENTER = new Set(["fadeIn", "fadeUp", "slideIn", "scaleIn", "popIn", "bounceIn", "blurIn", "wordReveal", "lineReveal", "charReveal", "typewriter", "countUp", "trackIn", "drawOutline", "wipeIn", "grow"]);
 const EXIT = new Set(["fadeOut", "slideOut", "scaleOut", "blurOut", "wordsUp", "wipeOut"]);
@@ -308,6 +308,20 @@ class Compiler {
       el.props = { icon: src.icon ?? null, title: String(src.title ?? ""), body: src.body === undefined ? null : String(src.body), bodyFont: body };
       const parsed = parseMarkup(`${src.title ?? ""} ${src.body ?? ""}`.trim());
       el.text = { runs: parsed.runs, plain: parsed.plain, words: parsed.words, chars: parsed.chars, lines: 1, readingWords: parsed.readingWords, split: "none", fit: "none" };
+    } else if (type === "chart") {
+      el.font = this.font("caption", src.style, ctx.inDevice, ctx.textColour);
+      if (!style.fill) style.fill = el.font.color;
+      const data: [string, number][] = (src.data ?? []).map((r: J) => [String(r[0]), Number(r[1])]);
+      const decimals = Math.max(0, ...data.map(([, v]) => (String(v).split(".")[1] ?? "").length));
+      el.props = {
+        kind: src.kind ?? "bar",
+        data,
+        highlight: src.highlight ?? null,
+        showValues: src.showValues !== false,
+        format: src.format ?? null,
+        decimals,
+        max: src.max ?? Math.max(0, ...data.map(([, v]) => v)),
+      };
     } else if (type === "progress") {
       el.font = this.font("caption", src.style, ctx.inDevice, ctx.textColour);
       if (!style.fill) style.fill = el.font.color;
@@ -561,6 +575,7 @@ class Compiler {
   }
 
   partsFor(name: string, el: PlanElement | undefined): number {
+    if (name === "grow" && el?.type === "chart") return Math.max(1, (el.props.data as unknown[]).length);
     const t = el?.text;
     if (!t) return 1;
     if (name === "wordReveal" || name === "wordsUp" || (name === "bounceIn" && el?.type === "text")) return Math.max(1, t.words);
@@ -808,7 +823,14 @@ class Compiler {
       props: {}, states: {}, children: [], appearAt: null, hideAt: null, z: 0,
     };
     for (const u of timing.uses) {
-      const el = u.ref === "background" ? background : registry.get(u.ref)?.el;
+      let el = u.ref === "background" ? background : registry.get(u.ref)?.el;
+      if (!el && u.ref.includes("#")) {
+        const [base, part] = u.ref.split("#") as [string, string];
+        const owner = registry.get(base)?.el;
+        if (owner && (owner.type === "chart" || owner.type === "progress")) {
+          el = { ...background, ref: `${owner.ref}#${part}`, type: "part", sceneId: sc.id };
+        }
+      }
       if (!el) continue;
       const w = timing.windowOf(u);
       if (!w) continue;
@@ -1091,6 +1113,7 @@ class Compiler {
         break;
       }
       case "grow":
+        parts("bar", Math.max(1, ((el.props.data as unknown[]) ?? []).length), (part, a, b) => push("grow", [0, 1], a, b, ease, part));
         break;
       case "fadeOut":
         push("opacity", [null, 0]);

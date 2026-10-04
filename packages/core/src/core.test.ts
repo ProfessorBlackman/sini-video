@@ -240,3 +240,29 @@ describe("toast and progress", () => {
     expect(elementFrame(plan, "track", 4).props.value).toBeCloseTo(2);
   });
 });
+
+describe("charts", () => {
+  it("formats numbers with templates", async () => {
+    const { formatNumber } = await import("./index.js");
+    expect(formatNumber(4500, "GH₵ 0,0")).toBe("GH₵ 4,500");
+    expect(formatNumber(46, "0%")).toBe("46%");
+    expect(formatNumber(3.14159, "0.0")).toBe("3.1");
+    expect(formatNumber(12480, undefined)).toBe("12,480");
+    expect(formatNumber(950, undefined)).toBe("950");
+  });
+
+  const plan = compile(video([{ id: "s", duration: 5, elements: [
+    { id: "c", type: "chart", kind: "bar", data: [["A", 10], ["B", 20], ["C", 40]], enter: { preset: "grow", at: 1, duration: 0.5, stagger: 0.2, ease: "linear" } },
+    { id: "after", type: "shape", shape: "rect", enter: { preset: "fadeIn", at: "c.enter.end" } },
+  ], timeline: [{ target: "c#B", preset: "pulse", at: 2 }] }]));
+
+  it("grows each bar in turn; enter.end waits for the last bar", () => {
+    const parts = elementFrame(plan, "c", 1.35).parts.filter((p) => p.kind === "bar");
+    expect(parts.map((p) => Math.round(p.props.grow! * 10) / 10)).toEqual([0.7, 0.3, 0]);
+    expect(plan.tracks.find((t) => t.ref === "after")!.t0).toBeCloseTo(1 + 0.5 + 0.2 * 2);
+  });
+  it("animates a single bar with a preset", () => {
+    expect(plan.tracks.some((t) => t.ref === "c#B" && t.kind === "pulse")).toBe(true);
+    expect(frameAt(plan, 2.2).elements["c#B"]?.props.scale).toBeGreaterThan(1);
+  });
+});
