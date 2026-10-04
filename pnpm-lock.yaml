@@ -20,9 +20,14 @@ importers:
 
   packages/cli:
     dependencies:
+      '@sini/schema':
+        specifier: workspace:*
+        version: link:../schema
       commander:
         specifier: ^15.0.0
         version: 15.0.0
+
+  packages/schema: {}
 
 packages:
 

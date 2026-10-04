@@ -68,7 +68,7 @@ PRESET_PARAMS = {"fadeUp": {"distance"}, "slideIn": {"from", "distance"}, "scale
                  "kenBurns": {"zoom", "pan"}, "float": {"amplitude", "period"},
                  "pulse": {"scale", "every", "ring"}, "swing": {"angle", "damping"},
                  "drift": {"x", "y", "scale"}}
-TEXT_ONLY = {"wordReveal", "lineReveal", "charReveal", "typewriter", "countUp", "trackIn", "wordsUp"}
+TEXT_ONLY = {"wordReveal", "lineReveal", "charReveal", "countUp", "trackIn", "wordsUp"}  # typewriter also works on browsers
 ANIM_PROPS = {"x", "y", "scale", "scaleX", "scaleY", "rotation", "opacity", "blur", "width", "height",
               "radius", "color", "fill", "stroke", "letterSpacing", "fontWeight", "value"}
 BEHAVIORS = {

@@ -623,9 +623,9 @@ Directions (`from`, `to`) always name a **side of the element**: `from: "down"` 
 | `bounceIn` | | Drops in from above with a bounce | words, for text |
 | `blurIn` | `amount` (18 px) | Unblurs while fading in | |
 | `wordReveal` | | Each word rises from behind a mask (text only) | words |
-| `lineReveal` | | Same, line by line (text only) | lines |
+| `lineReveal` | | Same, line by line (text only). Lines are the lines you write with `\n`; automatic wrapping doesn't create new parts | lines |
 | `charReveal` | `blur` (true) | Character by character; good for wordmarks (text only) | characters |
-| `typewriter` | `cps` (40), `caret` (true) | Types out characters; `duration` is ignored (text only) | |
+| `typewriter` | `cps` (40), `caret` (true) | Types out characters; `duration` is ignored. On a `browser`, types its `url` into the address bar | |
 | `countUp` | `from` (0) | Counts the first number in the text up from `from` (text only) | |
 | `trackIn` | `from` (0.4, in em) | Letter-spacing tightens into place while fading in (text only) | |
 | `drawOutline` | | Strokes draw themselves (shape, svg, browser, phone frames) | |
