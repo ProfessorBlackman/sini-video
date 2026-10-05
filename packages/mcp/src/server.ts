@@ -3,13 +3,15 @@
  * Project paths are resolved inside a root folder (SINI_ROOT, default: the working directory).
  */
 import { existsSync, readFileSync } from "node:fs";
-import { resolve, sep } from "node:path";
+import { relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import * as api from "@sini/api";
 import type { Issue } from "@sini/schema";
+
+import { referenceSection } from "./reference.js";
 
 const DOCS = fileURLToPath(new URL("../docs/", import.meta.url));
 const read = (f: string) => readFileSync(DOCS + f, "utf8");
@@ -40,10 +42,15 @@ export function createServer(root = process.env.SINI_ROOT ?? process.cwd()): Mcp
 
   const server = new McpServer({ name: "sini", version: "0.0.1" }, {
     instructions:
-      "Sini renders videos from a JSON spec. Read the DSL reference first (get_reference or the sini://reference resource). " +
+      "Sini renders videos from a JSON spec. Read the DSL reference first: get_reference (essentials and index), then sections \"7\" and \"9\". " +
       "Workflow: create_video → validate_video / lint_video → render_contact_sheet (look at it) → update_video with patches → render_video (draft first). " +
       "Use describe_at and get_layout instead of estimating timing or text sizes. Every change creates a new version.",
   });
+  // Output paths relative to the server root: inside Docker the absolute path (/work/…) means nothing to the user.
+  const shown = (file: string) => {
+    const rel = relative(ROOT, file);
+    return rel && !rel.startsWith("..") ? `${rel} (in the folder Sini was given)` : file;
+  };
   const projectArg = { project: z.string().default(".").describe("Project folder (relative to the server root) containing video.json") };
   const readOnly = { readOnlyHint: true, openWorldHint: false };
 
@@ -57,8 +64,15 @@ export function createServer(root = process.env.SINI_ROOT ?? process.cwd()): Mcp
   }
 
   // ---------- tools ----------
-  server.registerTool("get_reference", { title: "Read the Sini DSL reference", description: "Returns the full DSL reference (Markdown). Read it before writing a video.", annotations: readOnly },
-    run(() => text(read("DSL_REFERENCE.md"))));
+  server.registerTool("get_reference", {
+    title: "Read the Sini DSL reference",
+    description:
+      "The DSL reference (Markdown). Without `section`: the essentials and an index of the other sections. " +
+      "Then read section \"7\" (elements) and \"9\" (animation) before writing a video. " +
+      "`section` takes a number (\"7\", \"7.3\"), a name (\"elements\", \"transitions\", \"examples\") or \"all\".",
+    inputSchema: { section: z.string().optional().describe('Section number ("9", "9.4"), name ("behaviors"), or "all"') },
+    annotations: readOnly,
+  }, (a) => run(() => text(referenceSection(read("DSL_REFERENCE.md"), a.section)))());
 
   server.registerTool("create_video", {
     title: "Create a video project",
@@ -138,7 +152,7 @@ export function createServer(root = process.env.SINI_ROOT ?? process.cwd()): Mcp
     annotations: readOnly,
   }, (a) => run(async () => {
     const r = await api.renderFrame(project(a.project), a.time, { scale: a.scale });
-    return { content: [{ type: "image", data: r.png.toString("base64"), mimeType: "image/png" }, { type: "text", text: r.file }] };
+    return { content: [{ type: "image", data: r.png.toString("base64"), mimeType: "image/png" }, { type: "text", text: shown(r.file) }] };
   })());
 
   server.registerTool("render_contact_sheet", {
@@ -148,7 +162,7 @@ export function createServer(root = process.env.SINI_ROOT ?? process.cwd()): Mcp
     annotations: readOnly,
   }, (a) => run(async () => {
     const r = await api.contactSheet(project(a.project), { ...(a.times ? { times: a.times } : { count: a.count }) });
-    return { content: [{ type: "image", data: r.png.toString("base64"), mimeType: "image/png" }, { type: "text", text: `${r.file}\nTimes: ${r.times.join(", ")}` }] };
+    return { content: [{ type: "image", data: r.png.toString("base64"), mimeType: "image/png" }, { type: "text", text: `${shown(r.file)}\nTimes: ${r.times.join(", ")}` }] };
   })());
 
   server.registerTool("render_video", {
@@ -157,7 +171,15 @@ export function createServer(root = process.env.SINI_ROOT ?? process.cwd()): Mcp
     inputSchema: { ...projectArg, draft: z.boolean().default(true) },
   }, (a) => run(async () => {
     const r = await api.renderMp4(project(a.project), { draft: a.draft });
-    return text(`✓ ${r.file}\n${r.duration.toFixed(2)}s, ${r.width}×${r.height} @ ${r.fps}fps, ${r.frames} frames, rendered in ${r.seconds.toFixed(1)}s${r.warnings.length ? `\n${r.warnings.map((w) => `! ${w}`).join("\n")}` : ""}`);
+    // Open lint warnings are repeated here: a render is where a model decides it's finished.
+    const lint = await api.lint(project(a.project));
+    const open = lint.issues.filter((i) => i.level === "warning");
+    return text(
+      `✓ ${shown(r.file)}\n${r.duration.toFixed(2)}s, ${r.width}×${r.height} @ ${r.fps}fps, ${r.frames} frames, rendered in ${r.seconds.toFixed(1)}s` +
+        (open.length
+          ? `\n\n${open.length} lint warning(s) still open. Fix them before calling the video done, or say in notes why one is wrong for this video:\n${formatIssues(open)}`
+          : "\nLint: no problems."),
+    );
   })());
 
   server.registerTool("list_versions", { title: "Version history", inputSchema: projectArg, annotations: readOnly },
@@ -184,7 +206,7 @@ export function createServer(root = process.env.SINI_ROOT ?? process.cwd()): Mcp
         type: "text",
         text:
           `Make a video with Sini for this brief:\n\n${brief}\n\n` +
-          `1. Read the DSL reference (get_reference).\n` +
+          `1. Read the DSL reference: get_reference, then get_reference with section "7" and "9".\n` +
           `2. Write the spec and create_video in "${dir ?? "video"}".\n` +
           `3. validate_video and lint_video; fix everything with update_video patches.\n` +
           `4. render_contact_sheet and look at it critically: hierarchy, pacing, overlaps, empty space. Fix and repeat (2–3 rounds).\n` +

@@ -1,7 +1,7 @@
 # Sini DSL Reference — v0.4
 
 **Status:** Implemented. Everything in this reference renders in Sini 0.1.
-**Audience:** AI models writing Sini videos. This file is designed to be read in one pass and to be sufficient on its own.
+**Audience:** AI models writing Sini videos. It is sufficient on its own. Through MCP, `get_reference` returns it in parts: the essentials first (including §15 Recipes), then §7 and §9 on request.
 
 Sini turns a JSON description of a video into a deterministic MP4. You (the AI) describe **what the video shows and when**; Sini handles layout, animation, rendering and encoding. You never write HTML, CSS or JavaScript.
 
@@ -835,6 +835,8 @@ Every patch creates a new version. Use `describe_at(time)` to find which element
 
 ## 12. Tools, errors and lint
 
+Treat lint warnings as problems to fix. Keep one only when you're sure it's wrong for this video, and say why in `notes`.
+
 Use the tools instead of estimating:
 - `validate`: schema and reference errors.
 - `lint`: design problems (below).
@@ -849,8 +851,10 @@ Errors are structured. Fix them and resubmit.
 ```
 
 Lint checks include:
-- element off-canvas or inside the platform `safeZone`
-- unintended overlap
+- element off-canvas, too close to an edge, or inside the platform `safeZone`
+- unintended overlap, and text covered by something drawn on top
+- content sticking out of a stack or grid, and text too wide for its box
+- text drawn too small to read (in devices, and at the camera's zoom)
 - low text contrast
 - too little reading time (`0.5s + 0.3s × words`, not counting time under a transition)
 - element never visible
@@ -1081,3 +1085,68 @@ Before submitting, check:
 - [ ] Colours come from the theme palette
 - [ ] `template` is used only where nothing else works
 - [ ] Invented copy is listed in `notes`
+
+---
+
+## 15. Recipes
+
+Start from the pattern that matches the brief, then adapt it. Use the real features below rather than imitating them: don't scale a whole scene to fake a zoom, draw boxes to fake a highlight, or make one scene per app screen.
+
+**App or website demo from a screenshot** (full example: §13.3)
+- `browser` (or `phone`) with `content` = the screenshot asset; declare `hotspots` on the asset (`{ "text": "Export PDF" }` finds the words for you).
+- Put the device in a `group` and zoom with a `camera` behavior on that group: `"focus": "app#export"`.
+- Click with an `interaction` (`"click": "app#export"`); show the result with a `toast` in the device's `overlay`, changed by a `state` item.
+- Highlight regions with overlay shapes pinned to hotspots (`"pin": { "to": "app#card" }`) and presets, or `focusCycle` for elements.
+
+**Phone app flow without screenshots** (complete spec below)
+- One `phone` with `screens`; build each screen from elements. Repeated rows are a component.
+- One `interaction` with `click` steps that `navigate` between screens and `set` states; `type` steps for text fields.
+- `scroll` long screens; `progress` for multi-step status, advanced with `"animate": { "value": n }`.
+
+**Numbers and results**
+- `chart` with the `grow` preset and `highlight`; big numbers as text with `countUp`; one idea per scene.
+
+**Photo or product reel**
+- `image` elements (placeholders until the client sends files) in a `grid` or `stack`; `matchCut` from one photo to the next scene's `background`; `kenBurns` for slow movement.
+
+**Announcement or event**
+- Logo as an `svg` asset with `drawOutline`; details on a card (`stack` with `style.fill`, or a `group` to move several things together); end on a `button` with `pulse`.
+
+Phone app flow:
+
+```json
+{
+  "version": "0.4",
+  "video": { "format": "9:16" },
+  "theme": { "palette": { "ink": "#14161C", "sun": "#FFC83D", "mute": "#6B7280", "mist": "#F3F4F6" },
+             "fonts": { "display": "Inter Tight", "body": "Inter Tight" }, "motion": "snappy" },
+  "components": {
+    "ride": { "params": { "name": "", "price": "" },
+      "root": { "id": "row", "type": "stack", "direction": "horizontal", "justify": "space-between", "style": { "fill": "mist", "radius": 18, "padding": [22, 24] },
+        "children": [ { "id": "n", "type": "text", "role": "body", "content": "{{name}}" }, { "id": "p", "type": "text", "role": "body", "content": "{{price}}" } ] } }
+  },
+  "scenes": [ { "id": "app", "duration": "auto", "background": "sun",
+    "elements": [
+      { "id": "caption", "type": "text", "role": "title", "content": "Book a ride in seconds", "style": { "color": "ink", "align": "center" }, "layout": { "anchor": "top", "inset": [150, 0] } },
+      { "id": "phone", "type": "phone", "layout": { "anchor": "bottom", "inset": [-200, 0], "width": 760 }, "padding": [16, 20], "gap": 14, "screen": "home",
+        "screens": {
+          "home": [ { "id": "where", "type": "text", "role": "title", "content": "Where to?" },
+                    { "id": "dest", "type": "button", "label": "Oxford Street, Osu", "variant": "outline" } ],
+          "rides": [ { "id": "choose", "type": "text", "role": "title", "content": "Choose a ride" },
+                     { "id": "comfort", "use": "ride", "with": { "name": "Comfort", "price": "GH₵ 46" } },
+                     { "id": "xl", "use": "ride", "with": { "name": "XL", "price": "GH₵ 62" } },
+                     { "id": "pool", "use": "ride", "with": { "name": "Pool · cheapest", "price": "GH₵ 19" }, "states": { "selected": { "style": { "fill": "sun" } } } },
+                     { "id": "confirm", "type": "button", "label": "Confirm Pool" } ],
+          "track": [ { "id": "on-way", "type": "text", "role": "title", "content": "Driver on the way" },
+                     { "id": "trk", "type": "progress", "steps": ["Assigned", "On the way", "Arrived"], "value": 0, "style": { "fill": "ink", "color": "ink" } } ]
+        } }
+    ],
+    "timeline": [
+      { "id": "pick", "behavior": "interaction", "cursor": "touch", "from": "bottom-right", "at": 1.2,
+        "steps": [ { "click": "dest", "navigate": { "phone": "rides" } } ] },
+      { "id": "tap", "behavior": "interaction", "cursor": "touch", "from": "bottom-right", "at": "pick.end+0.6",
+        "steps": [ { "click": "pool", "set": { "pool": "selected" } }, { "wait": 0.3 }, { "click": "confirm", "navigate": { "phone": "track" } } ] },
+      { "target": "trk", "animate": { "value": 2 }, "at": "tap.end+0.3", "duration": 2.4 }
+    ] } ]
+}
+```

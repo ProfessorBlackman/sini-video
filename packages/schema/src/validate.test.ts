@@ -15,8 +15,8 @@ const examples = [...reference.matchAll(/```json\n([\s\S]*?)```/g)]
 const errors = (spec: unknown) => validate(spec).issues.filter((i) => i.level === "error");
 
 describe("reference examples", () => {
-  it("has the three full examples", () => {
-    expect(examples).toHaveLength(3);
+  it("has the three full examples and the phone-flow recipe", () => {
+    expect(examples).toHaveLength(4);
   });
   it.each(examples.map((e, i) => [i, e]))("example %i is valid", (_i, spec) => {
     expect(errors(spec)).toEqual([]);

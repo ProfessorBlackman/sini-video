@@ -61,3 +61,17 @@ describe("MCP server", () => {
     expect((r.content[0]?.data ?? "").length).toBeGreaterThan(1000);
   }, 60_000);
 });
+
+describe("reference in sections", () => {
+  it("returns the essentials with an index, then sections on request", async () => {
+    const first = textOf(await call("get_reference"));
+    expect(Buffer.byteLength(first)).toBeLessThan(25_000);
+    expect(first).toContain("## 10. Transitions");
+    expect(first).toContain("**7. Elements**");
+    expect(first).not.toContain("### 7.3 Element types");
+    expect(textOf(await call("get_reference", { section: "7" }))).toMatch(/^## 7\. Elements/);
+    expect(textOf(await call("get_reference", { section: "behaviors" }))).toMatch(/^### 9\.4 Behaviors/);
+    expect(textOf(await call("get_reference", { section: "nope" }))).toContain("No section 'nope'");
+    expect(Buffer.byteLength(textOf(await call("get_reference", { section: "all" })))).toBeGreaterThan(50_000);
+  });
+});

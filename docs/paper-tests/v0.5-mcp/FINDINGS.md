@@ -70,10 +70,10 @@ Status: **confirmed** = reproduced or found in the code; **reported** = from an 
 
 | # | Found by | Problem | Status |
 |---|---|---|---|
-| 20 | M4, M5, M3 | `get_reference` returns 54KB: too big to come back inline, so agents read it from a saved file. | **confirmed** (54,207 bytes) |
+| 20 | M4, M5, M3 | `get_reference` returns 54KB: too big to come back inline, so agents read it from a saved file. | **fixed**: `get_reference` returns the essentials (~23KB, incl. new §15 Recipes) plus an index; sections by number or name; `"all"` for everything; test added |
 | 21 | M4, M5 | The reference still says "Status: Draft for paper-testing… Nothing here is implemented yet." | **fixed** |
 | 22 | M5 | Missing-project error says "Create one with 'sini init'" — MCP users need `create_video`. | **fixed**: mentions create_video and `sini init` |
-| 23 | M3, M4 | Tool results give container paths (`/work/...`), not the user's real paths. | **confirmed** by design; the server can't know the host path. Could say "in your mounted folder: …" |
+| 23 | M3, M4 | Tool results give container paths (`/work/...`), not the user's real paths. | **fixed**: MCP results show paths relative to the folder Sini was given |
 | 24 | M1 | Timeline items without an id can be patched by index (`demo.timeline[4].at`), but the reference doesn't say so. | reported |
 | 25 | M3 | Chart accepts an undocumented font-size setting. | reported |
 | 26 | M1h | `fill: "none"` is rejected; outline shapes must omit `fill`. | **fixed**: `none` and `transparent` accepted everywhere a colour is, documented; test added |
@@ -98,7 +98,11 @@ Status: **confirmed** = reproduced or found in the code; **reported** = from an 
 
 ---
 
-## 4. Recommended order
+## 4. Done after this round
+
+- **Weaker models (step 4):** new §15 Recipes in the reference (patterns for app demos, phone flows, numbers, photo reels and announcements, plus a complete phone-flow spec that the tests validate), included in the default `get_reference` answer; the reference says to treat lint warnings as problems; `render_video` now repeats every open lint warning with an instruction to fix them or justify them in `notes`.
+
+## 5. Recommended order (as written after the round)
 
 1. **Silent failures #1–#7**: each one breaks trust in the check → look → fix loop. Add a lint/validate signal for anything that can't be resolved (unresolvable pin targets, overflow).
 2. **False lint positives #8, #9**, and the quick fixes **#13, #21, #22, #26**.
