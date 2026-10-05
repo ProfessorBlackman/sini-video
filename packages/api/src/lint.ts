@@ -166,6 +166,41 @@ export function layoutRules(plan: CompiledPlan, report: LayoutReport): Issue[] {
   const textual = new Set(["text", "button", "badge", "toast"]);
   const entries = walk(plan);
   const sceneOf = new Map(plan.scenes.map((s) => [s.id, s]));
+  const parentsOf = new Map(entries.map(({ el, parents }) => [el.ref, parents]));
+  /** When an element can be seen: its own appear/hide times, narrowed by every ancestor's. */
+  const visibleSpan = (el: PlanElement): [number, number] => {
+    const scene = sceneOf.get(el.sceneId)!;
+    let [t0, t1] = [scene.start, scene.visibleUntil];
+    for (const e of [...(parentsOf.get(el.ref) ?? []), el]) {
+      t0 = Math.max(t0, e.appearAt ?? t0);
+      t1 = Math.min(t1, e.hideAt ?? t1);
+    }
+    return [t0, t1];
+  };
+  /** The largest camera zoom an element is shown at while visible (1 outside camera groups). */
+  const cameraZoom = (el: PlanElement): number => {
+    const groups = new Set((parentsOf.get(el.ref) ?? []).map((p) => p.ref));
+    const [t0, t1] = visibleSpan(el);
+    let best = 1;
+    for (const tr of plan.tracks) {
+      if (tr.kind !== "camera" || !groups.has(tr.ref) || !tr.keys.length) continue;
+      const at = (t: number) => {
+        const k = tr.keys;
+        if (t <= k[0]!.t) return k[0]!.zoom;
+        for (let i = 1; i < k.length; i++) {
+          if (t <= k[i]!.t) {
+            const q = (t - k[i - 1]!.t) / Math.max(1e-6, k[i]!.t - k[i - 1]!.t);
+            return k[i - 1]!.zoom * (k[i]!.zoom / k[i - 1]!.zoom) ** q;
+          }
+        }
+        return k.at(-1)!.zoom;
+      };
+      // Between keys the zoom changes monotonically, so the maximum is at a key or an end of the span.
+      const zooms = [at(t0), at(t1), ...tr.keys.filter((k) => k.t > t0 && k.t < t1).map((k) => k.zoom)];
+      best = Math.max(best, ...zooms);
+    }
+    return best;
+  };
 
   // Content sticking out of a stack or grid. Group children are placed freely and often overhang on purpose;
   // pinned/offset children too; device pages scroll.
@@ -262,8 +297,10 @@ export function layoutRules(plan: CompiledPlan, report: LayoutReport): Issue[] {
   for (const { el } of entries) {
     const lb = boxes.get(el.ref);
     if (!lb?.screenFontSize || !el.text || el.text.readingWords === 0) continue;
-    if (lb.screenFontSize < 20 * k - 0.05) {
-      issues.push(warn(el.ref, "tiny-text", `'${el.ref}' is drawn at ${r1(lb.screenFontSize)}px on the canvas, too small to read on a phone.`,
+    const zoom = cameraZoom(el);
+    const size = lb.screenFontSize * zoom;
+    if (size < 20 * k - 0.05) {
+      issues.push(warn(el.ref, "tiny-text", `'${el.ref}' is drawn at ${r1(size)}px on the canvas${zoom > 1 ? ` (at the camera's ${r1(zoom)}× zoom)` : ""}, too small to read on a phone.`,
         el.inDevice ? "Raise its style.size (in-device sizes are scaled with the device), or make the device larger." : "Use a larger role or style.size (at least 20px on a 1080px canvas)."));
     }
   }
@@ -274,8 +311,7 @@ export function layoutRules(plan: CompiledPlan, report: LayoutReport): Issue[] {
   for (const t of entries) {
     if (!textual.has(t.el.type) || t.el.inDevice || !boxes.has(t.el.ref)) continue;
     const tb = boxes.get(t.el.ref)!.box;
-    const scene = sceneOf.get(t.el.sceneId)!;
-    const tSpan = [t.el.appearAt ?? scene.start, t.el.hideAt ?? scene.visibleUntil] as const;
+    const tSpan = visibleSpan(t.el);
     for (const o of entries) {
       if (o.el === t.el || o.el.sceneId !== t.el.sceneId || o.el.inDevice || !boxes.has(o.el.ref)) continue;
       if (o.parents.includes(t.el) || t.parents.includes(o.el)) continue;
@@ -283,7 +319,7 @@ export function layoutRules(plan: CompiledPlan, report: LayoutReport): Issue[] {
       if (!isOpaque) continue;
       const above = (o.el.z ?? 0) > (t.el.z ?? 0) || ((o.el.z ?? 0) === (t.el.z ?? 0) && order.get(o.el.ref)! > order.get(t.el.ref)!);
       if (!above) continue;
-      const oSpan = [o.el.appearAt ?? scene.start, o.el.hideAt ?? scene.visibleUntil] as const;
+      const oSpan = visibleSpan(o.el);
       if (Math.min(tSpan[1], oSpan[1]) - Math.max(tSpan[0], oSpan[0]) <= 0.05) continue;
       const area = intersect(tb, boxes.get(o.el.ref)!.box);
       if (tb.width * tb.height > 0 && area / (tb.width * tb.height) > 0.15) {
@@ -301,10 +337,8 @@ export function layoutRules(plan: CompiledPlan, report: LayoutReport): Issue[] {
       const b = texts[j]!;
       if (a.el.sceneId !== b.el.sceneId) continue;
       if (a.parents.includes(b.el) || b.parents.includes(a.el)) continue;
-      const scene = sceneOf.get(a.el.sceneId)!;
-      const span = (e: PlanElement) => [e.appearAt ?? scene.start, e.hideAt ?? scene.visibleUntil] as const;
-      const [a0, a1] = span(a.el);
-      const [b0, b1] = span(b.el);
+      const [a0, a1] = visibleSpan(a.el);
+      const [b0, b1] = visibleSpan(b.el);
       if (Math.min(a1, b1) - Math.max(a0, b0) <= 0.05) continue;
       const ba = boxes.get(a.el.ref)!.box;
       const bb = boxes.get(b.el.ref)!.box;

@@ -34,6 +34,7 @@ export function mix(a: RGBA, b: RGBA, p: number): RGBA {
 
 /** Resolve a DSL colour string (token, token/alpha, hex) to CSS. Unknown values pass through. */
 export function resolveColour(value: string, palette: Record<string, string>): string {
+  if (value === "none" || value === "transparent") return "rgba(0, 0, 0, 0)";
   const [tok, alpha] = value.split("/");
   const base = palette[tok!] ?? tok!;
   const rgba = parseCss(base);

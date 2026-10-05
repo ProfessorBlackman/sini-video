@@ -27,7 +27,7 @@ export function specFile(target = "."): string {
 
 export function load(target = "."): Loaded {
   const file = specFile(target);
-  if (!existsSync(file)) throw new SiniError(`No video spec at ${file}. Create one with 'sini init'.`);
+  if (!existsSync(file)) throw new SiniError(`No video spec at ${file}. Create one first (create_video through MCP, or 'sini init').`);
   let spec: Spec;
   try {
     spec = JSON.parse(readFileSync(file, "utf8")) as Spec;

@@ -48,8 +48,8 @@ Status: **confirmed** = reproduced or found in the code; **reported** = from an 
 
 | # | Found by | Problem | Status |
 |---|---|---|---|
-| 8 | M1 | `tiny-text` ignores camera zoom (text ~32px on screen was flagged). | reported |
-| 9 | M1 | `overlap` flags two captions that are never on screen at the same time. | reported |
+| 8 | M1 | `tiny-text` ignores camera zoom (text ~32px on screen was flagged). | **fixed**: judged at the largest camera zoom while the text is visible; test added |
+| 9 | M1 | `overlap` flags two captions that are never on screen at the same time. | **fixed**: overlap and covered use each element's visible span narrowed by its ancestors' enter/exit (the captions were timed on their stacks); test added |
 | 10 | M2 | `describe_at` calls a caption visible while another element covers it. | reported |
 | 11 | M3 | `edge-margin` warning doesn't say which edge. | **fixed**: names the edge(s) and distance; test added |
 | 12 | M4, M3 | `target-unreachable` doesn't say which scene makes the video too long; `targetDuration` can't shrink 17.6s of auto scenes to 12s, and when stretching (M1) it padded ~2s of idle time onto one scene. | reported |
@@ -58,7 +58,7 @@ Status: **confirmed** = reproduced or found in the code; **reported** = from an 
 
 | # | Found by | Problem | Status |
 |---|---|---|---|
-| 13 | M3 | Wipes default to `expo.inOut`, which barely moves for the first ~30%, so every cut seems to hesitate. | **confirmed** (default in `compile.ts`) |
+| 13 | M3 | Wipes default to `expo.inOut`, which barely moves for the first ~30%, so every cut seems to hesitate. | **fixed**: defaults are now `quart.out` (wipe), `sine.inOut` (crossfade), `cubic.inOut` (others), documented; test added |
 | 14 | M2 | After a content change ("…3 min away" → "…has arrived"), the descender of the old text's "y" stayed visible. | reported |
 | 15 | M5 | Pulse ring is always faint grey; button stroke doesn't colour it. | reported |
 | 16 | M5 | Background vignette/shadow make a "background-coloured" circle visibly differ from the background (cut-out notches). | reported; probably by design, needs a documented way (e.g. `fill: "background"` or masks) |
@@ -71,13 +71,13 @@ Status: **confirmed** = reproduced or found in the code; **reported** = from an 
 | # | Found by | Problem | Status |
 |---|---|---|---|
 | 20 | M4, M5, M3 | `get_reference` returns 54KB: too big to come back inline, so agents read it from a saved file. | **confirmed** (54,207 bytes) |
-| 21 | M4, M5 | The reference still says "Status: Draft for paper-testing… Nothing here is implemented yet." | **confirmed** |
-| 22 | M5 | Missing-project error says "Create one with 'sini init'" — MCP users need `create_video`. | **confirmed** (`api/src/project.ts`) |
+| 21 | M4, M5 | The reference still says "Status: Draft for paper-testing… Nothing here is implemented yet." | **fixed** |
+| 22 | M5 | Missing-project error says "Create one with 'sini init'" — MCP users need `create_video`. | **fixed**: mentions create_video and `sini init` |
 | 23 | M3, M4 | Tool results give container paths (`/work/...`), not the user's real paths. | **confirmed** by design; the server can't know the host path. Could say "in your mounted folder: …" |
 | 24 | M1 | Timeline items without an id can be patched by index (`demo.timeline[4].at`), but the reference doesn't say so. | reported |
 | 25 | M3 | Chart accepts an undocumented font-size setting. | reported |
-| 26 | M1h | `fill: "none"` is rejected; outline shapes must omit `fill`. | reported (accepting `none`/`transparent` is friendlier) |
-| 27 | M1h | Errors on a string `"at": "0"` and a mis-nested timeline item didn't suggest the fix. | reported |
+| 26 | M1h | `fill: "none"` is rejected; outline shapes must omit `fill`. | **fixed**: `none` and `transparent` accepted everywhere a colour is, documented; test added |
+| 27 | M1h | Errors on a string `"at": "0"` and a mis-nested timeline item didn't suggest the fix. | **fixed**: quoted numbers suggest the number; `id`/`target`/`duration`/… inside `animate` explain where they go; a missing target says what to add; test added |
 
 ### Not Sini bugs
 

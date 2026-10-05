@@ -128,7 +128,7 @@ class Validator {
       this.err(path, "bad-colour", `Colour must be a string or gradient, got ${JSON.stringify(v)}.`);
       return;
     }
-    if (HEX.test(v) || /\{\{/.test(v)) return;
+    if (HEX.test(v) || /\{\{/.test(v) || v === "none" || v === "transparent") return;
     const [tok, alpha] = v.split("/");
     if (!this.palette.has(tok!)) {
       this.err(path, "unknown-colour", `Colour '${v}' is not hex or a palette token.`, didYouMean(tok, this.palette));
@@ -149,8 +149,9 @@ class Validator {
       return;
     }
     if (typeof v !== "string" || !TIME_RE.test(v)) {
+      const numeric = typeof v === "string" && v.trim() !== "" && Number.isFinite(Number(v));
       this.err(path, "bad-time", `Bad time expression ${JSON.stringify(v)}.`,
-        "Use a number or an expression like \"h1.enter.end+0.2\", \"scene.end-0.4\" or \"cue:name\".");
+        numeric ? `Write numbers without quotes: ${Number(v)}.` : "Use a number or an expression like \"h1.enter.end+0.2\", \"scene.end-0.4\" or \"cue:name\".");
       return;
     }
     const sid = scene.id;
@@ -202,7 +203,8 @@ class Validator {
   targetRef(x: J, sid: string, path: string, opts: { hotspot?: boolean; background?: boolean } = {}) {
     if (opts.background && x === "background") return;
     if (typeof x !== "string") {
-      this.err(path, "bad-target", `Target must be a string, got ${JSON.stringify(x)}.`);
+      this.err(path, "bad-target", x === undefined ? "Missing target." : `Target must be a string, got ${JSON.stringify(x)}.`,
+        x === undefined ? 'Add "target": "<element id>" next to the preset, animate or behavior.' : undefined);
       return;
     }
     const elems = this.sceneElems.get(sid) ?? new Map<string, J>();
@@ -711,7 +713,11 @@ class Validator {
       checkTarget(t.target);
       this.unknownKeys(t, ["id", "target", "at", "duration", "ease", "animate", "stagger", "repeat", "yoyo"], p);
       for (const prop of Object.keys(isObj(t.animate) ? t.animate : {})) {
-        if (!has(ANIM_PROPS, prop) && !prop.startsWith("--")) {
+        if (["id", "target"].includes(prop)) {
+          this.err(`${p}.animate.${prop}`, "misplaced-key", `'${prop}' doesn't go inside animate.`, 'The element goes in "target", next to "animate": { "target": "box", "animate": { "opacity": 0.5 }, "duration": 1 }.');
+        } else if (["at", "duration", "ease", "stagger", "repeat", "yoyo"].includes(prop)) {
+          this.err(`${p}.animate.${prop}`, "misplaced-key", `'${prop}' doesn't go inside animate.`, `Put "${prop}" next to "animate", on the timeline item.`);
+        } else if (!has(ANIM_PROPS, prop) && !prop.startsWith("--")) {
           this.err(`${p}.animate.${prop}`, "not-animatable", `'${prop}' isn't an animatable property.`, didYouMean(prop, ANIM_PROPS));
         }
       }

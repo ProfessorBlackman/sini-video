@@ -1,6 +1,6 @@
 # Sini DSL Reference — v0.4
 
-**Status:** Draft for paper-testing with LLMs. Nothing here is implemented yet.
+**Status:** Implemented. Everything in this reference renders in Sini 0.1.
 **Audience:** AI models writing Sini videos. This file is designed to be read in one pass and to be sufficient on its own.
 
 Sini turns a JSON description of a video into a deterministic MP4. You (the AI) describe **what the video shows and when**; Sini handles layout, animation, rendering and encoding. You never write HTML, CSS or JavaScript.
@@ -98,6 +98,7 @@ The theme makes a video coherent. Set it once; elements inherit from it.
 Anywhere a colour is accepted you can use:
 - a palette token: `"wine"`
 - a token with opacity (0–1): `"bone/0.6"`. `"ink/0"` is fully transparent
+- `"none"` or `"transparent"`, e.g. an outline-only shape: `"style": { "fill": "none", "stroke": "gold" }`
 - a hex value: `"#5B1A24"` or `"#5B1A2499"`
 - a linear gradient: `{ "linear": ["wine", "ink"], "angle": 180 }`. `angle` follows CSS: `180` = top to bottom (default), `90` = left to right. Two or more stops, spread evenly
 - a radial gradient: `{ "radial": ["wine/0.35", "ink/0.75"] }`. The first stop is the centre, the last is the edge
@@ -801,7 +802,7 @@ Set on the **incoming** scene. `"theme"` (default) uses `theme.transition`.
 | `zoom` | `direction` (`in \| out`) | Zoom through to the next scene |
 | `matchCut` | `from` (element in the outgoing scene), `to` (element in the incoming scene, or `"background"`) | The `from` element expands into the `to` element's position and size, joining the two scenes |
 
-All transitions accept `duration` (default from theme, else 0.55) and `ease`.
+All transitions accept `duration` (default from theme, else 0.55) and `ease`. Default eases: `quart.out` for `wipe`, `sine.inOut` for `crossfade`, `cubic.inOut` for the others. Eases with a slow start (`expo.inOut`) make a short transition seem to hesitate.
 
 ---
 

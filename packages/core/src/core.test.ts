@@ -315,3 +315,15 @@ describe("focusCycle", () => {
     expect(d.find((e) => e.ref === "a")?.opacity).toBeCloseTo(0.3);
   });
 });
+
+describe("transition defaults", () => {
+  it("uses eases that start moving at once", () => {
+    const p = compile({ version: "0.4", video: { format: "1:1" }, scenes: [
+      { id: "a", duration: 1, elements: [] },
+      { id: "b", duration: 1, transition: "wipe", elements: [] },
+      { id: "c", duration: 1, transition: { type: "slide" }, elements: [] },
+    ] } as never);
+    expect(p.scenes[1]!.transition!.ease).toBe("quart.out");
+    expect(p.scenes[2]!.transition!.ease).toBe("cubic.inOut");
+  });
+});

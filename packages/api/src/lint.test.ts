@@ -105,3 +105,29 @@ describe("layout rules added after the MCP test", () => {
     expect(issues.find((i) => i.path === "edge" && i.code === "edge-margin")?.message).toContain("top (20px)");
   });
 });
+
+describe("lint timing and camera awareness", () => {
+  const plan = make([{ id: "s", duration: 10, background: "#000000", elements: [
+    { id: "cap-a", type: "stack", style: { fill: "#222222" }, layout: { anchor: "bottom", inset: [80, 0] }, exit: { preset: "fadeOut", at: 3 },
+      children: [{ id: "a-txt", type: "text", content: "First caption", style: { color: "#ffffff" } }] },
+    { id: "cap-b", type: "stack", style: { fill: "#222222" }, layout: { anchor: "bottom", inset: [80, 0] }, enter: { preset: "fadeIn", at: 4 },
+      children: [{ id: "b-txt", type: "text", content: "Second caption", style: { color: "#ffffff" } }] },
+    { id: "stage", type: "group", layout: { x: 0, y: 0, width: 1080, height: 1920 }, children: [
+      { id: "fine", type: "text", content: "Readable when zoomed", style: { color: "#ffffff" }, layout: { x: 100, y: 100 } },
+    ] },
+  ], timeline: [{ behavior: "camera", target: "stage", keys: [{ at: 0, focus: "center", zoom: 1 }, { at: 1, focus: "fine", zoom: 2.5 }] }] }]);
+  const box = (ref: string, type: string, x: number, y: number, w: number, h: number, fs?: number) =>
+    ({ ref, type, scene: "s", box: { x, y, width: w, height: h }, current: { x, y, width: w, height: h }, visible: true, inDevice: false, ...(fs ? { screenFontSize: fs } : {}) });
+  const report = { time: 0, width: 1080, height: 1920, elements: [
+    box("cap-a", "stack", 300, 1700, 480, 100), box("a-txt", "text", 320, 1720, 440, 60, 40),
+    box("cap-b", "stack", 300, 1700, 480, 100), box("b-txt", "text", 320, 1720, 440, 60, 40),
+    box("stage", "group", 0, 0, 1080, 1920), box("fine", "text", 100, 100, 300, 20, 14),
+  ] };
+  const issues = layoutRules(plan, report);
+  it("uses the parents' enter and exit times for overlap and covered checks", () => {
+    expect(issues.filter((i) => ["overlap", "covered"].includes(i.code))).toEqual([]);
+  });
+  it("judges text size at the camera's zoom", () => {
+    expect(issues.filter((i) => i.code === "tiny-text")).toEqual([]);
+  });
+});

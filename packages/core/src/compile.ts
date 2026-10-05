@@ -534,7 +534,8 @@ class Compiler {
     if (type === "cut") return null;
     const fallbackDur = typeof themeT === "object" && themeT?.duration ? themeT.duration : DEFAULT_TRANSITION_DURATION;
     const resolved = type;
-    const defaultEase: Record<string, string> = { wipe: "expo.inOut", slide: "expo.inOut", crossfade: "sine.inOut", circle: "cubic.inOut", zoom: "cubic.inOut", matchCut: "expo.inOut" };
+    // Eases that start moving at once: an inOut with a slow start (expo) reads as a hesitating cut.
+    const defaultEase: Record<string, string> = { wipe: "quart.out", slide: "cubic.inOut", crossfade: "sine.inOut", circle: "cubic.inOut", zoom: "cubic.inOut", matchCut: "cubic.inOut" };
     return {
       type: resolved,
       duration: spec.duration ?? fallbackDur,

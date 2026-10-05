@@ -79,3 +79,20 @@ describe("common mistakes", () => {
     expect(validate({ version: "0.4", video: {}, scenes: [] }).ok).toBe(false);
   });
 });
+
+describe("messages from the MCP test", () => {
+  const spec = (timeline: unknown[], fill = "#ffffff") => ({
+    version: "0.4", video: { format: "1:1" },
+    scenes: [{ id: "s", duration: 2, elements: [{ id: "box", type: "shape", shape: "rect", style: { fill, stroke: "#ff0000" } }], timeline }],
+  });
+  it("accepts none and transparent as colours", () => {
+    expect(errors(spec([], "none"))).toEqual([]);
+    expect(errors(spec([], "transparent"))).toEqual([]);
+  });
+  it("says how to fix a quoted number and keys put inside animate", () => {
+    const e = errors(spec([{ target: "box", animate: { scale: 1.2 }, at: "0" }, { animate: { id: "box", opacity: 0.5, duration: 1 } }]));
+    expect(e.find((i) => i.code === "bad-time")?.suggestion).toBe("Write numbers without quotes: 0.");
+    expect(e.find((i) => i.code === "bad-target")?.message).toBe("Missing target.");
+    expect(e.filter((i) => i.code === "misplaced-key").map((i) => i.path)).toEqual(["scenes[0].timeline[1].animate.id", "scenes[0].timeline[1].animate.duration"]);
+  });
+});
