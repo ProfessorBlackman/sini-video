@@ -54,9 +54,12 @@ jobs:
             exit 1
           fi
 
+      # Only for `node -p` in the smoke test. setup-node v5 would otherwise turn on pnpm
+      # caching (package.json has packageManager), and pnpm isn't installed in this job.
       - uses: actions/setup-node@v5
         with:
           node-version: 24
+          package-manager-cache: false
 
       - uses: docker/metadata-action@v5
         id: meta
