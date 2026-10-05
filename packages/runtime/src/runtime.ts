@@ -161,6 +161,17 @@ function shade(css: string, amt: number): string {
   return `rgb(${f(m[1]!)}, ${f(m[2]!)}, ${f(m[3]!)})`;
 }
 
+/** Light centre to dark edge along a cosine curve: three linear stops left a visible crease at the middle one. */
+function placeholderGradient(c: string, fx: number, fy: number): string {
+  const stops: string[] = [];
+  for (let i = 0; i <= 8; i++) {
+    const q = i / 8;
+    const amt = 38 - 72 * (0.5 - 0.5 * Math.cos(Math.PI * q));
+    stops.push(`${shade(c, Math.round(amt))} ${Math.round(q * 100)}%`);
+  }
+  return `radial-gradient(ellipse at ${fx}% ${fy}%, ${stops.join(", ")})`;
+}
+
 function picture(src: { kind: "file"; src: string } | { kind: "placeholder"; color: string; seed: number }, fit: string, focus: number[] = [50, 50]): HTMLElement {
   if (src.kind === "file") {
     const img = h("img", "pic", { width: "100%", height: "100%", objectFit: fit, objectPosition: `${focus[0]}% ${focus[1]}%`, display: "block" });
@@ -175,7 +186,7 @@ function picture(src: { kind: "file"; src: string } | { kind: "placeholder"; col
   const d = h("div", "pic placeholder", {
     width: "100%",
     height: "100%",
-    background: `radial-gradient(ellipse at ${fx}% ${fy}%, ${shade(c, 38)}, ${c} 55%, ${shade(c, -34)})`,
+    background: placeholderGradient(c, fx, fy),
     position: "relative",
   });
   const n = h("div", "", { position: "absolute", inset: "0", backgroundImage: `url(${noise()})`, opacity: "0.10", mixBlendMode: "overlay" });
@@ -702,6 +713,30 @@ function setToastIcon(n: Node, name: string | null) {
   if (name) t.icon.appendChild(iconSvg(name, 2.2));
 }
 
+/** Round line caps draw a dot where a stroke starts, even at zero length: fade a stroke in until the drawn part
+ *  is twice as long as the stroke is wide. */
+const strokeGeom = new WeakMap<Element, { len: number; width: number }>();
+function capFade(g: Element, drawn: number): number {
+  let m = strokeGeom.get(g);
+  if (!m) {
+    const len = g instanceof SVGGeometryElement ? g.getTotalLength() * scaleOf(g) : 0;
+    m = { len, width: (parseFloat(getComputedStyle(g).strokeWidth) || 1) * scaleOf(g) };
+    strokeGeom.set(g, m);
+  }
+  return m.len > 0 ? clamp01((drawn * m.len) / (2 * m.width)) : clamp01(drawn / 0.08);
+}
+/** User units to screen px for an SVG element (both length and stroke width scale the same way). */
+function scaleOf(g: Element): number {
+  const svg = (g as SVGElement).ownerSVGElement;
+  const vb = svg?.viewBox?.baseVal;
+  return svg && vb && vb.width ? svg.getBoundingClientRect().width / vb.width || 1 : 1;
+}
+
+/** Rolling text is clipped to its line plus ROLL_PAD above and below (glyphs overhang tight line heights),
+ *  and travels a line plus ROLL_GAP so it fully leaves that area. */
+const ROLL_PAD = "0.2em";
+const ROLL_GAP = "0.45em";
+
 /** Roll `from` up and `to` in, easing the width between the two texts. */
 function rollInto(e: HTMLElement, from: string, to: string, p: number) {
   if (p >= 1) {
@@ -710,9 +745,9 @@ function rollInto(e: HTMLElement, from: string, to: string, p: number) {
     return;
   }
   e.textContent = "";
-  const wrap = h("span", "", { display: "inline-grid", overflow: "hidden", verticalAlign: "top" });
-  const a = h("span", "", { gridArea: "1 / 1", transform: `translateY(${-p * 100}%)`, whiteSpace: "nowrap" });
-  const b = h("span", "", { gridArea: "1 / 1", transform: `translateY(${(1 - p) * 100}%)`, whiteSpace: "nowrap" });
+  const wrap = h("span", "", { display: "inline-grid", overflow: "hidden", verticalAlign: "top", padding: `${ROLL_PAD} 0`, margin: `-${ROLL_PAD} 0` });
+  const a = h("span", "", { gridArea: "1 / 1", transform: `translateY(calc(${-p} * (100% + ${ROLL_GAP})))`, whiteSpace: "nowrap" });
+  const b = h("span", "", { gridArea: "1 / 1", transform: `translateY(calc(${1 - p} * (100% + ${ROLL_GAP})))`, whiteSpace: "nowrap" });
   a.textContent = from;
   b.textContent = to;
   wrap.append(a, b);
@@ -1473,18 +1508,21 @@ function applyElement(n: Node, f: ElementFrame | undefined) {
     } else if (p.draw !== undefined) {
       n.outline.style.strokeDasharray = "1";
       n.outline.style.strokeDashoffset = String(1 - clamp01(d));
+      n.outline.style.strokeOpacity = String(capFade(n.outline, clamp01(d)));
     }
   }
   if (n.outlines && p.draw !== undefined) {
     const d = clamp01(Number(p.draw));
     for (const g of n.outlines) {
+      const drawn = n.filledOnly ? clamp01(d / 0.7) : d;
       g.style.strokeDasharray = "1";
-      g.style.strokeDashoffset = String(1 - (n.filledOnly ? clamp01(d / 0.7) : d));
+      g.style.strokeDashoffset = String(1 - drawn);
+      g.style.strokeOpacity = String(capFade(g, drawn));
       if (n.filledOnly?.has(g)) {
         // Trace with the fill colour, then let the fill take over.
         const f = clamp01((d - 0.6) / 0.4);
         g.style.fillOpacity = String(f);
-        g.style.strokeOpacity = String(1 - f);
+        g.style.strokeOpacity = String((1 - f) * capFade(g, drawn));
       }
     }
   }
@@ -1529,9 +1567,9 @@ function applyElement(n: Node, f: ElementFrame | undefined) {
     if (q >= 1) n.text.textContent = to;
     else {
       n.text.innerHTML = "";
-      const wrap = h("span", "", { display: "inline-grid", overflow: "hidden", verticalAlign: "top" });
-      const a = h("span", "", { gridArea: "1 / 1", transform: `translateY(${-q * 100}%)`, whiteSpace: "nowrap" });
-      const b = h("span", "", { gridArea: "1 / 1", transform: `translateY(${(1 - q) * 100}%)`, whiteSpace: "nowrap" });
+      const wrap = h("span", "", { display: "inline-grid", overflow: "hidden", verticalAlign: "top", padding: `${ROLL_PAD} 0`, margin: `-${ROLL_PAD} 0` });
+      const a = h("span", "", { gridArea: "1 / 1", transform: `translateY(calc(${-q} * (100% + ${ROLL_GAP})))`, whiteSpace: "nowrap" });
+      const b = h("span", "", { gridArea: "1 / 1", transform: `translateY(calc(${1 - q} * (100% + ${ROLL_GAP})))`, whiteSpace: "nowrap" });
       a.textContent = from;
       b.textContent = to;
       wrap.append(a, b);
@@ -1548,11 +1586,11 @@ function applyElement(n: Node, f: ElementFrame | undefined) {
   // Pulse ring.
   if (f.ring) {
     if (!n.ring) {
-      n.ring = h("div", "ring", { position: "absolute", inset: "0", pointerEvents: "none", borderRadius: (n.box as HTMLElement | undefined)?.style.borderRadius || "999px", border: `${px(2 * k)} solid ${el.style.fill ?? el.font?.color ?? "#fff"}` });
+      n.ring = h("div", "ring", { position: "absolute", inset: "0", pointerEvents: "none", borderRadius: (n.box as HTMLElement | undefined)?.style.borderRadius || "999px", border: `${px(3 * k)} solid ${el.style.stroke ?? el.style.fill ?? el.font?.color ?? "#fff"}` });
       n.anim.appendChild(n.ring);
     }
     n.ring.style.display = "block";
-    n.ring.style.opacity = String((1 - f.ring.p) * 0.6);
+    n.ring.style.opacity = String((1 - f.ring.p) * 0.85);
     n.ring.style.transform = `scale(${1 + f.ring.p * 0.18}, ${1 + f.ring.p * 0.5})`;
   } else if (n.ring) n.ring.style.display = "none";
 }

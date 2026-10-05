@@ -450,6 +450,7 @@ A horizontal step tracker (order status, onboarding steps).
 | `format` | Optional value template, e.g. `"GH₵ 0,0"`, `"0%"`, `"0.0"` |
 | `max` | Axis maximum. Default: the largest value |
 | `style.fill`, `stroke`, `color` | Bar/line colour, highlight colour, label colour |
+| `style.size` | Label and value text size. Default: the `caption` size |
 
 Sini computes bar sizes, label positions and the baseline; labels sit inside the layout box. Bars are addressable by label like hotspots (`"meals#Q4"`) for `pin`, `focus`, and presets such as `pulse`. Use the `grow` preset to animate it: bars grow from the baseline (lines draw left to right) with stagger, and values count up.
 
@@ -648,7 +649,7 @@ With a list `target`, a preset splits across the targets in order. To stagger a 
 |---|---|---|
 | `kenBurns` | `zoom` (1.12), `pan` (`[dx, dy]` px over the duration) | Slow zoom/pan on images and backgrounds |
 | `float` | `amplitude` (10 px), `period` (5 s) | Gentle up-down drift |
-| `pulse` | `scale` (1.06), `every` (0.75 s), `ring` (false) | Repeating pulse. With `ring: true`, an outline ring expands and fades behind the element instead |
+| `pulse` | `scale` (1.06), `every` (0.75 s), `ring` (false) | Repeating pulse. With `ring: true`, an outline ring expands and fades behind the element instead, in the element's `style.stroke` (else its `fill`) |
 | `swing` | `angle` (7°), `damping` (2.6) | Damped swing that settles. Pivots on `style.origin` (default `"top"` for this preset) |
 | `drift` | `x` (0), `y` (-30), `scale` (1) | Slow constant movement to these offsets over the duration |
 
@@ -826,6 +827,7 @@ When a human asks for changes, send a **patch** instead of rewriting the whole s
 ```
 
 - `set` paths start with an id, or with a top-level key (`"video.targetDuration"`, `"theme.palette.ink"`). `"value": null` deletes the key.
+- Array items are addressed by index: `"intro.timeline[2].at"` (or `"intro.timeline.2.at"`). Indexes shift when items are added or removed, so give timeline items and steps an `id` when you expect to edit them, and address them by id.
 - `add` and `move` place the element `after` / `before` another element, or inside a container with `"parent": "<id>"`, or at the end of the scene.
 - A patch is all-or-nothing: if the result doesn't validate, nothing is saved.
 

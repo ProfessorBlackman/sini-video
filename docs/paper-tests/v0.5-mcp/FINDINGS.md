@@ -50,21 +50,21 @@ Status: **confirmed** = reproduced or found in the code; **reported** = from an 
 |---|---|---|---|
 | 8 | M1 | `tiny-text` ignores camera zoom (text ~32px on screen was flagged). | **fixed**: judged at the largest camera zoom while the text is visible; test added |
 | 9 | M1 | `overlap` flags two captions that are never on screen at the same time. | **fixed**: overlap and covered use each element's visible span narrowed by its ancestors' enter/exit (the captions were timed on their stacks); test added |
-| 10 | M2 | `describe_at` calls a caption visible while another element covers it. | reported |
+| 10 | M2 | `describe_at` calls a caption visible while another element covers it. | open: `describe_at` doesn't model occlusion yet |
 | 11 | M3 | `edge-margin` warning doesn't say which edge. | **fixed**: names the edge(s) and distance; test added |
-| 12 | M4, M3 | `target-unreachable` doesn't say which scene makes the video too long; `targetDuration` can't shrink 17.6s of auto scenes to 12s, and when stretching (M1) it padded ~2s of idle time onto one scene. | reported |
+| 12 | M4, M3 | `target-unreachable` doesn't say which scene makes the video too long; `targetDuration` can't shrink 17.6s of auto scenes to 12s, and when stretching (M1) it padded ~2s of idle time onto one scene. | **improved**: the warning lists every scene with its length and whether it's fixed, auto, or auto at its limit; test added. Fitting itself is unchanged: auto scenes stretch or shrink within reading-time limits, so a video of fixed or already-minimal scenes can't be fitted |
 
 ### Rendering
 
 | # | Found by | Problem | Status |
 |---|---|---|---|
 | 13 | M3 | Wipes default to `expo.inOut`, which barely moves for the first ~30%, so every cut seems to hesitate. | **fixed**: defaults are now `quart.out` (wipe), `sine.inOut` (crossfade), `cubic.inOut` (others), documented; test added |
-| 14 | M2 | After a content change ("…3 min away" → "…has arrived"), the descender of the old text's "y" stayed visible. | reported |
-| 15 | M5 | Pulse ring is always faint grey; button stroke doesn't colour it. | reported |
-| 16 | M5 | Background vignette/shadow make a "background-coloured" circle visibly differ from the background (cut-out notches). | reported; probably by design, needs a documented way (e.g. `fill: "background"` or masks) |
-| 17 | M4 | Apparent seam across full-screen placeholders on contact sheets. | **explained**: not a sheet bug (same at every scale); the placeholder's 3-stop radial gradient has a visible crease at the middle stop. Smooth the gradient. |
-| 18 | M3 | A drawing icon looks like two stray dots in its first frames. | reported |
-| 19 | M4 | matchCut: the opening photo keeps a thin border until the very end; only the first grid item shows for a moment at the start. | reported |
+| 14 | M2 | After a content change ("…3 min away" → "…has arrived"), the descender of the old text's "y" stayed visible. | **fixed**: rolling text is clipped to its line plus 0.2em above and below and travels past it, so glyphs that overhang tight line heights are neither cut off at rest nor left behind |
+| 15 | M5 | Pulse ring is always faint grey; button stroke doesn't colour it. | **fixed**: the ring is 3px, starts at 85% opacity, and uses `style.stroke` (else `fill`); documented |
+| 16 | M5 | Background vignette/shadow make a "background-coloured" circle visibly differ from the background (cut-out notches). | by design: the card's shadow darkens the background around it, so a notch in the plain background colour looks lighter. Real cut-outs (masks) are a feature request |
+| 17 | M4 | Apparent seam across full-screen placeholders on contact sheets. | **fixed**: placeholder gradient uses 9 stops along a cosine curve; no visible crease even at 3× contrast |
+| 18 | M3 | A drawing icon looks like two stray dots in its first frames. | **fixed**: strokes fade in until the drawn part is twice the stroke width (round caps drew dots at zero length) |
+| 19 | M4 | matchCut: the opening photo keeps a thin border until the very end; only the first grid item shows for a moment at the start. | **mostly fixed by #13**: the border lingered because `expo.inOut` crawls at the end; match cuts now default to `cubic.inOut`. The staggered start of grid items is by design |
 
 ### MCP and reference
 
@@ -74,8 +74,8 @@ Status: **confirmed** = reproduced or found in the code; **reported** = from an 
 | 21 | M4, M5 | The reference still says "Status: Draft for paper-testing… Nothing here is implemented yet." | **fixed** |
 | 22 | M5 | Missing-project error says "Create one with 'sini init'" — MCP users need `create_video`. | **fixed**: mentions create_video and `sini init` |
 | 23 | M3, M4 | Tool results give container paths (`/work/...`), not the user's real paths. | **fixed**: MCP results show paths relative to the folder Sini was given |
-| 24 | M1 | Timeline items without an id can be patched by index (`demo.timeline[4].at`), but the reference doesn't say so. | reported |
-| 25 | M3 | Chart accepts an undocumented font-size setting. | reported |
+| 24 | M1 | Timeline items without an id can be patched by index (`demo.timeline[4].at`), but the reference doesn't say so. | **fixed**: documented in §11, with advice to give items ids |
+| 25 | M3 | Chart accepts an undocumented font-size setting. | **fixed**: `style.size` documented for charts |
 | 26 | M1h | `fill: "none"` is rejected; outline shapes must omit `fill`. | **fixed**: `none` and `transparent` accepted everywhere a colour is, documented; test added |
 | 27 | M1h | Errors on a string `"at": "0"` and a mis-nested timeline item didn't suggest the fix. | **fixed**: quoted numbers suggest the number; `id`/`target`/`duration`/… inside `animate` explain where they go; a missing target says what to add; test added |
 

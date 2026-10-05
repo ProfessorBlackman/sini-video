@@ -327,3 +327,15 @@ describe("transition defaults", () => {
     expect(p.scenes[2]!.transition!.ease).toBe("cubic.inOut");
   });
 });
+
+describe("targetDuration warnings", () => {
+  it("say which scenes the time goes to", () => {
+    const p = compile({ version: "0.4", video: { format: "1:1", targetDuration: 3 }, scenes: [
+      { id: "long", duration: 6, elements: [] },
+      { id: "short", duration: "auto", elements: [{ id: "t", type: "text", content: "Hello there" }] },
+    ] } as never);
+    const w = p.report.find((r) => r.code === "target-unreachable")!;
+    expect(w.message).toContain("long 6.0s (fixed)");
+    expect(w.message).toMatch(/short [\d.]+s \(auto, at its limit\)/);
+  });
+});

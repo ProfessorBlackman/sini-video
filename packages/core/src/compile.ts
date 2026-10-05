@@ -500,10 +500,13 @@ class Compiler {
 
   applyTarget(target: number, scenes: J[], durations: number[]) {
     const autoIdx = scenes.map((s, i) => (s.duration === "auto" ? i : -1)).filter((i) => i >= 0);
+    // Which scenes the time goes to, so the author knows what to change.
+    const breakdown = (limited = new Set<number>()) =>
+      scenes.map((s, i) => `${s.id} ${durations[i]!.toFixed(1)}s ${s.duration === "auto" ? (limited.has(i) ? "(auto, at its limit)" : "(auto)") : "(fixed)"}`).join(", ");
     const total = durations.reduce((a, b) => a + b, 0);
     let remaining = target - total;
     if (autoIdx.length === 0) {
-      if (Math.abs(remaining) > 0.05) this.warn("video.targetDuration", "target-unreachable", `targetDuration is ${target}s but all scenes have fixed durations totalling ${total.toFixed(2)}s.`, "Use \"duration\": \"auto\" on some scenes.");
+      if (Math.abs(remaining) > 0.05) this.warn("video.targetDuration", "target-unreachable", `targetDuration is ${target}s but all scenes have fixed durations totalling ${total.toFixed(2)}s. Scenes: ${breakdown()}.`, "Use \"duration\": \"auto\" on some scenes.");
       return;
     }
     const adj = new Map<number, number>(autoIdx.map((i) => [i, 0]));
@@ -522,7 +525,7 @@ class Compiler {
     for (const [i, a] of adj) durations[i] = Math.round((durations[i]! + a) * 1000) / 1000;
     if (Math.abs(remaining) > 0.05) {
       this.warn("video.targetDuration", "target-unreachable",
-        `targetDuration ${target}s can't be reached: the video is ${(target - remaining).toFixed(2)}s (${remaining > 0 ? "short" : "long"} by ${Math.abs(remaining).toFixed(2)}s).`,
+        `targetDuration ${target}s can't be reached: the video is ${(target - remaining).toFixed(2)}s (${remaining > 0 ? "short" : "long"} by ${Math.abs(remaining).toFixed(2)}s). Scenes: ${breakdown(new Set(autoIdx))}.`,
         remaining > 0 ? "Add content, lengthen fixed scenes, or lower targetDuration." : "Cut copy, shorten animations, or raise targetDuration.");
     }
   }
