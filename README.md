@@ -27,20 +27,15 @@ The AI describes **what the video shows and when**: scenes, text, images, device
 
 ## Quick start
 
-Sini runs in Docker (it bundles Chromium, FFmpeg and the fonts; the image is about 940 MB). Pull a release for linux/amd64 or linux/arm64 and tag it `sini`, which is the name the examples below use:
+Sini runs in Docker. The image bundles Chromium, FFmpeg and the fonts, is about 940 MB, and is published for linux/amd64 and linux/arm64 (Apple Silicon runs it natively):
 
 ```bash
-docker pull ghcr.io/professorblackman/sini:latest
-docker tag ghcr.io/professorblackman/sini:latest sini
+docker pull ghcr.io/professorblackman/sini:0.1
 ```
 
-Or build it from this repository:
+The examples below use the `0.1` tag, which gets fixes but stays on the 0.1 release line, so a video renders the same way next month as today. Use `latest` to follow every release, or a full version like `0.1.0` to pin exactly. Renders are byte-identical for the same image on the same architecture; amd64 and arm64 may differ by a few pixel values.
 
-```bash
-docker build -t sini .
-```
-
-Renders are byte-identical for the same image on the same architecture; amd64 and arm64 may differ by a few pixel values.
+To build the image yourself instead, run `docker build -t sini .` and use `sini` in place of the image name below.
 
 ### With an AI client (MCP)
 
@@ -51,7 +46,7 @@ Claude Desktop (`claude_desktop_config.json`), with `~/videos` as the folder Sin
   "mcpServers": {
     "sini": {
       "command": "docker",
-      "args": ["run", "-i", "--rm", "-v", "/Users/you/videos:/work", "sini", "mcp"]
+      "args": ["run", "-i", "--rm", "-v", "/Users/you/videos:/work", "ghcr.io/professorblackman/sini:0.1", "mcp"]
     }
   }
 }
@@ -60,7 +55,7 @@ Claude Desktop (`claude_desktop_config.json`), with `~/videos` as the folder Sin
 Claude Code, from the folder you want to work in:
 
 ```bash
-claude mcp add sini -- docker run -i --rm -v "$PWD":/work sini mcp
+claude mcp add sini -- docker run -i --rm -v "$PWD":/work ghcr.io/professorblackman/sini:0.1 mcp
 ```
 
 Then ask: *"Make a 15-second vertical reel for my bakery's weekend cinnamon box."* The `create-video` prompt walks the model through create → validate → lint → contact sheet → fix → render.
@@ -70,7 +65,7 @@ Tools: `get_reference`, `create_video`, `get_video`, `validate_video`, `update_v
 ### From the command line
 
 ```bash
-alias sini='docker run --rm -v "$PWD":/work sini'
+alias sini='docker run --rm -v "$PWD":/work ghcr.io/professorblackman/sini:0.1'
 sini init my-video          # starter project
 sini validate my-video      # DSL errors with suggestions
 sini lint my-video          # reading time, edges, safe zones, overlaps, contrast, glyphs
@@ -108,7 +103,7 @@ node packages/cli/dist/index.js --help
 
 ## Releasing
 
-Push a tag matching `packages/cli/package.json`'s version (e.g. `v0.1.0`). [release.yml](.github/workflows/release.yml) runs the checks, builds the image natively on amd64 and arm64, smoke-tests each, and publishes `ghcr.io/<owner>/sini` as `0.1.0`, `0.1` and `latest` (plus `0` from 1.0 on). Running the workflow by hand publishes `edge` and `sha-<commit>`.
+Bump `packages/cli/package.json`'s version, move the [CHANGELOG](CHANGELOG.md)'s Unreleased notes under the new version, and push a matching tag (e.g. `v0.1.0`). [release.yml](.github/workflows/release.yml) runs the checks, builds the image natively on amd64 and arm64, smoke-tests each, and publishes `ghcr.io/<owner>/sini` as `0.1.0`, `0.1` and `latest` (plus `0` from 1.0 on). Running the workflow by hand publishes `edge` and `sha-<commit>`.
 
 The first publish creates the package as private; make it public once in the package settings on GitHub.
 
