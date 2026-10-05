@@ -23,3 +23,4 @@ docs/paper-tests/**/out/
 
 # Generated at build time from docs/ and examples/
 packages/mcp/docs/
+.sini-tests/

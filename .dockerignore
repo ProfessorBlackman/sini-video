@@ -10,3 +10,4 @@ examples/*/out
 docs
 !docs/DSL_REFERENCE.md
 packages/mcp/docs
+.sini-tests
