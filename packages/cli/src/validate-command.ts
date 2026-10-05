@@ -1,6 +1,7 @@
 import { readFileSync, statSync } from "node:fs";
-import { join } from "node:path";
-import { validate, type Issue } from "@sini/schema";
+import { dirname, join } from "node:path";
+import { validateFull } from "@sini/api";
+import type { Issue } from "@sini/schema";
 
 /** A path to a project folder (containing video.json) or directly to a spec file. */
 export function specPath(target: string): string {
@@ -22,7 +23,8 @@ export function runValidate(target: string, opts: { json?: boolean }): number {
     console.log(opts.json ? JSON.stringify({ ok: false, issues: [issue] }, null, 2) : formatIssue(issue));
     return 1;
   }
-  const result = validate(spec);
+  // The full check: schema, asset files and icon names, the same as every other command.
+  const result = validateFull(spec as never, dirname(file));
   if (opts.json) {
     console.log(JSON.stringify(result, null, 2));
   } else if (result.ok) {

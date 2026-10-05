@@ -167,6 +167,27 @@ export function layoutRules(plan: CompiledPlan, report: LayoutReport): Issue[] {
   const entries = walk(plan);
   const sceneOf = new Map(plan.scenes.map((s) => [s.id, s]));
 
+  // Content sticking out of a stack or grid. Group children are placed freely and often overhang on purpose;
+  // pinned/offset children too; device pages scroll.
+  for (const { el, parents } of entries) {
+    const parent = parents.at(-1);
+    const l = el.layout as Record<string, unknown>;
+    if (!parent || !["stack", "grid"].includes(parent.type) || l.method === "pin" || l.offset) continue;
+    const cb = boxes.get(el.ref)?.box;
+    const pb = boxes.get(parent.ref)?.box;
+    if (!cb || !pb || cb.width === 0 || cb.height === 0) continue;
+    const tol = 4 * k;
+    const past = [
+      ["bottom", cb.y + cb.height - (pb.y + pb.height)],
+      ["right", cb.x + cb.width - (pb.x + pb.width)],
+      ["top", pb.y - cb.y],
+      ["left", pb.x - cb.x],
+    ].filter(([, d]) => (d as number) > tol) as [string, number][];
+    if (!past.length) continue;
+    const [side, d] = past.sort((a, b) => b[1] - a[1])[0]!;
+    issues.push(warn(el.ref, "content-overflow", `'${el.ref}' sticks out ${r1(d)}px past the ${side} of '${parent.ref}' (${r1(pb.width)}×${r1(pb.height)}).`, `Make '${parent.ref}' bigger, reduce its gap or padding, or make the content smaller.`));
+  }
+
   for (const { el, parents } of entries) {
     const lb = boxes.get(el.ref);
     if (!lb || el.inDevice) continue;
@@ -179,7 +200,13 @@ export function layoutRules(plan: CompiledPlan, report: LayoutReport): Issue[] {
       if (off) {
         issues.push(warn(el.ref, "off-canvas", `'${el.ref}' extends past the canvas (${r1(b.x)},${r1(b.y)} ${r1(b.width)}×${r1(b.height)} on ${W}×${H}).`, "Reduce its size or move it inside the frame."));
       } else if (textual.has(el.type) && (b.x < margin || b.y < margin || b.x + b.width > W - margin || b.y + b.height > H - margin)) {
-        issues.push(warn(el.ref, "edge-margin", `'${el.ref}' is closer than ${Math.round(margin)}px to the edge of the frame.`, "Keep text and buttons at least 72px from the edges."));
+        const sides = [
+          b.y < margin ? `top (${r1(b.y)}px)` : "",
+          b.x + b.width > W - margin ? `right (${r1(W - b.x - b.width)}px)` : "",
+          b.y + b.height > H - margin ? `bottom (${r1(H - b.y - b.height)}px)` : "",
+          b.x < margin ? `left (${r1(b.x)}px)` : "",
+        ].filter(Boolean);
+        issues.push(warn(el.ref, "edge-margin", `'${el.ref}' is closer than ${Math.round(margin)}px to the ${sides.join(" and ")} edge of the frame.`, "Keep text and buttons at least 72px from the edges."));
       }
       if (plan.safeZone !== "none" && textual.has(el.type) && !off) {
         const hit = [b.y < zt && "top", b.y + b.height > H - zb && "bottom", b.x < zl && "left", b.x + b.width > W - zr && "right"].filter(Boolean);

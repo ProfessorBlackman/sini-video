@@ -298,6 +298,7 @@ Choose **one** placement method. `offset: [dx, dy]` can be added to any of them 
 - By default the element's **centre** is placed on `point` (an anchor name) of the `to` element.
 - With `"inside": 24`, the element's own matching corner or edge sits 24px **inside** that point instead (e.g. a toast 24px in from a browser's bottom-right corner). `"inside": 0` aligns them exactly.
 - `to` can also be a hotspot, chart bar or progress step (`"dashboard#export"`, `"meals#Q4"`).
+- A pinned element moves with its target when the target animates (enter, exit, ambient and timeline motion). It follows the position, not rotation or scale; to make things move as one, put them in a `group`.
 - Good for stickers, badges, toasts and callouts.
 
 **Absolute:**
@@ -500,7 +501,7 @@ Page children stack vertically and stretch to the screen width minus padding, un
 
 | Type | Behaviour |
 |---|---|
-| `group` | Children use their own `layout`, relative to the group's box (inside its padding). Use for cameras and for moving things together. Size: `auto` fits the children |
+| `group` | Children use their own `layout`, relative to the group's box (inside its padding). Use for cameras and for moving things together. Size: `auto` fits the children; an explicit `width` or `height` is kept, and children can overhang it |
 | `stack` | Children placed in a row or column. Keys: `direction` (`vertical` default, or `horizontal`), `gap`, `align` (`start` default, `center`, `end`, `stretch`, `baseline`), `justify` (`start` default, `center`, `end`, `space-between`). Size: `auto` fits the children plus padding |
 | `grid` | Children fill cells left to right and stretch to the column width. Keys: `columns`, `gap`, `rowGap`. Row height = tallest child in the row |
 

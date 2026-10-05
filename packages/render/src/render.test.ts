@@ -267,6 +267,64 @@ describe("camera and matchCut", () => {
   }, 60_000);
 });
 
+describe("fixes from the MCP test", () => {
+  it("pins to a screenshot hotspot inside a device overlay", async () => {
+    const { mkdtempSync, rmSync, writeFileSync } = await import("node:fs");
+    const { tmpdir } = await import("node:os");
+    const { join } = await import("node:path");
+    const dir = mkdtempSync(join(tmpdir(), "sini-pin-"));
+    writeFileSync(join(dir, "shot.png"), discPng(1280, 800));
+    const p = compile({
+      version: "0.4", video: { format: "16:9" },
+      assets: { shot: { type: "image", src: "shot.png", hotspots: { card: [100, 100, 200, 100] } } },
+      scenes: [{ id: "s", duration: 2, elements: [
+        { id: "app", type: "browser", content: "shot", layout: { anchor: "center", width: 1280 }, enter: "none",
+          overlay: [{ id: "hl", type: "shape", shape: "rect", layout: { pin: { to: "app#card", point: "center" }, width: 200, height: 100 }, enter: "none" }] },
+      ] }],
+    } as never, { projectDir: dir });
+    const s = await RenderSession.open(p, { browser });
+    try {
+      const r = await s.layout(1);
+      const app = r.elements.find((e) => e.ref === "app")!.box;
+      const hl = r.elements.find((e) => e.ref === "hl")!.current;
+      // The screenshot fills the browser's width under a 44px toolbar; the hotspot centre is (200, 150) in image px.
+      expect(Math.abs(hl.x + hl.width / 2 - (app.x + 200))).toBeLessThan(3);
+      expect(Math.abs(hl.y + hl.height / 2 - (app.y + 44 + 150))).toBeLessThan(3);
+    } finally {
+      await s.close();
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }, 60_000);
+
+  it("moves pinned elements with their animated target, keeps explicit group sizes, and measures drawn buttons", async () => {
+    const p = compile({
+      version: "0.4", video: { format: "1:1" },
+      scenes: [{ id: "s", duration: 3, elements: [
+        { id: "card", type: "shape", shape: "rect", style: { fill: "#334455" }, layout: { anchor: "center", width: 400, height: 200 }, enter: { preset: "fadeUp", at: 0, duration: 2, distance: 300, ease: "linear" } },
+        { id: "dot", type: "shape", shape: "circle", style: { fill: "#ff0000" }, layout: { pin: { to: "card", point: "top" }, width: 40, height: 40 }, enter: "none" },
+        { id: "col", type: "stack", layout: { anchor: "top-left", inset: [40, 40], width: 600 }, children: [
+          { id: "g", type: "group", layout: { height: 100 }, children: [{ id: "tall", type: "shape", shape: "rect", layout: { x: 0, y: 0, width: 50, height: 400 } }] },
+          { id: "btn", type: "button", label: "Go" },
+        ] },
+      ] }],
+    } as never);
+    const s = await RenderSession.open(p, { browser });
+    try {
+      for (const t of [0.5, 1.5, 2.5]) {
+        const r = await s.layout(t);
+        const card = r.elements.find((e) => e.ref === "card")!.current;
+        const dot = r.elements.find((e) => e.ref === "dot")!.current;
+        expect(dot.y + dot.height / 2).toBeCloseTo(card.y, 0);
+      }
+      const r = await s.layout(2.5);
+      expect(r.elements.find((e) => e.ref === "g")!.box.height).toBeCloseTo(100, 0);
+      expect(r.elements.find((e) => e.ref === "btn")!.box.width).toBeLessThan(300);
+    } finally {
+      await s.close();
+    }
+  }, 60_000);
+});
+
 describe("svg and template", () => {
   it("sanitises SVG files", async () => {
     const { sanitizeSvg } = await import("./index.js");

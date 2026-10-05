@@ -36,13 +36,13 @@ Status: **confirmed** = reproduced or found in the code; **reported** = from an 
 
 | # | Found by | Problem | Status |
 |---|---|---|---|
-| 1 | M1 | `pin.to` a screenshot hotspot (`"dashboard#outstanding"`) inside a device overlay: all three pinned shapes landed in the centre of the browser. No validate or lint message. | reported (get_layout output in log) |
-| 2 | M5 | An element pinned to another element doesn't follow the target's animation (target slid up 30px, the pinned notch stayed). | reported |
-| 3 | M1 | `chrome: "dark"` browser: toolbar and URL are drawn in translucent white over the page's white background, so they vanish. | **confirmed** (runtime draws dark-mode colours over `page.background`, default `#fff`) |
-| 4 | M2 | Component instance `layout.height` is ignored; a component's fixed height is overridden by an oversized child (maps grew to ~720px and pushed cards off-screen). | reported |
-| 5 | M2 | `{{param}}` inside an icon name (`"name": "{{icon}}"`) fails with "Unknown icon '{{icon}}'", although the reference says params work in any string. | reported (icon check likely runs before substitution) |
-| 6 | M5 | Content overflowing its container (499px of content in a 440px ticket) — nothing warns. | reported |
-| 7 | M2 | `get_layout` says a button stretches to 544.9px; it renders ~265px. | reported |
+| 1 | M1 | `pin.to` a screenshot hotspot (`"dashboard#outstanding"`) inside a device overlay: all three pinned shapes landed in the centre of the browser. No validate or lint message. | **fixed**: pins resolve hotspots (shared with cursor targets); test added |
+| 2 | M5 | An element pinned to another element doesn't follow the target's animation (target slid up 30px, the pinned notch stayed). | **fixed**: pins re-measure the target's animated layer each frame (position, not rotation); test added |
+| 3 | M1 | `chrome: "dark"` browser: toolbar and URL are drawn in translucent white over the page's white background, so they vanish. | **fixed**: opaque dark toolbar |
+| 4 | M2 | Component instance `layout.height` is ignored; a component's fixed height is overridden by an oversized child (maps grew to ~720px and pushed cards off-screen). | **fixed**: groups keep an explicit width/height (they only fit children in the missing dimension), which also makes instance heights work; test added |
+| 5 | M2 | `{{param}}` inside an icon name (`"name": "{{icon}}"`) fails with "Unknown icon '{{icon}}'", although the reference says params work in any string. | **fixed**: icon names checked per instance after `{{param}}` substitution, reported at the instance's `with`. Also: `sini validate` and inline `validate_video` now run the full check (icons, assets) instead of the schema only; tests added |
+| 6 | M5 | Content overflowing its container (499px of content in a 440px ticket) — nothing warns. | **fixed**: new `content-overflow` lint for stacks and grids (groups excluded: their children overhang on purpose); test added |
+| 7 | M2 | `get_layout` says a button stretches to 544.9px; it renders ~265px. | **fixed**: layout reports the drawn shape of buttons, badges, icons and toasts; test added |
 
 ### Wrong or misleading checks
 
@@ -51,7 +51,7 @@ Status: **confirmed** = reproduced or found in the code; **reported** = from an 
 | 8 | M1 | `tiny-text` ignores camera zoom (text ~32px on screen was flagged). | reported |
 | 9 | M1 | `overlap` flags two captions that are never on screen at the same time. | reported |
 | 10 | M2 | `describe_at` calls a caption visible while another element covers it. | reported |
-| 11 | M3 | `edge-margin` warning doesn't say which edge. | reported |
+| 11 | M3 | `edge-margin` warning doesn't say which edge. | **fixed**: names the edge(s) and distance; test added |
 | 12 | M4, M3 | `target-unreachable` doesn't say which scene makes the video too long; `targetDuration` can't shrink 17.6s of auto scenes to 12s, and when stretching (M1) it padded ~2s of idle time onto one scene. | reported |
 
 ### Rendering

@@ -2,7 +2,7 @@ import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { applyOps, initProject, listVersions, patchProject, restoreVersion, SiniError } from "./index.js";
+import { applyOps, initProject, listVersions, patchProject, restoreVersion, SiniError, validateSpec } from "./index.js";
 
 const dirs: string[] = [];
 const tmp = () => {
@@ -86,5 +86,22 @@ describe("icon validation on every write", () => {
     }
     patchProject(d, [{ op: "add", scene: "intro", element: { id: "i", type: "icon", name: "check-circle" } }]);
     expect(listVersions(d)).toHaveLength(2);
+  });
+});
+
+describe("icons inside components", () => {
+  const spec = (icon: string) => ({
+    version: "0.4", video: { format: "1:1" },
+    components: { row: { params: { icon: "car" }, root: { id: "r", type: "stack", children: [{ id: "i", type: "icon", name: "{{icon}}" }] } } },
+    scenes: [{ id: "s", duration: 2, elements: [
+      { id: "a", use: "row", with: { icon }, layout: { anchor: "center" } },
+      { id: "b", use: "row", layout: { anchor: "top" } },
+    ] }],
+  });
+  it("checks {{param}} icon names per instance, after substitution", () => {
+    expect(validateSpec(spec("bike")).ok).toBe(true);
+    const bad = validateSpec(spec("bikee"));
+    expect(bad.ok).toBe(false);
+    expect(bad.issues[0]).toMatchObject({ path: "scenes[0].elements[0].with", code: "unknown-icon", suggestion: "Did you mean 'bike'?" });
   });
 });

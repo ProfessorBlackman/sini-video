@@ -1,7 +1,7 @@
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, resolve, sep } from "node:path";
 import { compile, type CompiledPlan } from "@sini/core";
-import { didYouMean, validate, type Issue, type Spec, type ValidationResult } from "@sini/schema";
+import { didYouMean, expandComponent, validate, type Issue, type Spec, type ValidationResult } from "@sini/schema";
 import { iconNames } from "@sini/render";
 import { cachedTextHotspots } from "./ocr.js";
 
@@ -78,6 +78,14 @@ export function validateFull(spec: Spec, dir: string): ValidationResult {
   return result;
 }
 
+/** Validate a spec that isn't in a project folder (no asset files to check): schema plus icon names. */
+export function validateSpec(spec: unknown): ValidationResult {
+  const result = validate(spec);
+  if (result.ok) result.issues.push(...iconIssues(spec as Spec));
+  result.ok = !result.issues.some((i) => i.level === "error");
+  return result;
+}
+
 /** Icon names must exist in the bundled Lucide set. */
 export function iconIssues(spec: Spec): Issue[] {
   const issues: Issue[] = [];
@@ -87,13 +95,20 @@ export function iconIssues(spec: Spec): Issue[] {
       if (!e || typeof e !== "object") return;
       const p = `${path}[${i}]`;
       const check = (name: unknown, at: string) => {
-        if (typeof name === "string" && !known.has(name)) {
+        // `{{param}}` names are checked per instance, once the component is expanded.
+        if (typeof name === "string" && !name.includes("{{") && !known.has(name)) {
           issues.push({ level: "error", path: at, code: "unknown-icon", message: `Unknown icon '${name}'.`, suggestion: didYouMean(name, known) ?? "Use a Lucide icon name (lucide.dev/icons)." });
         }
       };
       if (e.type === "icon") check(e.name, `${p}.name`);
       if (e.type === "toast") check(e.icon, `${p}.icon`);
       for (const [sn, st] of Object.entries<any>(e.states ?? {})) check(st?.icon, `${p}.states.${sn}.icon`);
+      if (typeof e.use === "string" && spec.components?.[e.use]) {
+        const expanded = expandComponent(spec.components[e.use], e.with);
+        for (const is of iconIssues({ scenes: [{ elements: [expanded] }] } as unknown as Spec)) {
+          issues.push({ ...is, path: `${p}.with`, message: `${is.message.replace(/\.$/, "")} (in component '${e.use}').` });
+        }
+      }
       visit(e.children, `${p}.children`);
       visit(e.overlay, `${p}.overlay`);
       for (const [n, pg] of Object.entries<any>(e.screens ?? {})) visit(Array.isArray(pg) ? pg : pg?.children, `${p}.screens.${n}`);

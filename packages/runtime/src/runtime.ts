@@ -596,7 +596,7 @@ function buildDevice(node: Node, el: PlanElement, sceneId: string) {
     const radius = 14 * s * 1.6;
     const body = h("div", "device-body", { position: "absolute", inset: "0", borderRadius: px(radius), overflow: "hidden", background: page?.background ?? "#fff", boxShadow: el.style.shadow !== "none" ? SHADOWS[el.style.shadow] : "none" });
     if (!none) {
-      const bar = h("div", "toolbar", { height: px(toolbar), display: "flex", alignItems: "center", gap: px(10 * s), padding: `0 ${px(18 * s)}`, background: dark ? "rgba(255,255,255,0.06)" : "#ECE8E2", borderBottom: `${px(Math.max(1, 1.5 * s))} solid ${dark ? "rgba(255,255,255,0.14)" : "rgba(0,0,0,0.08)"}` });
+      const bar = h("div", "toolbar", { height: px(toolbar), display: "flex", alignItems: "center", gap: px(10 * s), padding: `0 ${px(18 * s)}`, background: dark ? "#1F2128" : "#ECE8E2", borderBottom: `${px(Math.max(1, 1.5 * s))} solid ${dark ? "rgba(255,255,255,0.14)" : "rgba(0,0,0,0.08)"}` });
       for (let i = 0; i < 3; i++) bar.appendChild(h("i", "", { width: px(12 * s), height: px(12 * s), borderRadius: "50%", background: dark ? "rgba(255,255,255,0.32)" : "rgba(0,0,0,0.18)", flex: "none" }));
       const url = h("div", "url", { marginLeft: px(14 * s), flex: "1", height: px(26 * s), borderRadius: px(13 * s), background: dark ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.75)", display: "flex", alignItems: "center", padding: `0 ${px(14 * s)}`, fontFamily: `"${plan.fonts.body}"`, fontSize: px(15 * s), color: dark ? "rgba(255,255,255,0.75)" : "rgba(0,0,0,0.55)", whiteSpace: "nowrap", overflow: "hidden" });
       const urlText = h("span");
@@ -1199,8 +1199,8 @@ function buildScene(s: PlanScene): HTMLElement {
 // ---------------------------------------------------------------- layout
 
 /** Box of an element's outer wrapper in its parent's local (unscaled) coordinates. */
-function localBox(target: HTMLElement, parent: HTMLElement) {
-  const r = target.getBoundingClientRect();
+function localBox(target: HTMLElement | DOMRect, parent: HTMLElement) {
+  const r = target instanceof DOMRect ? target : target.getBoundingClientRect();
   const p = parent.getBoundingClientRect();
   const sx = p.width / (parent.offsetWidth || 1) || 1;
   const sy = p.height / (parent.offsetHeight || 1) || 1;
@@ -1227,6 +1227,21 @@ function anchorPlace(n: Node) {
   const cx = fx === 0.5 ? "-50%" : "0px";
   const cy = fy === 0.5 ? "-50%" : "0px";
   st.transform = `translate(${cx}, ${cy}) translate(${px(tx)}, ${px(ty)})`;
+}
+
+/** Pinned elements ride along with their target's animation (the pin point is re-measured each frame). */
+const pinFollows: { node: Node; rect: () => DOMRect; fx: number; fy: number; base: [number, number] }[] = [];
+
+function followPins() {
+  for (const f of pinFollows) {
+    const parent = (f.node.outer.offsetParent as HTMLElement | null) ?? f.node.outer.parentElement!;
+    const r = f.rect();
+    if (r.width === 0 && r.height === 0) continue; // target not laid out (display: none)
+    const b = localBox(r, parent);
+    const dx = b.x + b.w * f.fx - f.base[0];
+    const dy = b.y + b.h * f.fy - f.base[1];
+    f.node.outer.style.translate = Math.abs(dx) < 0.01 && Math.abs(dy) < 0.01 ? "" : `${px(dx)} ${px(dy)}`;
+  }
 }
 
 function layoutAll() {
@@ -1260,7 +1275,9 @@ function layoutAll() {
       const pinStep = l.pin ? (l.pin as { to: string }).to.split("#")[1] : undefined;
       const pinNode = ref ? nodes.get(ref) : undefined;
       const stepDot = pinStep && pinNode ? partElement(pinNode, pinStep) : undefined;
-      const target = stepDot ?? (ref ? nodes.get(ref)?.outer : undefined);
+      const spot = pinStep && pinNode && !stepDot ? () => spotRect(pinNode, pinStep) : undefined;
+      const targetEl = stepDot ?? (ref ? nodes.get(ref)?.outer : undefined);
+      const target = spot?.() ?? targetEl;
       const parent = n.outer.offsetParent as HTMLElement | null ?? n.outer.parentElement!;
       const me = localBox(n.outer, parent);
       const off = (l.offset as [number, number]) ?? [0, 0];
@@ -1273,6 +1290,13 @@ function layoutAll() {
           const [fx, fy] = ANCHOR_FRAC[pin.point] ?? [0.5, 0.5];
           const px0 = b.x + b.w * fx;
           const py0 = b.y + b.h * fy;
+          // Follow what the target draws: its animated layer (enter/exit/ambient transforms live there).
+          const moving = stepDot ?? pinNode?.anim ?? (target instanceof HTMLElement ? target : undefined);
+          const rect = () => spot?.() ?? moving!.getBoundingClientRect();
+          if (spot || moving) {
+            const b0 = localBox(rect(), parent);
+            pinFollows.push({ node: n, rect, fx, fy, base: [b0.x + b0.w * fx, b0.y + b0.h * fy] });
+          }
           if (pin.inside === undefined) {
             x = px0 - me.w / 2;
             y = py0 - me.h / 2;
@@ -1324,9 +1348,13 @@ function resolveRef(name: string, from: string): string | undefined {
 }
 
 /** Auto-sized groups take the bounding box of their children. */
+/** A group without an explicit size fits its children; an explicit width or height is kept. */
 function sizeGroups() {
   for (const n of nodes.values()) {
-    if (n.el.type !== "group" || n.outer.style.width) continue;
+    if (n.el.type !== "group") continue;
+    const hasW = !!n.outer.style.width;
+    const hasH = !!n.outer.style.height;
+    if (hasW && hasH) continue;
     let w = 0;
     let hh = 0;
     for (const c of n.el.children) {
@@ -1336,8 +1364,8 @@ function sizeGroups() {
       w = Math.max(w, b.x + b.w);
       hh = Math.max(hh, b.y + b.h);
     }
-    n.outer.style.width = px(w);
-    n.outer.style.height = px(hh);
+    if (!hasW) n.outer.style.width = px(w);
+    if (!hasH) n.outer.style.height = px(hh);
     (n.box as HTMLElement).style.width = "100%";
     (n.box as HTMLElement).style.height = "100%";
   }
@@ -1687,30 +1715,41 @@ function targetPoint(target: string): [number, number] {
     const r = part.getBoundingClientRect();
     return toCanvas(r.left + r.width / 2, r.top + r.height / 2);
   }
-  const spot = hs ? (n.el.props.hotspots as Record<string, number[]> | undefined)?.[hs] : undefined;
-  if (spot) {
-    const img = (n.screen ?? n.box ?? n.anim).querySelector?.("img") as HTMLImageElement | null;
-    if (img && img.naturalWidth) {
-      const r = img.getBoundingClientRect();
-      const fit = String(n.el.props.fit ?? (n.screen ? "width" : "cover"));
-      const rw = r.width;
-      const rh = r.height;
-      const [cx, cy] = [spot[0]! + spot[2]! / 2, spot[1]! + spot[3]! / 2];
-      if (fit === "width") return toCanvas(r.left + (cx * rw) / img.naturalWidth, r.top + (cy * rw) / img.naturalWidth);
-      const sc = fit === "contain" ? Math.min(rw / img.naturalWidth, rh / img.naturalHeight) : Math.max(rw / img.naturalWidth, rh / img.naturalHeight);
-      const focus = (n.el.props.focus as number[] | undefined) ?? [50, 50];
-      const ox = ((rw - img.naturalWidth * sc) * focus[0]!) / 100;
-      const oy = ((rh - img.naturalHeight * sc) * focus[1]!) / 100;
-      return toCanvas(r.left + ox + cx * sc, r.top + oy + cy * sc);
-    }
-  }
-  const r = visualRect(n);
+  const r = (hs ? spotRect(n, hs) : undefined) ?? visualRect(n);
   return toCanvas(r.left + r.width / 2, r.top + r.height / 2);
+}
+
+/** Where an image hotspot is drawn right now (viewport coordinates), for images and device screenshots. */
+function spotRect(n: Node, hs: string): DOMRect | undefined {
+  const spot = (n.el.props.hotspots as Record<string, number[]> | undefined)?.[hs];
+  if (!spot) return undefined;
+  const img = (n.screen ?? n.box ?? n.anim).querySelector?.("img") as HTMLImageElement | null;
+  if (!img || !img.naturalWidth) return undefined;
+  const r = img.getBoundingClientRect();
+  const fit = String(n.el.props.fit ?? (n.screen ? "width" : "cover"));
+  let sc: number;
+  let ox = 0;
+  let oy = 0;
+  if (fit === "width") sc = r.width / img.naturalWidth;
+  else {
+    sc = fit === "contain" ? Math.min(r.width / img.naturalWidth, r.height / img.naturalHeight) : Math.max(r.width / img.naturalWidth, r.height / img.naturalHeight);
+    const focus = (n.el.props.focus as number[] | undefined) ?? [50, 50];
+    ox = ((r.width - img.naturalWidth * sc) * focus[0]!) / 100;
+    oy = ((r.height - img.naturalHeight * sc) * focus[1]!) / 100;
+  }
+  return new DOMRect(r.left + ox + spot[0]! * sc, r.top + oy + spot[1]! * sc, spot[2]! * sc, spot[3]! * sc);
+}
+
+const SHAPED = new Set(["button", "badge", "icon", "toast"]);
+
+/** The element that draws a button/badge/icon/toast: its layout box may be stretched wider than the shape. */
+function drawnEl(n: Node): HTMLElement {
+  return SHAPED.has(n.el.type) && n.box instanceof HTMLElement ? n.box : n.outer;
 }
 
 /** What's actually drawn: the button/badge/icon shape or the text's own bounds, not a stretched layout box. */
 function visualRect(n: Node): DOMRect {
-  if (["button", "badge", "icon", "toast"].includes(n.el.type) && n.box) return n.box.getBoundingClientRect();
+  if (SHAPED.has(n.el.type) && n.box) return n.box.getBoundingClientRect();
   if (n.el.type === "text" && n.text) {
     const range = document.createRange();
     range.selectNodeContents(n.text);
@@ -1758,6 +1797,7 @@ function render(t: number) {
     const cam = fr.elements[n.el.ref]?.camera;
     if (cam) applyCamera(n, cam);
   }
+  followPins();
   applyMatchCuts(fr);
   applyCursors(fr.cursors);
   for (const [id, layer] of bgLayers) {
@@ -1797,7 +1837,7 @@ function layout(t: number): LayoutReport {
       type: n.el.type,
       scene: n.sceneId,
       box: staticBoxes.get(n.el.ref) ?? box(outerRect),
-      current: box(n.anim.getBoundingClientRect()),
+      current: box((SHAPED.has(n.el.type) && n.box instanceof HTMLElement ? n.box : n.anim).getBoundingClientRect()),
       visible,
       inDevice: n.el.inDevice,
       ...(n.el.text ? { text: n.el.text.plain } : {}),
@@ -1882,7 +1922,7 @@ async function boot() {
   // Static boxes: measured once, before any animation transform is applied.
   const st = stage.getBoundingClientRect();
   for (const n of nodes.values()) {
-    const r = n.outer.getBoundingClientRect();
+    const r = drawnEl(n).getBoundingClientRect();
     staticBoxes.set(n.el.ref, { x: round(r.left - st.left), y: round(r.top - st.top), width: round(r.width), height: round(r.height) });
   }
   render(0);

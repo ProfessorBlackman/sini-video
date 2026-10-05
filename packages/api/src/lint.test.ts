@@ -77,3 +77,31 @@ describe("layout rules added after the tool-assisted test", () => {
   it("flags text drawn too small", () => expect(codes("small")).toContain("tiny-text"));
   it("measures contrast against a filled shape behind the text", () => expect(codes("on-card")).not.toContain("low-contrast"));
 });
+
+describe("layout rules added after the MCP test", () => {
+  const plan = make([{ id: "s", duration: "auto", background: "#000000", elements: [
+    { id: "col", type: "stack", layout: { anchor: "center", width: 600, height: 300 }, children: [
+      { id: "fits", type: "text", content: "Fits", style: { color: "#ffffff" } },
+      { id: "spills", type: "text", content: "Spills", style: { color: "#ffffff" } },
+    ] },
+    { id: "edge", type: "text", content: "Near the top", style: { color: "#ffffff" } },
+  ] }]);
+  const box = (ref: string, type: string, x: number, y: number, w: number, h: number) =>
+    ({ ref, type, scene: "s", box: { x, y, width: w, height: h }, current: { x, y, width: w, height: h }, visible: true, inDevice: false, screenFontSize: 40 });
+  const report = { time: 0, width: 1080, height: 1920, elements: [
+    box("col", "stack", 240, 810, 600, 300),
+    box("fits", "text", 240, 810, 600, 100),
+    box("spills", "text", 240, 1050, 600, 120),
+    box("edge", "text", 300, 20, 400, 60),
+  ] };
+  const issues = layoutRules(plan, report);
+
+  it("flags content sticking out of a stack, and says where", () => {
+    const o = issues.filter((i) => i.code === "content-overflow");
+    expect(o.map((i) => i.path)).toEqual(["spills"]);
+    expect(o[0]!.message).toContain("60px past the bottom of 'col'");
+  });
+  it("names the edge in edge-margin warnings", () => {
+    expect(issues.find((i) => i.path === "edge" && i.code === "edge-margin")?.message).toContain("top (20px)");
+  });
+});
