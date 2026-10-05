@@ -1,0 +1,1424 @@
+{
+  "version": "0.4",
+  "video": {
+    "format": "9:16",
+    "fps": 30,
+    "background": "sun",
+    "targetDuration": 16,
+    "safeZone": "reels",
+    "end": "hold"
+  },
+  "theme": {
+    "palette": {
+      "sun": "#FFC93C",
+      "ink": "#14213D",
+      "coral": "#FF6B4A",
+      "leaf": "#18B074",
+      "cream": "#FFF7E3",
+      "paper": "#FFFFFF",
+      "fog": "#F2F3F6",
+      "line": "#E4E6EB",
+      "mute": "#6B7280",
+      "park": "#CFE8C6",
+      "land": "#EAF2E4",
+      "mint": "#E6F8F0"
+    },
+    "fonts": {
+      "display": "Bricolage Grotesque",
+      "body": "Manrope"
+    },
+    "motion": "snappy",
+    "transition": {
+      "type": "circle",
+      "duration": 0.55
+    },
+    "texture": {
+      "grain": 0.03
+    }
+  },
+  "components": {
+    "map": {
+      "params": {},
+      "root": {
+        "id": "map",
+        "type": "group",
+        "layout": {
+          "height": 390
+        },
+        "style": {
+          "fill": "land",
+          "radius": 20
+        },
+        "children": [
+          {
+            "id": "park",
+            "type": "shape",
+            "shape": "circle",
+            "layout": {
+              "x": 250,
+              "y": 24,
+              "width": 96,
+              "height": 96
+            },
+            "style": {
+              "fill": "park"
+            }
+          },
+          {
+            "id": "road-a",
+            "type": "shape",
+            "shape": "rect",
+            "layout": {
+              "x": 10,
+              "y": 150,
+              "width": 330,
+              "height": 16
+            },
+            "style": {
+              "fill": "paper",
+              "rotation": -14,
+              "radius": 8
+            }
+          },
+          {
+            "id": "road-b",
+            "type": "shape",
+            "shape": "rect",
+            "layout": {
+              "x": 180,
+              "y": 20,
+              "width": 14,
+              "height": 370
+            },
+            "style": {
+              "fill": "paper",
+              "rotation": 10,
+              "radius": 7
+            }
+          },
+          {
+            "id": "road-c",
+            "type": "shape",
+            "shape": "rect",
+            "layout": {
+              "x": 20,
+              "y": 320,
+              "width": 310,
+              "height": 10
+            },
+            "style": {
+              "fill": "paper",
+              "radius": 5
+            }
+          },
+          {
+            "id": "route",
+            "type": "shape",
+            "shape": "rect",
+            "layout": {
+              "x": 70,
+              "y": 145,
+              "width": 220,
+              "height": 6
+            },
+            "style": {
+              "fill": "coral",
+              "rotation": -14,
+              "radius": 3
+            }
+          },
+          {
+            "id": "origin",
+            "type": "shape",
+            "shape": "circle",
+            "layout": {
+              "x": 60,
+              "y": 166,
+              "width": 18,
+              "height": 18
+            },
+            "style": {
+              "fill": "ink",
+              "stroke": "paper",
+              "strokeWidth": 4
+            }
+          },
+          {
+            "id": "pin",
+            "type": "icon",
+            "name": "map-pin",
+            "layout": {
+              "x": 280,
+              "y": 86
+            },
+            "style": {
+              "color": "coral",
+              "size": 34,
+              "strokeWidth": 2.5
+            }
+          },
+          {
+            "id": "car",
+            "type": "icon",
+            "name": "car",
+            "layout": {
+              "x": 55,
+              "y": 161
+            },
+            "style": {
+              "color": "ink",
+              "size": 28
+            }
+          }
+        ]
+      }
+    },
+    "ride-info": {
+      "params": {
+        "name": "",
+        "detail": "",
+        "price": ""
+      },
+      "root": {
+        "id": "info",
+        "type": "stack",
+        "direction": "horizontal",
+        "align": "center",
+        "gap": 10,
+        "children": [
+          {
+            "id": "txt",
+            "type": "stack",
+            "gap": 2,
+            "layout": {
+              "grow": 1
+            },
+            "children": [
+              {
+                "id": "name",
+                "type": "text",
+                "role": "body",
+                "content": "{{name}}",
+                "style": {
+                  "color": "ink",
+                  "weight": 700
+                }
+              },
+              {
+                "id": "detail",
+                "type": "text",
+                "role": "caption",
+                "content": "{{detail}}",
+                "style": {
+                  "color": "mute",
+                  "size": 15
+                }
+              }
+            ]
+          },
+          {
+            "id": "price",
+            "type": "text",
+            "role": "body",
+            "content": "{{price}}",
+            "style": {
+              "color": "ink",
+              "weight": 800
+            }
+          }
+        ]
+      }
+    }
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "duration": 2.4,
+      "background": "sun",
+      "elements": [
+        {
+          "id": "brand",
+          "type": "stack",
+          "align": "center",
+          "gap": 20,
+          "layout": {
+            "anchor": "center"
+          },
+          "children": [
+            {
+              "id": "logo-car",
+              "type": "icon",
+              "name": "car-front",
+              "style": {
+                "color": "ink",
+                "size": 120,
+                "strokeWidth": 2.2
+              },
+              "enter": {
+                "preset": "popIn",
+                "at": 0.15
+              }
+            },
+            {
+              "id": "wordmark",
+              "type": "text",
+              "role": "display",
+              "content": "tro",
+              "style": {
+                "color": "ink",
+                "size": 300,
+                "weight": 800,
+                "letterSpacing": -0.04
+              },
+              "enter": {
+                "preset": "charReveal",
+                "at": 0.3,
+                "stagger": 0.08
+              }
+            },
+            {
+              "id": "tagline",
+              "type": "text",
+              "role": "subtitle",
+              "content": "Rides across Accra.",
+              "style": {
+                "color": "ink",
+                "align": "center"
+              },
+              "enter": {
+                "preset": "fadeUp",
+                "at": 0.55
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "app",
+      "duration": "auto",
+      "background": {
+        "linear": [
+          "sun",
+          "cream"
+        ],
+        "angle": 180
+      },
+      "elements": [
+        {
+          "id": "step-title",
+          "type": "text",
+          "role": "subtitle",
+          "content": "Pick a destination",
+          "enter": "none",
+          "style": {
+            "color": "ink",
+            "align": "center",
+            "weight": 700
+          },
+          "layout": {
+            "anchor": "top",
+            "inset": [
+              240,
+              0
+            ]
+          },
+          "states": {
+            "rides": {
+              "content": "Pick your ride"
+            },
+            "cheap": {
+              "content": "Tap the cheapest"
+            },
+            "track": {
+              "content": "Driver on the way"
+            }
+          }
+        },
+        {
+          "id": "phone",
+          "type": "phone",
+          "background": "paper",
+          "padding": [
+            12,
+            20
+          ],
+          "gap": 16,
+          "layout": {
+            "anchor": "top",
+            "inset": [
+              330,
+              0
+            ],
+            "width": 660
+          },
+          "enter": "none",
+          "screen": "home",
+          "screens": {
+            "home": [
+              {
+                "id": "home-head",
+                "type": "stack",
+                "direction": "horizontal",
+                "justify": "space-between",
+                "align": "center",
+                "children": [
+                  {
+                    "id": "home-logo",
+                    "type": "text",
+                    "role": "subtitle",
+                    "content": "tro",
+                    "style": {
+                      "color": "ink",
+                      "weight": 800
+                    }
+                  },
+                  {
+                    "id": "home-bell",
+                    "type": "icon",
+                    "name": "bell",
+                    "style": {
+                      "color": "ink",
+                      "size": 22
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "hello",
+                "type": "text",
+                "role": "title",
+                "content": "Akwaaba, Ama",
+                "style": {
+                  "color": "ink"
+                }
+              },
+              {
+                "id": "hello-sub",
+                "type": "text",
+                "role": "body",
+                "content": "Where are you headed today?",
+                "style": {
+                  "color": "mute",
+                  "size": 18
+                }
+              },
+              {
+                "id": "dest-field",
+                "type": "stack",
+                "direction": "horizontal",
+                "align": "center",
+                "gap": 10,
+                "style": {
+                  "fill": "fog",
+                  "radius": 16,
+                  "padding": [
+                    16,
+                    16
+                  ]
+                },
+                "children": [
+                  {
+                    "id": "dest-icon",
+                    "type": "icon",
+                    "name": "search",
+                    "style": {
+                      "color": "ink",
+                      "size": 20
+                    }
+                  },
+                  {
+                    "id": "dest-text",
+                    "type": "text",
+                    "role": "body",
+                    "content": "Where to?",
+                    "style": {
+                      "color": "mute",
+                      "weight": 600
+                    },
+                    "states": {
+                      "typing": {
+                        "content": "",
+                        "style": {
+                          "color": "ink"
+                        }
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "recent-label",
+                "type": "text",
+                "role": "label",
+                "content": "Suggestions",
+                "style": {
+                  "color": "mute",
+                  "size": 13
+                }
+              },
+              {
+                "id": "sug-osu",
+                "type": "stack",
+                "direction": "horizontal",
+                "align": "center",
+                "gap": 12,
+                "style": {
+                  "padding": [
+                    10,
+                    8
+                  ],
+                  "radius": 14
+                },
+                "states": {
+                  "pressed": {
+                    "style": {
+                      "fill": "mint"
+                    }
+                  }
+                },
+                "children": [
+                  {
+                    "id": "sug-osu-ico",
+                    "type": "icon",
+                    "name": "map-pin",
+                    "style": {
+                      "color": "coral",
+                      "size": 22
+                    }
+                  },
+                  {
+                    "id": "sug-osu-txt",
+                    "type": "stack",
+                    "gap": 2,
+                    "children": [
+                      {
+                        "id": "sug-osu-name",
+                        "type": "text",
+                        "role": "body",
+                        "content": "Oxford Street",
+                        "style": {
+                          "color": "ink",
+                          "weight": 700
+                        }
+                      },
+                      {
+                        "id": "sug-osu-area",
+                        "type": "text",
+                        "role": "caption",
+                        "content": "Osu, Accra",
+                        "style": {
+                          "color": "mute",
+                          "size": 15
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "sug-kia",
+                "type": "stack",
+                "direction": "horizontal",
+                "align": "center",
+                "gap": 12,
+                "style": {
+                  "padding": [
+                    10,
+                    8
+                  ]
+                },
+                "children": [
+                  {
+                    "id": "sug-kia-ico",
+                    "type": "icon",
+                    "name": "plane",
+                    "style": {
+                      "color": "mute",
+                      "size": 22
+                    }
+                  },
+                  {
+                    "id": "sug-kia-txt",
+                    "type": "stack",
+                    "gap": 2,
+                    "children": [
+                      {
+                        "id": "sug-kia-name",
+                        "type": "text",
+                        "role": "body",
+                        "content": "Kotoka Airport",
+                        "style": {
+                          "color": "ink",
+                          "weight": 700
+                        }
+                      },
+                      {
+                        "id": "sug-kia-area",
+                        "type": "text",
+                        "role": "caption",
+                        "content": "Airport, Accra",
+                        "style": {
+                          "color": "mute",
+                          "size": 15
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "sug-mall",
+                "type": "stack",
+                "direction": "horizontal",
+                "align": "center",
+                "gap": 12,
+                "style": {
+                  "padding": [
+                    10,
+                    8
+                  ]
+                },
+                "children": [
+                  {
+                    "id": "sug-mall-ico",
+                    "type": "icon",
+                    "name": "shopping-bag",
+                    "style": {
+                      "color": "mute",
+                      "size": 22
+                    }
+                  },
+                  {
+                    "id": "sug-mall-txt",
+                    "type": "stack",
+                    "gap": 2,
+                    "children": [
+                      {
+                        "id": "sug-mall-name",
+                        "type": "text",
+                        "role": "body",
+                        "content": "Accra Mall",
+                        "style": {
+                          "color": "ink",
+                          "weight": 700
+                        }
+                      },
+                      {
+                        "id": "sug-mall-area",
+                        "type": "text",
+                        "role": "caption",
+                        "content": "Tetteh Quarshie",
+                        "style": {
+                          "color": "mute",
+                          "size": 15
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "promo",
+                "type": "stack",
+                "gap": 4,
+                "style": {
+                  "fill": "sun",
+                  "radius": 18,
+                  "padding": [
+                    18,
+                    18
+                  ]
+                },
+                "children": [
+                  {
+                    "id": "promo-t",
+                    "type": "text",
+                    "role": "body",
+                    "content": "Ride more, pay less",
+                    "style": {
+                      "color": "ink",
+                      "weight": 800
+                    }
+                  },
+                  {
+                    "id": "promo-b",
+                    "type": "text",
+                    "role": "caption",
+                    "content": "Shared rides from GH₵ 19",
+                    "style": {
+                      "color": "ink",
+                      "size": 15
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "home-map",
+                "use": "map",
+                "layout": {
+                  "grow": 1
+                }
+              }
+            ],
+            "rides": [
+              {
+                "id": "ride-map",
+                "use": "map"
+              },
+              {
+                "id": "rides-title",
+                "type": "text",
+                "role": "subtitle",
+                "content": "Choose a ride",
+                "style": {
+                  "color": "ink",
+                  "weight": 800
+                }
+              },
+              {
+                "id": "rides-to",
+                "type": "text",
+                "role": "caption",
+                "content": "To Oxford Street, Osu",
+                "style": {
+                  "color": "mute",
+                  "size": 15
+                }
+              },
+              {
+                "id": "opt-comfort",
+                "type": "stack",
+                "direction": "horizontal",
+                "align": "center",
+                "gap": 14,
+                "style": {
+                  "fill": "paper",
+                  "radius": 18,
+                  "padding": [
+                    14,
+                    14
+                  ],
+                  "stroke": "line",
+                  "strokeWidth": 1.5
+                },
+                "children": [
+                  {
+                    "id": "comfort-ico-box",
+                    "type": "stack",
+                    "align": "center",
+                    "style": {
+                      "fill": "fog",
+                      "radius": 14,
+                      "padding": 10
+                    },
+                    "children": [
+                      {
+                        "id": "comfort-ico",
+                        "type": "icon",
+                        "name": "car",
+                        "style": {
+                          "color": "ink",
+                          "size": 26
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "id": "comfort-info",
+                    "use": "ride-info",
+                    "with": {
+                      "name": "Tro Comfort",
+                      "detail": "3 min away · 4 seats",
+                      "price": "GH₵ 46"
+                    },
+                    "layout": {
+                      "grow": 1
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "opt-xl",
+                "type": "stack",
+                "direction": "horizontal",
+                "align": "center",
+                "gap": 14,
+                "style": {
+                  "fill": "paper",
+                  "radius": 18,
+                  "padding": [
+                    14,
+                    14
+                  ],
+                  "stroke": "line",
+                  "strokeWidth": 1.5
+                },
+                "children": [
+                  {
+                    "id": "xl-ico-box",
+                    "type": "stack",
+                    "align": "center",
+                    "style": {
+                      "fill": "fog",
+                      "radius": 14,
+                      "padding": 10
+                    },
+                    "children": [
+                      {
+                        "id": "xl-ico",
+                        "type": "icon",
+                        "name": "bus",
+                        "style": {
+                          "color": "ink",
+                          "size": 26
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "id": "xl-info",
+                    "use": "ride-info",
+                    "with": {
+                      "name": "Tro XL",
+                      "detail": "6 min away · 6 seats",
+                      "price": "GH₵ 62"
+                    },
+                    "layout": {
+                      "grow": 1
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "opt-go",
+                "type": "stack",
+                "direction": "horizontal",
+                "align": "center",
+                "gap": 14,
+                "style": {
+                  "fill": "paper",
+                  "radius": 18,
+                  "padding": [
+                    14,
+                    14
+                  ],
+                  "stroke": "line",
+                  "strokeWidth": 1.5
+                },
+                "children": [
+                  {
+                    "id": "go-ico-box",
+                    "type": "stack",
+                    "align": "center",
+                    "style": {
+                      "fill": "fog",
+                      "radius": 14,
+                      "padding": 10
+                    },
+                    "children": [
+                      {
+                        "id": "go-ico",
+                        "type": "icon",
+                        "name": "car-front",
+                        "style": {
+                          "color": "ink",
+                          "size": 26
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "id": "go-info",
+                    "use": "ride-info",
+                    "with": {
+                      "name": "Tro Go",
+                      "detail": "4 min away · 4 seats",
+                      "price": "GH₵ 34"
+                    },
+                    "layout": {
+                      "grow": 1
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "opt-taxi",
+                "type": "stack",
+                "direction": "horizontal",
+                "align": "center",
+                "gap": 14,
+                "style": {
+                  "fill": "paper",
+                  "radius": 18,
+                  "padding": [
+                    14,
+                    14
+                  ],
+                  "stroke": "line",
+                  "strokeWidth": 1.5
+                },
+                "children": [
+                  {
+                    "id": "taxi-ico-box",
+                    "type": "stack",
+                    "align": "center",
+                    "style": {
+                      "fill": "fog",
+                      "radius": 14,
+                      "padding": 10
+                    },
+                    "children": [
+                      {
+                        "id": "taxi-ico",
+                        "type": "icon",
+                        "name": "car-taxi-front",
+                        "style": {
+                          "color": "ink",
+                          "size": 26
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "id": "taxi-info",
+                    "use": "ride-info",
+                    "with": {
+                      "name": "Tro Taxi",
+                      "detail": "5 min away · 4 seats",
+                      "price": "GH₵ 40"
+                    },
+                    "layout": {
+                      "grow": 1
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "opt-lux",
+                "type": "stack",
+                "direction": "horizontal",
+                "align": "center",
+                "gap": 14,
+                "style": {
+                  "fill": "paper",
+                  "radius": 18,
+                  "padding": [
+                    14,
+                    14
+                  ],
+                  "stroke": "line",
+                  "strokeWidth": 1.5
+                },
+                "children": [
+                  {
+                    "id": "lux-ico-box",
+                    "type": "stack",
+                    "align": "center",
+                    "style": {
+                      "fill": "fog",
+                      "radius": 14,
+                      "padding": 10
+                    },
+                    "children": [
+                      {
+                        "id": "lux-ico",
+                        "type": "icon",
+                        "name": "gem",
+                        "style": {
+                          "color": "ink",
+                          "size": 26
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "id": "lux-info",
+                    "use": "ride-info",
+                    "with": {
+                      "name": "Tro Lux",
+                      "detail": "8 min away · 4 seats",
+                      "price": "GH₵ 85"
+                    },
+                    "layout": {
+                      "grow": 1
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "opt-pool",
+                "type": "stack",
+                "direction": "horizontal",
+                "align": "center",
+                "gap": 14,
+                "style": {
+                  "fill": "paper",
+                  "radius": 18,
+                  "padding": [
+                    14,
+                    14
+                  ],
+                  "stroke": "line",
+                  "strokeWidth": 1.5
+                },
+                "children": [
+                  {
+                    "id": "pool-ico-box",
+                    "type": "stack",
+                    "align": "center",
+                    "style": {
+                      "fill": "mint",
+                      "radius": 14,
+                      "padding": 10
+                    },
+                    "children": [
+                      {
+                        "id": "pool-ico",
+                        "type": "icon",
+                        "name": "users",
+                        "style": {
+                          "color": "ink",
+                          "size": 26
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "id": "pool-info",
+                    "use": "ride-info",
+                    "with": {
+                      "name": "Tro Pool",
+                      "detail": "Shared · cheapest",
+                      "price": "GH₵ 19"
+                    },
+                    "layout": {
+                      "grow": 1
+                    }
+                  }
+                ],
+                "states": {
+                  "selected": {
+                    "style": {
+                      "fill": "mint",
+                      "stroke": "leaf",
+                      "strokeWidth": 3
+                    }
+                  }
+                }
+              },
+              {
+                "id": "confirm-btn",
+                "type": "button",
+                "label": "Confirm Tro Pool",
+                "variant": "solid",
+                "style": {
+                  "fill": "ink",
+                  "color": "paper"
+                }
+              }
+            ],
+            "tracking": [
+              {
+                "id": "trk-map",
+                "use": "map"
+              },
+              {
+                "id": "trk-status",
+                "type": "text",
+                "role": "subtitle",
+                "content": "Driver assigned",
+                "style": {
+                  "color": "ink",
+                  "weight": 800,
+                  "lineHeight": 1.4
+                },
+                "states": {
+                  "way": {
+                    "content": "Kwame is 3 min away"
+                  },
+                  "here": {
+                    "content": "Kwame has arrived"
+                  }
+                }
+              },
+              {
+                "id": "trk-progress",
+                "type": "progress",
+                "steps": [
+                  "Assigned",
+                  "On the way",
+                  "Arrived"
+                ],
+                "value": 0,
+                "style": {
+                  "fill": "leaf",
+                  "color": "ink"
+                }
+              },
+              {
+                "id": "driver",
+                "type": "stack",
+                "direction": "horizontal",
+                "align": "center",
+                "gap": 12,
+                "style": {
+                  "fill": "fog",
+                  "radius": 18,
+                  "padding": [
+                    14,
+                    14
+                  ]
+                },
+                "children": [
+                  {
+                    "id": "drv-avatar",
+                    "type": "badge",
+                    "label": "KM",
+                    "shape": "circle",
+                    "style": {
+                      "fill": "sun",
+                      "color": "ink",
+                      "size": 15,
+                      "weight": 800
+                    }
+                  },
+                  {
+                    "id": "drv-txt",
+                    "type": "stack",
+                    "gap": 2,
+                    "layout": {
+                      "grow": 1
+                    },
+                    "children": [
+                      {
+                        "id": "drv-name",
+                        "type": "text",
+                        "role": "body",
+                        "content": "Kwame M. · 4.9★",
+                        "style": {
+                          "color": "ink",
+                          "weight": 700
+                        }
+                      },
+                      {
+                        "id": "drv-car",
+                        "type": "text",
+                        "role": "caption",
+                        "content": "Silver Toyota Vitz · GR 2451-24",
+                        "style": {
+                          "color": "mute",
+                          "size": 15
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "id": "drv-call",
+                    "type": "icon",
+                    "name": "phone",
+                    "style": {
+                      "color": "leaf",
+                      "size": 24
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "trip-card",
+                "type": "stack",
+                "direction": "horizontal",
+                "align": "center",
+                "gap": 12,
+                "style": {
+                  "padding": [
+                    4,
+                    4
+                  ]
+                },
+                "children": [
+                  {
+                    "id": "trip-ico",
+                    "type": "icon",
+                    "name": "map-pin",
+                    "style": {
+                      "color": "coral",
+                      "size": 22
+                    }
+                  },
+                  {
+                    "id": "trip-txt",
+                    "type": "stack",
+                    "gap": 2,
+                    "layout": {
+                      "grow": 1
+                    },
+                    "children": [
+                      {
+                        "id": "trip-to",
+                        "type": "text",
+                        "role": "body",
+                        "content": "Oxford Street, Osu",
+                        "style": {
+                          "color": "ink",
+                          "weight": 700
+                        }
+                      },
+                      {
+                        "id": "trip-pay",
+                        "type": "text",
+                        "role": "caption",
+                        "content": "Tro Pool · GH₵ 19 · Mobile Money",
+                        "style": {
+                          "color": "mute",
+                          "size": 15
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "msg-btn",
+                "type": "button",
+                "label": "Message Kwame",
+                "variant": "outline",
+                "style": {
+                  "color": "ink",
+                  "stroke": "line"
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "timeline": [
+        {
+          "id": "pick",
+          "behavior": "interaction",
+          "cursor": "touch",
+          "from": "bottom-right",
+          "at": 1,
+          "steps": [
+            {
+              "id": "type-dest",
+              "type": "dest-text",
+              "text": "Oxford St",
+              "set": {
+                "dest-text": "typing"
+              }
+            },
+            {
+              "wait": 0.2
+            },
+            {
+              "id": "tap-osu",
+              "click": "sug-osu",
+              "set": {
+                "sug-osu": "pressed"
+              },
+              "navigate": {
+                "phone": "rides"
+              }
+            }
+          ]
+        },
+        {
+          "target": "step-title",
+          "state": "rides",
+          "at": "tap-osu.end-0.2"
+        },
+        {
+          "id": "scroll-rides",
+          "behavior": "scroll",
+          "target": "phone",
+          "to": "opt-pool",
+          "at": "pick.end+0.25",
+          "duration": 1,
+          "ease": "cubic.inOut"
+        },
+        {
+          "target": "step-title",
+          "state": "cheap",
+          "at": "scroll-rides.end"
+        },
+        {
+          "id": "choose",
+          "behavior": "interaction",
+          "cursor": "touch",
+          "from": "bottom-right",
+          "at": "scroll-rides.end+0.1",
+          "steps": [
+            {
+              "id": "tap-pool",
+              "click": "opt-pool",
+              "set": {
+                "opt-pool": "selected"
+              }
+            },
+            {
+              "wait": 0.3
+            },
+            {
+              "id": "tap-confirm",
+              "click": "confirm-btn",
+              "navigate": {
+                "phone": "tracking"
+              }
+            }
+          ]
+        },
+        {
+          "target": "step-title",
+          "state": "track",
+          "at": "tap-confirm.end-0.2"
+        },
+        {
+          "id": "prog-1",
+          "target": "trk-progress",
+          "at": "choose.end+0.6",
+          "duration": 0.8,
+          "animate": {
+            "value": 1
+          }
+        },
+        {
+          "target": "trk-status",
+          "state": "way",
+          "at": "choose.end+0.8"
+        },
+        {
+          "id": "drive",
+          "target": "trk-map/car",
+          "at": "choose.end+0.4",
+          "duration": 2.4,
+          "ease": "cubic.inOut",
+          "animate": {
+            "x": [
+              0,
+              218
+            ],
+            "y": [
+              0,
+              -50
+            ]
+          }
+        },
+        {
+          "id": "prog-2",
+          "target": "trk-progress",
+          "at": "choose.end+2.2",
+          "duration": 0.8,
+          "animate": {
+            "value": 2
+          }
+        },
+        {
+          "target": "trk-status",
+          "state": "here",
+          "at": "choose.end+2.4"
+        }
+      ],
+      "transition": {
+        "type": "slide",
+        "from": "down",
+        "push": true,
+        "duration": 0.6,
+        "ease": "expo.inOut"
+      }
+    },
+    {
+      "id": "outro",
+      "duration": 2.8,
+      "background": "ink",
+      "transition": {
+        "type": "circle",
+        "duration": 0.55
+      },
+      "elements": [
+        {
+          "id": "end-block",
+          "type": "stack",
+          "align": "center",
+          "gap": 28,
+          "layout": {
+            "anchor": "center"
+          },
+          "children": [
+            {
+              "id": "end-car",
+              "type": "icon",
+              "name": "car-front",
+              "style": {
+                "color": "sun",
+                "size": 96,
+                "strokeWidth": 2.2
+              },
+              "enter": {
+                "preset": "popIn",
+                "at": 0.1
+              }
+            },
+            {
+              "id": "end-mark",
+              "type": "text",
+              "role": "display",
+              "content": "tro",
+              "style": {
+                "color": "sun",
+                "size": 240,
+                "weight": 800,
+                "letterSpacing": -0.04
+              },
+              "enter": {
+                "preset": "popIn",
+                "at": 0.2
+              }
+            },
+            {
+              "id": "end-line",
+              "type": "text",
+              "role": "subtitle",
+              "content": "Your ride across Accra.",
+              "style": {
+                "color": "paper",
+                "align": "center"
+              },
+              "enter": {
+                "preset": "fadeUp",
+                "at": 0.4
+              }
+            },
+            {
+              "id": "end-cta",
+              "type": "button",
+              "label": "Get the app",
+              "variant": "solid",
+              "style": {
+                "fill": "sun",
+                "color": "ink",
+                "weight": 800
+              },
+              "enter": {
+                "preset": "popIn",
+                "at": 0.6
+              }
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "target": "end-cta",
+          "preset": "pulse",
+          "at": 1.6,
+          "scale": 1.05
+        }
+      ]
+    }
+  ],
+  "notes": [
+    "Brand 'Tro' visuals, tagline, CTA, prices (GH₵ 19–85), ride tiers, user name Ama, driver Kwame M., car and plate, and ETAs are all invented placeholders.",
+    "'Shared rides from GH₵ 19' promo copy is invented."
+  ]
+}

@@ -1,0 +1,478 @@
+{
+  "version": "0.4",
+  "video": {
+    "format": "1:1",
+    "fps": 30,
+    "background": "forest",
+    "end": {
+      "type": "fade",
+      "duration": 0.3,
+      "color": "forest"
+    }
+  },
+  "theme": {
+    "palette": {
+      "forest": "#0B3B2A",
+      "leaf": "#1E8A4F",
+      "deep": "#146B3C",
+      "lime": "#8FD16A",
+      "sage": "#A8D8B6",
+      "mint": "#DCEFE2",
+      "white": "#FFFFFF",
+      "paper": "#F6FAF6"
+    },
+    "fonts": {
+      "display": "Bricolage Grotesque",
+      "body": "Inter Tight"
+    },
+    "motion": "editorial",
+    "transition": {
+      "type": "wipe",
+      "angle": 12,
+      "bar": "lime",
+      "duration": 0.55,
+      "ease": "quart.out"
+    },
+    "texture": {
+      "grain": 0.04
+    }
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "duration": 2.4,
+      "background": {
+        "radial": [
+          "leaf",
+          "forest"
+        ]
+      },
+      "elements": [
+        {
+          "id": "sun",
+          "type": "shape",
+          "shape": "circle",
+          "layout": {
+            "anchor": "top-right",
+            "inset": [
+              -140,
+              -140
+            ],
+            "width": 480,
+            "height": 480
+          },
+          "style": {
+            "fill": "lime"
+          },
+          "enter": {
+            "preset": "scaleIn",
+            "from": 0.6,
+            "at": 0,
+            "duration": 1.2
+          }
+        },
+        {
+          "id": "kicker",
+          "type": "text",
+          "role": "label",
+          "content": "Accra Solar Co.",
+          "style": {
+            "color": "lime",
+            "size": 30
+          },
+          "layout": {
+            "anchor": "top-left",
+            "inset": [
+              96,
+              96
+            ]
+          },
+          "enter": {
+            "preset": "fadeUp",
+            "at": 0.2
+          }
+        },
+        {
+          "id": "intro-block",
+          "type": "stack",
+          "gap": 0,
+          "layout": {
+            "anchor": "bottom-left",
+            "inset": [
+              110,
+              96
+            ]
+          },
+          "children": [
+            {
+              "id": "intro-year",
+              "type": "text",
+              "role": "display",
+              "content": "2026",
+              "style": {
+                "color": "white",
+                "size": 300,
+                "letterSpacing": -0.04
+              },
+              "enter": {
+                "preset": "wordReveal",
+                "at": 0.25,
+                "duration": 0.8
+              }
+            },
+            {
+              "id": "intro-h",
+              "type": "text",
+              "role": "display",
+              "content": "in numbers.",
+              "style": {
+                "color": "mint",
+                "size": 130
+              },
+              "enter": {
+                "preset": "wordReveal",
+                "at": 0.4,
+                "duration": 0.6,
+                "stagger": 0.08
+              }
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "target": "sun",
+          "preset": "drift",
+          "x": -20,
+          "y": 30,
+          "at": 1
+        }
+      ]
+    },
+    {
+      "id": "installs",
+      "duration": 2.8,
+      "background": "paper",
+      "elements": [
+        {
+          "id": "inst-label",
+          "type": "text",
+          "role": "label",
+          "content": "Installs per quarter",
+          "style": {
+            "color": "deep",
+            "size": 28
+          },
+          "layout": {
+            "anchor": "top-left",
+            "inset": [
+              96,
+              96
+            ]
+          },
+          "enter": {
+            "preset": "fadeUp",
+            "at": 0.35
+          }
+        },
+        {
+          "id": "inst-h",
+          "type": "text",
+          "role": "title",
+          "content": "120 to *410.*",
+          "style": {
+            "color": "forest"
+          },
+          "layout": {
+            "below": "inst-label",
+            "gap": 16
+          },
+          "enter": {
+            "preset": "wordReveal",
+            "at": 0.45
+          }
+        },
+        {
+          "id": "inst-chart",
+          "type": "chart",
+          "kind": "bar",
+          "data": [
+            [
+              "Q1",
+              120
+            ],
+            [
+              "Q2",
+              180
+            ],
+            [
+              "Q3",
+              260
+            ],
+            [
+              "Q4",
+              410
+            ]
+          ],
+          "highlight": "Q4",
+          "format": "0,0",
+          "style": {
+            "fill": "sage",
+            "stroke": "leaf",
+            "color": "forest",
+            "size": 34
+          },
+          "layout": {
+            "anchor": "bottom",
+            "inset": [
+              80,
+              0
+            ],
+            "width": 888,
+            "height": 600
+          },
+          "enter": {
+            "preset": "grow",
+            "at": 0.6,
+            "stagger": 0.12,
+            "duration": 0.9
+          }
+        }
+      ]
+    },
+    {
+      "id": "homes",
+      "duration": 2.5,
+      "background": "forest",
+      "elements": [
+        {
+          "id": "homes-block",
+          "type": "stack",
+          "gap": 20,
+          "align": "center",
+          "layout": {
+            "anchor": "center"
+          },
+          "children": [
+            {
+              "id": "homes-icon",
+              "type": "icon",
+              "name": "house",
+              "style": {
+                "color": "lime",
+                "size": 120,
+                "strokeWidth": 1.75
+              },
+              "enter": {
+                "preset": "popIn",
+                "at": 0.3
+              }
+            },
+            {
+              "id": "homes-num",
+              "type": "text",
+              "role": "display",
+              "content": "2,400",
+              "style": {
+                "color": "white",
+                "size": 280,
+                "align": "center",
+                "letterSpacing": -0.04
+              },
+              "enter": {
+                "preset": "countUp",
+                "at": 0.35,
+                "duration": 1.2,
+                "ease": "expo.out"
+              }
+            },
+            {
+              "id": "homes-lbl",
+              "type": "text",
+              "role": "subtitle",
+              "content": "homes powered",
+              "style": {
+                "color": "mint",
+                "align": "center"
+              },
+              "enter": {
+                "preset": "fadeUp",
+                "at": 0.5,
+                "duration": 0.5
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "growth",
+      "duration": 2.4,
+      "background": "paper",
+      "elements": [
+        {
+          "id": "growth-lbl",
+          "type": "text",
+          "role": "label",
+          "content": "Growth since 2024",
+          "style": {
+            "color": "deep",
+            "size": 30
+          },
+          "layout": {
+            "anchor": "top-left",
+            "inset": [
+              96,
+              96
+            ]
+          },
+          "enter": {
+            "preset": "fadeUp",
+            "at": 0.3,
+            "duration": 0.5
+          }
+        },
+        {
+          "id": "growth-icon",
+          "type": "icon",
+          "name": "trending-up",
+          "style": {
+            "color": "leaf",
+            "size": 150,
+            "strokeWidth": 2
+          },
+          "layout": {
+            "anchor": "top-right",
+            "inset": [
+              80,
+              90
+            ]
+          },
+          "enter": {
+            "preset": "drawOutline",
+            "at": 0.3,
+            "duration": 0.9
+          }
+        },
+        {
+          "id": "growth-num",
+          "type": "text",
+          "role": "display",
+          "content": "3.4×",
+          "style": {
+            "color": "leaf",
+            "size": 540,
+            "letterSpacing": -0.05
+          },
+          "layout": {
+            "anchor": "bottom-left",
+            "inset": [
+              80,
+              88
+            ]
+          },
+          "enter": {
+            "preset": "countUp",
+            "from": 1,
+            "at": 0.3,
+            "duration": 1.3,
+            "ease": "expo.out"
+          }
+        },
+        {
+          "id": "growth-rule",
+          "type": "shape",
+          "shape": "line",
+          "layout": {
+            "above": "growth-num",
+            "gap": 24,
+            "width": 300,
+            "offset": [
+              12,
+              0
+            ]
+          },
+          "style": {
+            "stroke": "lime",
+            "strokeWidth": 10
+          },
+          "enter": {
+            "preset": "wipeIn",
+            "at": 0.5,
+            "duration": 0.7
+          }
+        }
+      ]
+    },
+    {
+      "id": "outro",
+      "duration": 2.6,
+      "background": {
+        "radial": [
+          "leaf",
+          "forest"
+        ]
+      },
+      "elements": [
+        {
+          "id": "outro-block",
+          "type": "stack",
+          "gap": 24,
+          "align": "center",
+          "layout": {
+            "anchor": "center"
+          },
+          "children": [
+            {
+              "id": "outro-icon",
+              "type": "icon",
+              "name": "sun",
+              "style": {
+                "color": "lime",
+                "size": 130,
+                "strokeWidth": 1.75
+              },
+              "enter": {
+                "preset": "popIn",
+                "at": 0.1
+              }
+            },
+            {
+              "id": "outro-h",
+              "type": "text",
+              "role": "title",
+              "content": "Accra Solar Co.",
+              "style": {
+                "color": "white",
+                "align": "center"
+              },
+              "enter": {
+                "preset": "wordReveal",
+                "at": 0.15,
+                "duration": 0.55,
+                "stagger": 0.08
+              }
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "target": "outro-icon",
+          "at": 0.6,
+          "duration": 1.2,
+          "ease": "linear",
+          "animate": {
+            "rotation": [
+              0,
+              45
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "notes": [
+    "Headline '120 to 410.' restates brief figures; no invented claims."
+  ]
+}

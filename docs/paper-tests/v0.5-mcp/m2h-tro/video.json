@@ -1,0 +1,414 @@
+{
+  "version": "0.4",
+  "video": {
+    "format": "9:16",
+    "fps": 30
+  },
+  "theme": {
+    "palette": {
+      "primary": "#ff6b35",
+      "success": "#04a777",
+      "warning": "#ffc107"
+    },
+    "motion": {
+      "base": "snappy"
+    }
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "duration": 2,
+      "background": "#ffffff",
+      "elements": [
+        {
+          "id": "title",
+          "type": "text",
+          "role": "display",
+          "content": "Tro",
+          "layout": {
+            "anchor": "center",
+            "inset": [
+              200,
+              0
+            ]
+          },
+          "style": {
+            "color": "#ff6b35"
+          },
+          "enter": "fadeUp"
+        },
+        {
+          "id": "sub",
+          "type": "text",
+          "role": "subtitle",
+          "content": "Ride-share in Accra",
+          "layout": {
+            "anchor": "center",
+            "inset": [
+              300,
+              0
+            ]
+          },
+          "style": {
+            "color": "#999"
+          },
+          "enter": "fadeUp"
+        }
+      ]
+    },
+    {
+      "id": "s-dest",
+      "duration": 3,
+      "background": "#ffffff",
+      "elements": [
+        {
+          "id": "phone-dest",
+          "type": "phone",
+          "layout": {
+            "anchor": "center",
+            "width": 540
+          },
+          "screen": "d",
+          "screens": {
+            "d": {
+              "children": [
+                {
+                  "id": "hd",
+                  "type": "text",
+                  "role": "title",
+                  "content": "Where to?"
+                },
+                {
+                  "id": "inp-box",
+                  "type": "shape",
+                  "shape": "rect",
+                  "layout": {
+                    "width": "100%",
+                    "height": 60
+                  },
+                  "style": {
+                    "fill": "#f0f0f0",
+                    "radius": 8
+                  }
+                },
+                {
+                  "id": "inp-txt",
+                  "type": "text",
+                  "role": "body",
+                  "content": "Osu, Accra",
+                  "layout": {
+                    "anchor": "top-left",
+                    "inset": [
+                      10,
+                      10
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "s-rides",
+      "duration": 3.5,
+      "background": "#ffffff",
+      "elements": [
+        {
+          "id": "phone-rides",
+          "type": "phone",
+          "layout": {
+            "anchor": "center",
+            "width": 540
+          },
+          "screen": "r",
+          "screens": {
+            "r": {
+              "children": [
+                {
+                  "id": "hr",
+                  "type": "text",
+                  "role": "title",
+                  "content": "Available Rides"
+                },
+                {
+                  "id": "ride1",
+                  "type": "group",
+                  "layout": {
+                    "width": "100%",
+                    "height": 80
+                  },
+                  "style": {
+                    "fill": "#f9f9f9",
+                    "radius": 12,
+                    "padding": 12
+                  },
+                  "children": [
+                    {
+                      "id": "r1n",
+                      "type": "text",
+                      "role": "body",
+                      "content": "Premium",
+                      "style": {
+                        "weight": 600
+                      }
+                    },
+                    {
+                      "id": "r1p",
+                      "type": "text",
+                      "role": "body",
+                      "content": "GHS 28",
+                      "style": {
+                        "color": "#ff6b35",
+                        "weight": 700
+                      }
+                    }
+                  ]
+                },
+                {
+                  "id": "ride2",
+                  "type": "group",
+                  "layout": {
+                    "width": "100%",
+                    "height": 80
+                  },
+                  "style": {
+                    "fill": "#f9f9f9",
+                    "radius": 12,
+                    "padding": 12
+                  },
+                  "children": [
+                    {
+                      "id": "r2n",
+                      "type": "text",
+                      "role": "body",
+                      "content": "Economy",
+                      "style": {
+                        "weight": 600
+                      }
+                    },
+                    {
+                      "id": "r2p",
+                      "type": "text",
+                      "role": "body",
+                      "content": "GHS 15.50",
+                      "style": {
+                        "color": "#ff6b35",
+                        "weight": 700
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "s-confirm",
+      "duration": 2,
+      "background": "#ffffff",
+      "elements": [
+        {
+          "id": "phone-confirm",
+          "type": "phone",
+          "layout": {
+            "anchor": "center",
+            "width": 540
+          },
+          "screen": "c",
+          "screens": {
+            "c": {
+              "children": [
+                {
+                  "id": "hc",
+                  "type": "text",
+                  "role": "title",
+                  "content": "Economy Selected"
+                },
+                {
+                  "id": "ride-sel",
+                  "type": "group",
+                  "layout": {
+                    "width": "100%",
+                    "height": 80
+                  },
+                  "style": {
+                    "fill": "#fff3e0",
+                    "stroke": "#ff6b35",
+                    "strokeWidth": 2,
+                    "radius": 12,
+                    "padding": 12
+                  },
+                  "children": [
+                    {
+                      "id": "rsn",
+                      "type": "text",
+                      "role": "body",
+                      "content": "Economy",
+                      "style": {
+                        "weight": 600
+                      }
+                    },
+                    {
+                      "id": "rsp",
+                      "type": "text",
+                      "role": "body",
+                      "content": "GHS 15.50",
+                      "style": {
+                        "color": "#ff6b35",
+                        "weight": 700
+                      }
+                    },
+                    {
+                      "id": "check",
+                      "type": "text",
+                      "role": "title",
+                      "content": "✓",
+                      "layout": {
+                        "pin": {
+                          "to": "ride-sel",
+                          "point": "top-right"
+                        },
+                        "offset": [
+                          -10,
+                          10
+                        ]
+                      },
+                      "style": {
+                        "color": "#04a777"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "s-tracker",
+      "duration": 4,
+      "background": "#ffffff",
+      "elements": [
+        {
+          "id": "phone-tracker",
+          "type": "phone",
+          "layout": {
+            "anchor": "center",
+            "width": 540
+          },
+          "screen": "t",
+          "screens": {
+            "t": {
+              "children": [
+                {
+                  "id": "ht",
+                  "type": "text",
+                  "role": "title",
+                  "content": "Driver on the way"
+                },
+                {
+                  "id": "st1",
+                  "type": "stack",
+                  "direction": "horizontal",
+                  "gap": 16,
+                  "layout": {
+                    "width": "100%",
+                    "height": 70
+                  },
+                  "children": [
+                    {
+                      "id": "s1c",
+                      "type": "shape",
+                      "shape": "circle",
+                      "layout": {
+                        "width": 50,
+                        "height": 50
+                      },
+                      "style": {
+                        "fill": "#04a777"
+                      }
+                    },
+                    {
+                      "id": "s1l",
+                      "type": "text",
+                      "role": "body",
+                      "content": "Accepting"
+                    }
+                  ]
+                },
+                {
+                  "id": "st2",
+                  "type": "stack",
+                  "direction": "horizontal",
+                  "gap": 16,
+                  "layout": {
+                    "width": "100%",
+                    "height": 70
+                  },
+                  "children": [
+                    {
+                      "id": "s2c",
+                      "type": "shape",
+                      "shape": "circle",
+                      "layout": {
+                        "width": 50,
+                        "height": 50
+                      },
+                      "style": {
+                        "fill": "#ffc107"
+                      }
+                    },
+                    {
+                      "id": "s2l",
+                      "type": "text",
+                      "role": "body",
+                      "content": "En route"
+                    }
+                  ]
+                },
+                {
+                  "id": "st3",
+                  "type": "stack",
+                  "direction": "horizontal",
+                  "gap": 16,
+                  "layout": {
+                    "width": "100%",
+                    "height": 70
+                  },
+                  "children": [
+                    {
+                      "id": "s3c",
+                      "type": "shape",
+                      "shape": "circle",
+                      "layout": {
+                        "width": 50,
+                        "height": 50
+                      },
+                      "style": {
+                        "fill": "#ccc"
+                      }
+                    },
+                    {
+                      "id": "s3l",
+                      "type": "text",
+                      "role": "body",
+                      "content": "Arriving",
+                      "style": {
+                        "color": "#999"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

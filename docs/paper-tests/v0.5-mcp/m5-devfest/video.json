@@ -1,0 +1,583 @@
+{
+  "version": "0.4",
+  "video": {
+    "format": "1:1",
+    "fps": 30,
+    "background": "night"
+  },
+  "theme": {
+    "palette": {
+      "night": "#0B1324",
+      "navy": "#152340",
+      "gold": "#F2B544",
+      "bone": "#F4EFE6",
+      "mute": "#8C97AD"
+    },
+    "fonts": {
+      "display": "Bricolage Grotesque",
+      "body": "Inter Tight",
+      "mono": "JetBrains Mono"
+    },
+    "motion": "editorial",
+    "transition": {
+      "type": "wipe",
+      "angle": 15,
+      "bar": "gold",
+      "duration": 0.55
+    },
+    "texture": {
+      "grain": 0.05,
+      "vignette": 0.3
+    }
+  },
+  "assets": {
+    "logo": {
+      "type": "svg",
+      "src": "assets/logo.svg"
+    }
+  },
+  "components": {
+    "perf-dot": {
+      "params": {},
+      "root": {
+        "id": "dot",
+        "type": "shape",
+        "shape": "circle",
+        "layout": {
+          "width": 8,
+          "height": 8
+        },
+        "style": {
+          "fill": "gold/0.5"
+        }
+      }
+    }
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "duration": 3,
+      "background": {
+        "radial": [
+          "navy",
+          "night"
+        ]
+      },
+      "elements": [
+        {
+          "id": "intro-block",
+          "type": "stack",
+          "align": "center",
+          "gap": 40,
+          "layout": {
+            "anchor": "center"
+          },
+          "children": [
+            {
+              "id": "intro-logo",
+              "type": "svg",
+              "asset": "logo",
+              "layout": {
+                "width": 200,
+                "height": 200
+              },
+              "enter": {
+                "preset": "drawOutline",
+                "at": 0.1,
+                "duration": 1
+              }
+            },
+            {
+              "id": "intro-title",
+              "type": "text",
+              "role": "display",
+              "content": "DevFest\nAccra [2026]{gold}",
+              "style": {
+                "color": "bone",
+                "align": "center",
+                "size": 130
+              },
+              "enter": {
+                "preset": "wordReveal",
+                "at": 0.6,
+                "stagger": 0.1
+              }
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "target": "intro-logo",
+          "preset": "float",
+          "amplitude": 8,
+          "period": 3,
+          "at": 1.1
+        }
+      ]
+    },
+    {
+      "id": "ticket-scene",
+      "duration": 3.8,
+      "background": "night",
+      "elements": [
+        {
+          "id": "kicker",
+          "type": "text",
+          "role": "label",
+          "content": "Save the date",
+          "style": {
+            "color": "gold",
+            "size": 30
+          },
+          "layout": {
+            "anchor": "top",
+            "inset": [
+              150,
+              0
+            ]
+          },
+          "enter": {
+            "preset": "trackIn",
+            "at": 0.2
+          }
+        },
+        {
+          "id": "ticket",
+          "type": "group",
+          "layout": {
+            "anchor": "center",
+            "width": 900,
+            "height": 480,
+            "offset": [
+              0,
+              30
+            ]
+          },
+          "style": {
+            "fill": "navy",
+            "radius": 32,
+            "shadow": "soft",
+            "stroke": "gold/0.35",
+            "strokeWidth": 2
+          },
+          "enter": {
+            "preset": "slideIn",
+            "from": "down",
+            "distance": 220,
+            "at": 0.35,
+            "duration": 0.9
+          },
+          "children": [
+            {
+              "id": "t-body",
+              "type": "stack",
+              "direction": "horizontal",
+              "align": "stretch",
+              "gap": 0,
+              "layout": {
+                "anchor": "top-left",
+                "width": "100%",
+                "height": "100%"
+              },
+              "children": [
+                {
+                  "id": "t-main",
+                  "type": "stack",
+                  "gap": 16,
+                  "justify": "space-between",
+                  "layout": {
+                    "grow": 1
+                  },
+                  "style": {
+                    "padding": [
+                      40,
+                      48
+                    ]
+                  },
+                  "children": [
+                    {
+                      "id": "t-head",
+                      "type": "stack",
+                      "direction": "horizontal",
+                      "align": "center",
+                      "gap": 18,
+                      "children": [
+                        {
+                          "id": "t-logo",
+                          "type": "svg",
+                          "asset": "logo",
+                          "layout": {
+                            "width": 60,
+                            "height": 60
+                          }
+                        },
+                        {
+                          "id": "t-brand",
+                          "type": "text",
+                          "role": "label",
+                          "content": "DevFest Accra 2026",
+                          "style": {
+                            "color": "bone",
+                            "size": 24
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "id": "t-date-row",
+                      "type": "stack",
+                      "direction": "horizontal",
+                      "align": "end",
+                      "gap": 22,
+                      "children": [
+                        {
+                          "id": "t-day",
+                          "type": "text",
+                          "role": "display",
+                          "content": "14",
+                          "style": {
+                            "color": "gold",
+                            "size": 190,
+                            "lineHeight": 0.85
+                          },
+                          "enter": {
+                            "preset": "countUp",
+                            "from": 1,
+                            "at": 0.9,
+                            "duration": 0.9
+                          }
+                        },
+                        {
+                          "id": "t-month",
+                          "type": "text",
+                          "role": "subtitle",
+                          "content": "November\n2026",
+                          "style": {
+                            "color": "bone",
+                            "lineHeight": 1
+                          },
+                          "enter": {
+                            "preset": "fadeUp",
+                            "distance": 20,
+                            "at": 1.1
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "id": "t-venue",
+                      "type": "stack",
+                      "direction": "horizontal",
+                      "align": "start",
+                      "gap": 14,
+                      "enter": {
+                        "preset": "fadeUp",
+                        "distance": 20,
+                        "at": 1.4
+                      },
+                      "children": [
+                        {
+                          "id": "t-pin",
+                          "type": "icon",
+                          "name": "map-pin",
+                          "style": {
+                            "color": "gold",
+                            "size": 34
+                          }
+                        },
+                        {
+                          "id": "t-venue-text",
+                          "type": "text",
+                          "role": "body",
+                          "content": "Accra International\nConference Centre",
+                          "style": {
+                            "color": "bone",
+                            "size": 34,
+                            "lineHeight": 1.2
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "perf",
+                  "type": "stack",
+                  "gap": 14,
+                  "align": "center",
+                  "justify": "center",
+                  "layout": {
+                    "width": 8
+                  },
+                  "children": [
+                    {
+                      "id": "pd-1",
+                      "use": "perf-dot"
+                    },
+                    {
+                      "id": "pd-2",
+                      "use": "perf-dot"
+                    },
+                    {
+                      "id": "pd-3",
+                      "use": "perf-dot"
+                    },
+                    {
+                      "id": "pd-4",
+                      "use": "perf-dot"
+                    },
+                    {
+                      "id": "pd-5",
+                      "use": "perf-dot"
+                    },
+                    {
+                      "id": "pd-6",
+                      "use": "perf-dot"
+                    },
+                    {
+                      "id": "pd-7",
+                      "use": "perf-dot"
+                    },
+                    {
+                      "id": "pd-8",
+                      "use": "perf-dot"
+                    },
+                    {
+                      "id": "pd-9",
+                      "use": "perf-dot"
+                    },
+                    {
+                      "id": "pd-10",
+                      "use": "perf-dot"
+                    },
+                    {
+                      "id": "pd-11",
+                      "use": "perf-dot"
+                    },
+                    {
+                      "id": "pd-12",
+                      "use": "perf-dot"
+                    },
+                    {
+                      "id": "pd-13",
+                      "use": "perf-dot"
+                    },
+                    {
+                      "id": "pd-14",
+                      "use": "perf-dot"
+                    },
+                    {
+                      "id": "pd-15",
+                      "use": "perf-dot"
+                    }
+                  ]
+                },
+                {
+                  "id": "t-stub",
+                  "type": "stack",
+                  "align": "center",
+                  "justify": "center",
+                  "gap": 18,
+                  "layout": {
+                    "width": 220
+                  },
+                  "style": {
+                    "padding": [
+                      40,
+                      24
+                    ]
+                  },
+                  "children": [
+                    {
+                      "id": "t-stub-icon",
+                      "type": "icon",
+                      "name": "ticket",
+                      "style": {
+                        "color": "gold",
+                        "size": 64
+                      }
+                    },
+                    {
+                      "id": "t-stub-text",
+                      "type": "text",
+                      "role": "label",
+                      "content": "Admit\none",
+                      "style": {
+                        "color": "bone",
+                        "align": "center",
+                        "size": 26
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "notch-top",
+              "type": "shape",
+              "shape": "circle",
+              "layout": {
+                "anchor": "top-left",
+                "inset": [
+                  -28,
+                  648
+                ],
+                "width": 56,
+                "height": 56
+              },
+              "style": {
+                "fill": "#0A1120"
+              }
+            },
+            {
+              "id": "notch-bottom",
+              "type": "shape",
+              "shape": "circle",
+              "layout": {
+                "anchor": "bottom-left",
+                "inset": [
+                  -28,
+                  648
+                ],
+                "width": 56,
+                "height": 56
+              },
+              "style": {
+                "fill": "#0A1120"
+              }
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "target": "ticket",
+          "at": 0.35,
+          "duration": 1.1,
+          "ease": "back.out",
+          "animate": {
+            "rotation": [
+              -6,
+              0
+            ]
+          }
+        },
+        {
+          "target": "ticket",
+          "preset": "float",
+          "amplitude": 6,
+          "period": 4,
+          "at": 1.5
+        }
+      ]
+    },
+    {
+      "id": "cta",
+      "duration": "auto",
+      "background": {
+        "radial": [
+          "navy",
+          "night"
+        ]
+      },
+      "elements": [
+        {
+          "id": "cta-block",
+          "type": "stack",
+          "align": "center",
+          "gap": 44,
+          "layout": {
+            "anchor": "center"
+          },
+          "children": [
+            {
+              "id": "cta-logo",
+              "type": "svg",
+              "asset": "logo",
+              "layout": {
+                "width": 120,
+                "height": 120
+              },
+              "enter": {
+                "preset": "popIn",
+                "at": 0.2
+              }
+            },
+            {
+              "id": "cta-title",
+              "type": "text",
+              "role": "title",
+              "content": "See you at\nDevFest Accra",
+              "style": {
+                "color": "bone",
+                "align": "center",
+                "lineHeight": 1
+              },
+              "enter": {
+                "preset": "wordReveal",
+                "at": 0.35
+              }
+            },
+            {
+              "id": "cta-meta",
+              "type": "text",
+              "role": "body",
+              "content": "14 November 2026 · Accra",
+              "style": {
+                "color": "bone/0.75",
+                "align": "center",
+                "size": 36
+              },
+              "layout": {
+                "maxWidth": 820
+              },
+              "enter": {
+                "preset": "fadeUp",
+                "at": 0.7
+              }
+            },
+            {
+              "id": "cta-btn",
+              "type": "button",
+              "label": "Get tickets",
+              "variant": "solid",
+              "style": {
+                "fill": "gold",
+                "color": "night",
+                "size": 54,
+                "weight": 700,
+                "radius": 70,
+                "stroke": "gold",
+                "strokeWidth": 3
+              },
+              "enter": {
+                "preset": "popIn",
+                "at": 1
+              }
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "target": "cta-btn",
+          "preset": "pulse",
+          "ring": true,
+          "every": 1,
+          "at": 2
+        },
+        {
+          "target": "cta-logo",
+          "preset": "float",
+          "amplitude": 8,
+          "period": 3,
+          "at": 1
+        }
+      ]
+    }
+  ],
+  "notes": [
+    "'Save the date', 'Admit one' and 'See you at DevFest Accra' are invented copy."
+  ]
+}

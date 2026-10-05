@@ -1,0 +1,337 @@
+{
+  "version": "0.4",
+  "video": {
+    "format": "16:9",
+    "fps": 30,
+    "background": "#0f172a",
+    "targetDuration": 20
+  },
+  "theme": {
+    "palette": {
+      "dark": "#0f172a",
+      "light": "#ffffff",
+      "blue": "#3b82f6",
+      "green": "#10b981"
+    },
+    "fonts": {
+      "display": "Inter Tight",
+      "body": "Inter Tight"
+    },
+    "motion": "editorial",
+    "transition": {
+      "type": "crossfade",
+      "duration": 0.5
+    }
+  },
+  "assets": {
+    "dashboard": "assets/dashboard.png"
+  },
+  "components": {},
+  "scenes": [
+    {
+      "id": "scene-dashboard",
+      "duration": 2.5,
+      "background": "dark",
+      "elements": [
+        {
+          "id": "dashboard-img",
+          "type": "image",
+          "asset": "dashboard",
+          "layout": {
+            "anchor": "center",
+            "width": "95%",
+            "height": "auto"
+          },
+          "enter": {
+            "preset": "fadeUp",
+            "duration": 0.8
+          }
+        }
+      ]
+    },
+    {
+      "id": "scene-zoom-export",
+      "duration": 4.5,
+      "background": "dark",
+      "cues": {
+        "start": 0
+      },
+      "elements": [
+        {
+          "id": "dashboard-img-2",
+          "type": "image",
+          "asset": "dashboard",
+          "layout": {
+            "anchor": "center",
+            "width": "95%",
+            "height": "auto"
+          }
+        }
+      ],
+      "timeline": [
+        {
+          "target": "dashboard-img-2",
+          "animate": {
+            "scale": [
+              1,
+              2
+            ]
+          },
+          "at": "cue:start",
+          "duration": 4.5,
+          "ease": "cubic.inOut"
+        }
+      ]
+    },
+    {
+      "id": "scene-pdf-toast",
+      "duration": 2.5,
+      "background": "dark",
+      "elements": [
+        {
+          "id": "dashboard-img-3",
+          "type": "image",
+          "asset": "dashboard",
+          "layout": {
+            "anchor": "center",
+            "width": "95%",
+            "height": "auto"
+          },
+          "style": {
+            "scale": 2
+          }
+        },
+        {
+          "id": "pdf-toast",
+          "type": "toast",
+          "icon": "check-circle",
+          "title": "PDF exported",
+          "style": {
+            "fill": "green",
+            "color": "light"
+          },
+          "layout": {
+            "anchor": "center",
+            "inset": [
+              100,
+              0
+            ]
+          },
+          "enter": {
+            "preset": "slideIn",
+            "from": "right",
+            "duration": 0.6
+          }
+        }
+      ]
+    },
+    {
+      "id": "scene-stats",
+      "duration": 5.5,
+      "background": "dark",
+      "cues": {
+        "start": 0
+      },
+      "elements": [
+        {
+          "id": "dashboard-img-4",
+          "type": "image",
+          "asset": "dashboard",
+          "layout": {
+            "anchor": "center",
+            "width": "95%",
+            "height": "auto"
+          }
+        },
+        {
+          "id": "stat-box-1",
+          "type": "shape",
+          "shape": "rect",
+          "layout": {
+            "anchor": "top-left",
+            "inset": [
+              135,
+              155
+            ],
+            "width": 220,
+            "height": 100
+          },
+          "style": {
+            "stroke": "blue",
+            "strokeWidth": 2,
+            "radius": 8
+          }
+        },
+        {
+          "id": "stat-box-2",
+          "type": "shape",
+          "shape": "rect",
+          "layout": {
+            "anchor": "top-left",
+            "inset": [
+              135,
+              435
+            ],
+            "width": 220,
+            "height": 100
+          },
+          "style": {
+            "stroke": "blue",
+            "strokeWidth": 2,
+            "radius": 8
+          }
+        },
+        {
+          "id": "stat-box-3",
+          "type": "shape",
+          "shape": "rect",
+          "layout": {
+            "anchor": "top-left",
+            "inset": [
+              135,
+              715
+            ],
+            "width": 220,
+            "height": 100
+          },
+          "style": {
+            "stroke": "blue",
+            "strokeWidth": 2,
+            "radius": 8
+          }
+        }
+      ],
+      "timeline": [
+        {
+          "target": "stat-box-1",
+          "animate": {
+            "opacity": [
+              0,
+              1
+            ]
+          },
+          "at": "cue:start",
+          "duration": 0.4
+        },
+        {
+          "target": "stat-box-1",
+          "animate": {
+            "opacity": 1
+          },
+          "at": "cue:start+1.2",
+          "duration": 0
+        },
+        {
+          "target": "stat-box-1",
+          "animate": {
+            "opacity": [
+              1,
+              0
+            ]
+          },
+          "at": "cue:start+1.4",
+          "duration": 0.3
+        },
+        {
+          "target": "stat-box-2",
+          "animate": {
+            "opacity": [
+              0,
+              1
+            ]
+          },
+          "at": "cue:start+1.8",
+          "duration": 0.4
+        },
+        {
+          "target": "stat-box-2",
+          "animate": {
+            "opacity": 1
+          },
+          "at": "cue:start+3.0",
+          "duration": 0
+        },
+        {
+          "target": "stat-box-2",
+          "animate": {
+            "opacity": [
+              1,
+              0
+            ]
+          },
+          "at": "cue:start+3.2",
+          "duration": 0.3
+        },
+        {
+          "target": "stat-box-3",
+          "animate": {
+            "opacity": [
+              0,
+              1
+            ]
+          },
+          "at": "cue:start+3.6",
+          "duration": 0.4
+        }
+      ]
+    },
+    {
+      "id": "scene-cta",
+      "duration": 3,
+      "background": "dark",
+      "cues": {
+        "text-start": 0.3
+      },
+      "elements": [
+        {
+          "id": "cta-text",
+          "type": "text",
+          "role": "display",
+          "content": "Try Ledgerly free",
+          "style": {
+            "color": "light",
+            "align": "center"
+          },
+          "layout": {
+            "anchor": "center",
+            "inset": [
+              0,
+              0
+            ]
+          },
+          "enter": {
+            "preset": "fadeUp",
+            "duration": 0.6
+          }
+        },
+        {
+          "id": "cta-url",
+          "type": "text",
+          "role": "subtitle",
+          "content": "ledgerly.app",
+          "style": {
+            "color": "blue",
+            "align": "center"
+          },
+          "layout": {
+            "below": "cta-text",
+            "gap": 24,
+            "width": 400
+          },
+          "enter": {
+            "preset": "fadeUp",
+            "duration": 0.6,
+            "at": "cue:text-start"
+          }
+        }
+      ]
+    }
+  ],
+  "notes": [
+    "Version 2: Improved zoom speed (slower), added individual stat boxes with blue highlights",
+    "Added ledgerly.app URL to CTA scene",
+    "Extended video duration closer to 20s target",
+    "Stat boxes positioned to match dashboard layout",
+    "Using cue-based timing for stat animations"
+  ]
+}
