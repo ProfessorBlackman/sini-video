@@ -33,7 +33,7 @@ Sini runs in Docker. The image bundles Chromium, FFmpeg and the fonts, is about 
 docker pull ghcr.io/professorblackman/sini:0.1
 ```
 
-The examples below use the `0.1` tag, which gets fixes but stays on the 0.1 release line, so a video renders the same way next month as today. Use `latest` to follow every release, or a full version like `0.1.0` to pin exactly. Renders are byte-identical for the same image on the same architecture; amd64 and arm64 may differ by a few pixel values.
+The examples below use the `0.1` tag, which follows the 0.1 release line and picks up its fixes. A fix can change how an affected video renders (see the [CHANGELOG](CHANGELOG.md)), so pin a full version like `0.1.1` when a video must re-render identically later. Use `latest` to follow every release. Renders are byte-identical for the same image on the same architecture; amd64 and arm64 may differ by a few pixel values.
 
 To build the image yourself instead, run `docker build -t sini .` and use `sini` in place of the image name below.
 
@@ -103,7 +103,7 @@ node packages/cli/dist/index.js --help
 
 ## Releasing
 
-Bump `packages/cli/package.json`'s version, move the [CHANGELOG](CHANGELOG.md)'s Unreleased notes under the new version, and push a matching tag (e.g. `v0.1.0`). [release.yml](.github/workflows/release.yml) runs the checks, builds the image natively on amd64 and arm64, smoke-tests each, and publishes `ghcr.io/<owner>/sini` as `0.1.0`, `0.1` and `latest` (plus `0` from 1.0 on). Running the workflow by hand publishes `edge` and `sha-<commit>`.
+Bump the version in every `packages/*/package.json` (they move together; the tag must match `packages/cli`), move the [CHANGELOG](CHANGELOG.md)'s Unreleased notes under the new version, and push a matching tag (e.g. `v0.1.0`). [release.yml](.github/workflows/release.yml) runs the checks, builds the image natively on amd64 and arm64, smoke-tests each, and publishes `ghcr.io/<owner>/sini` as `0.1.0`, `0.1` and `latest` (plus `0` from 1.0 on). Running the workflow by hand publishes `edge` and `sha-<commit>`.
 
 The first publish creates the package as private; make it public once in the package settings on GitHub.
 

@@ -6,6 +6,35 @@ Images: `ghcr.io/professorblackman/sini:<version>` for linux/amd64 and linux/arm
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-10-05
+
+Fixes from the first MCP test round ([findings](docs/paper-tests/v0.5-mcp/FINDINGS.md)): 7 agents made videos through the published image using only the MCP tools.
+
+### Changed
+- **Pinned elements follow their target's animation** (position, not rotation). Videos with pins on animated elements render differently.
+- **Transitions default to eases that start moving at once**: `quart.out` for wipes, `cubic.inOut` for slides, match cuts, circles and zooms. `expo.inOut` made cuts seem to hesitate. Set `ease` to keep the old look.
+- **`get_reference` returns the reference in parts**: the essentials and an index by default (~23KB instead of 54KB), sections by number or name, or `"all"`.
+- **`render_video` lists open lint warnings**, asking the model to fix them or explain them in `notes`.
+- MCP results show paths relative to the folder Sini was given, not container paths.
+
+### Added
+- **§15 Recipes** in the reference: patterns for app demos, phone flows, numbers, photo reels and announcements, with a complete phone-flow spec.
+- **`content-overflow` lint**: content sticking out of a stack or grid.
+- `"none"` and `"transparent"` colours.
+- Clearer validation messages for quoted numbers, keys put inside `animate`, and missing targets.
+
+### Fixed
+- Pins to screenshot hotspots (`"app#card"`) landed in the middle of the device.
+- Dark browser chrome drew an invisible toolbar and URL on white pages.
+- Groups ignored an explicit width or height, which also broke component instance heights.
+- `{{param}}` in icon names was rejected. `sini validate` and inline `validate_video` now run the full check (icons, asset files).
+- `get_layout` reported stretched widths for buttons, badges, icons and toasts.
+- False lint warnings: overlap and covered ignored the parents' enter/exit times; tiny-text ignored camera zoom. `edge-margin` names the edge; `target-unreachable` lists every scene.
+- Rolling text left descenders behind and clipped glyphs with tight line heights.
+- Self-drawing icons started as dots; pulse rings were too faint and ignored `style.stroke`.
+- Placeholder backgrounds showed a crease.
+- The reference no longer says nothing is implemented, and documents index paths in patches and chart text size.
+
 ## [0.1.0] - 2026-10-05
 
 The first release: an AI writes a JSON spec, and Sini renders it to MP4 deterministically, with no video-generation model.
@@ -32,5 +61,6 @@ The first release: an AI writes a JSON spec, and Sini renders it to MP4 determin
 - Docker image only (about 940 MB): Node 24, Chromium headless shell, a minimal FFmpeg build with libx264 (GPL; run as a separate program), bundled fonts and icons.
 - Writes files as the owner of the mounted folder.
 
-[Unreleased]: https://github.com/ProfessorBlackman/sini-video/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/ProfessorBlackman/sini-video/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/ProfessorBlackman/sini-video/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/ProfessorBlackman/sini-video/releases/tag/v0.1.0

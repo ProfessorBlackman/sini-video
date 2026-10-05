@@ -13,6 +13,7 @@ import type { Issue } from "@sini/schema";
 
 import { referenceSection } from "./reference.js";
 
+const VERSION = (JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")) as { version: string }).version;
 const DOCS = fileURLToPath(new URL("../docs/", import.meta.url));
 const read = (f: string) => readFileSync(DOCS + f, "utf8");
 
@@ -40,7 +41,7 @@ export function createServer(root = process.env.SINI_ROOT ?? process.cwd()): Mcp
     }
   };
 
-  const server = new McpServer({ name: "sini", version: "0.0.1" }, {
+  const server = new McpServer({ name: "sini", version: VERSION }, {
     instructions:
       "Sini renders videos from a JSON spec. Read the DSL reference first: get_reference (essentials and index), then sections \"7\" and \"9\". " +
       "Workflow: create_video → validate_video / lint_video → render_contact_sheet (look at it) → update_video with patches → render_video (draft first). " +
