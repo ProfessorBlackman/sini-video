@@ -26,4 +26,10 @@ describe("OCR tiles", () => {
     expect(inside(1290, 10, 140, 40)).toBe(true);
     expect(inside(700, 430, 140, 40)).toBe(true);
   });
+  it("fine tiles fit a phone screenshot's button label", async () => {
+    const { tiles } = await import("./ocr.js");
+    const t = tiles(390, 884, true);
+    expect(t.every((r) => r.left + r.width <= 390 && r.top + r.height <= 884 && r.width === 160)).toBe(true);
+    expect(t.some((r) => 171 >= r.left && 268 >= r.top && 240 <= r.left + r.width && 279 <= r.top + r.height)).toBe(true); // "Scan Now" on MedVerify's home screen
+  });
 });

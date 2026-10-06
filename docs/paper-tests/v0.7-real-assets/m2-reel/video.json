@@ -1,0 +1,554 @@
+{
+  "version": "0.4",
+  "video": {
+    "format": "9:16",
+    "fps": 30,
+    "background": "wash",
+    "targetDuration": 16,
+    "safeZone": "reels",
+    "end": "hold"
+  },
+  "theme": {
+    "palette": {
+      "forest": "#0b5d3b",
+      "deep": "#0a4a30",
+      "leaf": "#17915a",
+      "mint": "#e7f5ed",
+      "wash": "#f3faf6",
+      "ink": "#0d2b20",
+      "dim": "#4f6259",
+      "white": "#ffffff"
+    },
+    "fonts": {
+      "display": "Manrope",
+      "body": "Manrope"
+    },
+    "motion": {
+      "base": "editorial",
+      "duration": 0.6
+    },
+    "transition": {
+      "type": "wipe",
+      "from": "down",
+      "bar": "leaf",
+      "duration": 0.5
+    }
+  },
+  "assets": {
+    "logo": "assets/logo.webp",
+    "home": {
+      "type": "image",
+      "src": "assets/home.png",
+      "hotspots": {
+        "scan": [
+          37,
+          250,
+          315,
+          47
+        ]
+      }
+    },
+    "result": {
+      "type": "image",
+      "src": "assets/scan-result.png",
+      "hotspots": {
+        "reg": [
+          15,
+          491,
+          360,
+          217
+        ]
+      }
+    }
+  },
+  "components": {
+    "perk": {
+      "params": {
+        "text": ""
+      },
+      "root": {
+        "id": "row",
+        "type": "stack",
+        "direction": "horizontal",
+        "gap": 28,
+        "align": "center",
+        "children": [
+          {
+            "id": "tick",
+            "type": "icon",
+            "name": "check-circle",
+            "style": {
+              "color": "mint",
+              "size": 84,
+              "strokeWidth": 2.5
+            }
+          },
+          {
+            "id": "t",
+            "type": "text",
+            "role": "subtitle",
+            "content": "{{text}}",
+            "style": {
+              "color": "white",
+              "size": 80,
+              "weight": 700
+            }
+          }
+        ]
+      }
+    }
+  },
+  "scenes": [
+    {
+      "id": "hook",
+      "duration": "auto",
+      "background": "wash",
+      "elements": [
+        {
+          "id": "hook-dots",
+          "type": "particles",
+          "count": 36,
+          "motion": "drift",
+          "size": [
+            6,
+            14
+          ],
+          "style": {
+            "fill": "leaf/0.18"
+          }
+        },
+        {
+          "id": "hook-stack",
+          "type": "stack",
+          "gap": 48,
+          "layout": {
+            "anchor": "left",
+            "inset": [
+              0,
+              72
+            ],
+            "width": 868,
+            "offset": [
+              0,
+              80
+            ]
+          },
+          "children": [
+            {
+              "id": "pill-badge",
+              "type": "stack",
+              "align": "center",
+              "justify": "center",
+              "layout": {
+                "width": 180,
+                "height": 180
+              },
+              "style": {
+                "fill": "mint",
+                "radius": 90
+              },
+              "children": [
+                {
+                  "id": "pill-icon",
+                  "type": "icon",
+                  "name": "pill",
+                  "style": {
+                    "color": "forest",
+                    "size": 100
+                  }
+                }
+              ]
+            },
+            {
+              "id": "hook-q",
+              "type": "text",
+              "role": "title",
+              "content": "Medicine from\na trotro or\nroadside tray?",
+              "style": {
+                "color": "ink",
+                "size": 104,
+                "weight": 700
+              }
+            },
+            {
+              "id": "hook-a",
+              "type": "text",
+              "role": "title",
+              "content": "Is it [registered?]{leaf}",
+              "style": {
+                "color": "forest",
+                "size": 136,
+                "weight": 800
+              },
+              "fit": "shrink"
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "target": "pill-badge",
+          "preset": "popIn",
+          "at": 0.2
+        },
+        {
+          "target": "hook-q",
+          "preset": "wordReveal",
+          "at": 0.3
+        },
+        {
+          "target": "hook-a",
+          "preset": "wordReveal",
+          "at": "hook-q.enter.end"
+        }
+      ]
+    },
+    {
+      "id": "app",
+      "duration": "auto",
+      "background": {
+        "linear": [
+          "mint",
+          "wash"
+        ],
+        "angle": 180
+      },
+      "elements": [
+        {
+          "id": "cap",
+          "type": "text",
+          "role": "title",
+          "content": "Scan the pack",
+          "style": {
+            "color": "ink",
+            "size": 84,
+            "weight": 800
+          },
+          "layout": {
+            "anchor": "top-left",
+            "inset": [
+              230,
+              72
+            ],
+            "maxWidth": 868
+          },
+          "enter": "none",
+          "exit": {
+            "preset": "fadeOut",
+            "at": "tap.end-0.25",
+            "duration": 0.25
+          }
+        },
+        {
+          "id": "cap2",
+          "type": "text",
+          "role": "title",
+          "content": "On the Ghana\nFDA register [✓]{leaf}",
+          "style": {
+            "color": "ink",
+            "size": 84,
+            "weight": 800
+          },
+          "layout": {
+            "anchor": "top-left",
+            "inset": [
+              230,
+              72
+            ],
+            "maxWidth": 868
+          },
+          "enter": {
+            "preset": "wordReveal",
+            "at": "tap.end"
+          }
+        },
+        {
+          "id": "stage",
+          "type": "group",
+          "layout": {
+            "anchor": "bottom",
+            "inset": [
+              -420,
+              0
+            ],
+            "width": 820
+          },
+          "children": [
+            {
+              "id": "phone",
+              "type": "phone",
+              "layout": {
+                "anchor": "top",
+                "width": 820
+              },
+              "background": "#ffffff",
+              "screen": "home",
+              "screens": {
+                "home": [
+                  {
+                    "id": "home-img",
+                    "type": "image",
+                    "asset": "home",
+                    "layout": {
+                      "width": 390,
+                      "height": 884
+                    },
+                    "fit": "cover"
+                  }
+                ],
+                "res": [
+                  {
+                    "id": "res-img",
+                    "type": "image",
+                    "asset": "result",
+                    "layout": {
+                      "width": 390,
+                      "height": 790
+                    },
+                    "fit": "cover",
+                    "focus": [
+                      50,
+                      63
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "target": "stage",
+          "preset": "slideIn",
+          "from": "down",
+          "distance": 300,
+          "at": 0.1,
+          "duration": 0.7
+        },
+        {
+          "id": "go",
+          "behavior": "interaction",
+          "cursor": "touch",
+          "from": "bottom-right",
+          "at": 1.2,
+          "steps": [
+            {
+              "id": "tap",
+              "click": "home-img#scan",
+              "navigate": {
+                "phone": "res"
+              }
+            }
+          ],
+          "pace": "normal"
+        },
+        {
+          "id": "cam",
+          "behavior": "camera",
+          "target": "stage",
+          "ease": "cubic.inOut",
+          "keys": [
+            {
+              "at": 0,
+              "focus": "center",
+              "zoom": 1
+            },
+            {
+              "at": "tap.end+0.2",
+              "focus": "center",
+              "zoom": 1
+            },
+            {
+              "at": "tap.end+1.1",
+              "focus": "res-img#reg",
+              "zoom": 1.2
+            }
+          ]
+        },
+        {
+          "id": "spot",
+          "behavior": "focusCycle",
+          "targets": [
+            "res-img#reg"
+          ],
+          "at": "tap.end+1.0",
+          "interval": 1.8,
+          "dim": 0.55,
+          "ring": "leaf"
+        }
+      ]
+    },
+    {
+      "id": "perks",
+      "duration": "auto",
+      "background": "forest",
+      "elements": [
+        {
+          "id": "perk-dots",
+          "type": "particles",
+          "count": 40,
+          "motion": "rise",
+          "size": [
+            4,
+            10
+          ],
+          "style": {
+            "fill": "mint/0.25"
+          }
+        },
+        {
+          "id": "perk-stack",
+          "type": "stack",
+          "gap": 72,
+          "layout": {
+            "anchor": "left",
+            "inset": [
+              0,
+              80
+            ]
+          },
+          "children": [
+            {
+              "id": "p-free",
+              "use": "perk",
+              "with": {
+                "text": "Free"
+              }
+            },
+            {
+              "id": "p-acct",
+              "use": "perk",
+              "with": {
+                "text": "No account"
+              }
+            },
+            {
+              "id": "p-phone",
+              "use": "perk",
+              "with": {
+                "text": "No phone number"
+              }
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "target": [
+            "p-free",
+            "p-acct",
+            "p-phone"
+          ],
+          "preset": "fadeUp",
+          "stagger": 0.35,
+          "at": 0.3
+        }
+      ]
+    },
+    {
+      "id": "end",
+      "duration": "auto",
+      "background": "wash",
+      "elements": [
+        {
+          "id": "end-stack",
+          "type": "stack",
+          "align": "center",
+          "gap": 44,
+          "layout": {
+            "anchor": "center",
+            "offset": [
+              -40,
+              -60
+            ]
+          },
+          "children": [
+            {
+              "id": "logo-img",
+              "type": "image",
+              "asset": "logo",
+              "layout": {
+                "width": 300,
+                "height": 300
+              },
+              "style": {
+                "radius": 66,
+                "shadow": "soft"
+              }
+            },
+            {
+              "id": "end-title",
+              "type": "text",
+              "role": "title",
+              "content": "Get MedVerify\non Android",
+              "style": {
+                "color": "ink",
+                "align": "center",
+                "size": 112,
+                "weight": 800
+              }
+            },
+            {
+              "id": "end-sub",
+              "type": "text",
+              "role": "body",
+              "content": "Checks the Ghana FDA public register",
+              "style": {
+                "color": "dim",
+                "align": "center",
+                "size": 44
+              }
+            },
+            {
+              "id": "url-btn",
+              "type": "button",
+              "label": "medverify.versatechq.com",
+              "variant": "solid",
+              "style": {
+                "fill": "forest",
+                "color": "white",
+                "size": 44
+              }
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "target": "logo-img",
+          "preset": "popIn",
+          "at": 0.2
+        },
+        {
+          "target": "end-title",
+          "preset": "wordReveal",
+          "at": 0.35
+        },
+        {
+          "target": "end-sub",
+          "preset": "fadeUp",
+          "at": "end-title.enter.end-0.3"
+        },
+        {
+          "target": "url-btn",
+          "preset": "scaleIn",
+          "at": "end-sub.enter.start+0.2"
+        },
+        {
+          "target": "url-btn",
+          "preset": "pulse",
+          "at": "url-btn.enter.end+0.2",
+          "scale": 1.04,
+          "every": 1
+        }
+      ]
+    }
+  ],
+  "notes": [
+    "Brand font Plus Jakarta Sans is not bundled with Sini; Manrope is used instead. Send the .ttf to switch.",
+    "The result screenshot's 'Verified Safe' header is cropped out on purpose; the reel only talks about registration.",
+    "Sub-line 'Checks your medicine against the Ghana FDA public register' is paraphrased from the brief.",
+    "logo.webp has black corners baked in (no alpha); corners are clipped with a radius. A transparent PNG/SVG logo would be better."
+  ]
+}

@@ -1373,7 +1373,8 @@ function applyDevice(n: Node, f: ElementFrame, t: number) {
 function buildScene(s: PlanScene): HTMLElement {
   const sec = h("section", "scene", { position: "absolute", inset: "0", overflow: "hidden", visibility: "hidden" });
   sec.dataset.scene = s.id;
-  const bg = h("div", "bg", { position: "absolute", inset: "0", overflow: "hidden" });
+  // Below every element, even ones with a negative z (the layer isn't isolated, so blend modes reach the background).
+  const bg = h("div", "bg", { position: "absolute", inset: "0", overflow: "hidden", zIndex: "-100000" });
   if (s.background.kind === "paint") bg.style.background = s.background.css;
   else {
     const layer = h("div", "bg-pic", { position: "absolute", inset: "0", transformOrigin: "50% 50%" });
@@ -2103,9 +2104,13 @@ function applyElement(n: Node, f: ElementFrame | undefined) {
     if (q >= 1) n.text.textContent = to;
     else {
       n.text.innerHTML = "";
-      const wrap = h("span", "", { display: "inline-grid", overflow: "hidden", verticalAlign: "top", padding: `${ROLL_PAD} 0`, margin: `-${ROLL_PAD} 0` });
-      const a = h("span", "", { gridArea: "1 / 1", transform: `translateY(calc(${-q} * (100% + ${ROLL_GAP})))`, whiteSpace: "nowrap" });
-      const b = h("span", "", { gridArea: "1 / 1", transform: `translateY(calc(${1 - q} * (100% + ${ROLL_GAP})))`, whiteSpace: "nowrap" });
+      // Labels (buttons, badges) roll on one line; text keeps wrapping to its width, so a longer caption
+      // is laid out as it will end up rather than running off on a single line mid-roll.
+      const wraps = el.type === "text";
+      const ws = wraps ? "pre-wrap" : "nowrap";
+      const wrap = h("span", "", { display: wraps ? "grid" : "inline-grid", overflow: "hidden", verticalAlign: "top", padding: `${ROLL_PAD} 0`, margin: `-${ROLL_PAD} 0` });
+      const a = h("span", "", { gridArea: "1 / 1", transform: `translateY(calc(${-q} * (100% + ${ROLL_GAP})))`, whiteSpace: ws });
+      const b = h("span", "", { gridArea: "1 / 1", transform: `translateY(calc(${1 - q} * (100% + ${ROLL_GAP})))`, whiteSpace: ws });
       a.textContent = from;
       b.textContent = to;
       wrap.append(a, b);

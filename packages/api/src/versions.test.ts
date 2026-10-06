@@ -114,6 +114,13 @@ describe("patch paths by position", () => {
     expect(r.issues[0]).toMatchObject({ code: "index-path", suggestion: "Use 'headline.style.size' instead." });
     expect(patchProject(d, [{ op: "set", path: "headline.style.size", value: 130 }]).issues.filter((i) => i.code === "index-path")).toEqual([]);
   });
+  it("don't suggest ids inside component definitions, which patches can't address", () => {
+    const d = tmp();
+    initProject(d);
+    patchProject(d, [{ op: "set", path: "components", value: { perk: { params: { text: "" }, root: { id: "row", type: "stack", children: [{ id: "t", type: "text", content: "{{text}}" }] } } } }]);
+    const r = patchProject(d, [{ op: "set", path: "components.perk.root.children[0].style", value: { size: 80 } }]);
+    expect(r.issues.filter((i) => i.code === "index-path")).toEqual([]);
+  });
 });
 
 describe("patches from the 0.1.4 re-test", () => {

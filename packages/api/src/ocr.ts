@@ -104,10 +104,14 @@ export function findText(words: Word[], text: string): Rect | null {
 
 type Tile = { left: number; top: number; width: number; height: number };
 
-/** Half-width, half-height tiles at quarter steps, so every label sits whole inside at least one. */
-export function tiles(width: number, height: number): Tile[] {
-  const tw = Math.min(width, Math.max(320, Math.round(width / 2)));
-  const th = Math.min(height, Math.max(200, Math.round(height / 2)));
+/**
+ * Overlapping tiles at half steps, so every label sits whole inside at least one. Coarse: half the
+ * width and height. Fine: a quarter of the width and an eighth of the height, for labels on coloured
+ * buttons, which only threshold cleanly in a small window around them.
+ */
+export function tiles(width: number, height: number, fine = false): Tile[] {
+  const tw = Math.min(width, fine ? Math.max(160, Math.round(width / 4)) : Math.max(320, Math.round(width / 2)));
+  const th = Math.min(height, fine ? Math.max(100, Math.round(height / 8)) : Math.max(200, Math.round(height / 2)));
   const out: Tile[] = [];
   const steps = (total: number, size: number) => {
     const xs: number[] = [];
@@ -161,6 +165,7 @@ export async function resolveTextHotspots(target: string): Promise<{ resolved: n
       // Word lists per file: the whole page first; tiles are read only if some text isn't found there.
       const whole = new Map<string, Word[][]>();
       const tiled = new Map<string, Word[][]>();
+      const fineTiled = new Map<string, Word[][]>();
       const read = async (file: string, rectangle?: Tile): Promise<Word[]> => {
         const { data: page } = await worker.recognize(file, rectangle ? { rectangle } : {}, { blocks: true });
         const words: Word[] = [];
@@ -174,24 +179,28 @@ export async function resolveTextHotspots(target: string): Promise<{ resolved: n
         }
         return null;
       };
+      const sparse = async (file: string, memo: Map<string, Word[][]>, fine: boolean) => {
+        if (!memo.has(file)) {
+          const lists: Word[][] = [];
+          const size = imageSize(file);
+          if (size) {
+            await worker.setParameters({ tessedit_pageseg_mode: "11" as never });
+            for (const t of tiles(size.width, size.height, fine)) lists.push(await read(file, t));
+            await worker.setParameters({ tessedit_pageseg_mode: "3" as never });
+          }
+          memo.set(file, lists);
+        }
+        return memo.get(file)!;
+      };
       for (const s of todo) {
         if (!whole.has(s.file)) whole.set(s.file, [await read(s.file)]);
         let r = search(whole.get(s.file)!, s.text);
         if (!r) {
           // Whole-page layout analysis drops small isolated labels (buttons, tabs, badges).
           // Sparse-text mode over overlapping tiles finds them.
-          if (!tiled.has(s.file)) {
-            const lists: Word[][] = [];
-            const size = imageSize(s.file);
-            if (size) {
-              await worker.setParameters({ tessedit_pageseg_mode: "11" as never });
-              for (const t of tiles(size.width, size.height)) lists.push(await read(s.file, t));
-              await worker.setParameters({ tessedit_pageseg_mode: "3" as never });
-            }
-            tiled.set(s.file, lists);
-          }
-          r = search(tiled.get(s.file)!, s.text);
+          r = search(await sparse(s.file, tiled, false), s.text);
         }
+        if (!r) r = search(await sparse(s.file, fineTiled, true), s.text);
         cache[keyOf(s)] = r;
         if (!r) missing.push(`${s.asset}#${s.name}`);
       }

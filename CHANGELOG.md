@@ -6,6 +6,14 @@ Images: `ghcr.io/professorblackman/sini:<version>` for linux/amd64 and linux/arm
 
 ## [Unreleased]
 
+Fixes from the real-assets round ([findings](docs/paper-tests/v0.7-real-assets/FINDINGS.md)).
+
+### Fixed
+- Text hotspots missed labels on coloured buttons (e.g. "Scan Now" on a bright green button): a fine-tile OCR pass runs when the others miss.
+- A text `state` with longer content ran off the frame on one line while rolling in; text now rolls wrapped to its width.
+- The index-path patch warning suggested ids inside component definitions, which can't be patched.
+- An element with a negative `z` was drawn behind the scene background.
+
 ## [0.1.7] - 2026-10-06
 
 Masks and faster checks.

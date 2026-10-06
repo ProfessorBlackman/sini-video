@@ -281,7 +281,8 @@ function indexPathNotes(spec: Spec, ops: PatchOp[]): Issue[] {
     const rest = ROOT_KEYS.has(parts[0]!) ? parts : parts.slice(1);
     for (let k = 0; k < rest.length && obj && typeof obj === "object"; k++) {
       obj = Array.isArray(obj) ? obj[Number(rest[k])] : obj[rest[k]!];
-      if (/^\d+$/.test(rest[k]!) && obj && typeof obj === "object" && typeof obj.id === "string") {
+      // Only when the id path would reach the same item (ids inside component definitions aren't addressable).
+      if (/^\d+$/.test(rest[k]!) && obj && typeof obj === "object" && typeof obj.id === "string" && findById(spec, obj.id)?.obj === obj) {
         const tail = rest.slice(k + 1).join(".");
         notes.push({ level: "warning", path: `patch[${i}]`, code: "index-path", message: `'${path}' reaches '${obj.id}' by position; positions shift when items are added or removed.`, suggestion: `Use '${obj.id}${tail ? `.${tail}` : ""}' instead.` });
         break;

@@ -438,6 +438,25 @@ describe("clips and cutouts", () => {
   }, 60_000);
 });
 
+describe("stacking", () => {
+  it("draws a negative z behind other elements but in front of the scene background", async () => {
+    const p = compile({ version: "0.4", video: { format: "1:1" }, scenes: [{ id: "s", duration: 1, background: "#0000ff", elements: [
+      { id: "under", type: "shape", shape: "rect", z: -1, style: { fill: "#ff0000" }, layout: { x: 100, y: 100, width: 400, height: 400 }, enter: "none" },
+    ] }] } as never);
+    const s = await RenderSession.open(p, { browser });
+    try {
+      await s.render(0.5);
+      const top = await s.page.evaluate(() => {
+        const [x, y] = [300 / 1080, 300 / 1080].map((f) => f * document.querySelector<HTMLElement>("section.scene")!.getBoundingClientRect().width);
+        return document.elementsFromPoint(x!, y!).map((e) => e.className).find((c) => typeof c === "string" && (c === "bg" || c.includes("el-shape")));
+      });
+      expect(top).toContain("el-shape");
+    } finally {
+      await s.close();
+    }
+  }, 60_000);
+});
+
 describe("connectors", () => {
   it("run between the edges of their ends, follow them, and hide while an end is hidden", async () => {
     const p = compile({ version: "0.4", video: { format: "1:1" }, scenes: [{ id: "s", duration: 3, elements: [
