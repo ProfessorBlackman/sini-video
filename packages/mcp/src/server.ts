@@ -23,7 +23,7 @@ type Result = { content: Content[]; isError?: boolean };
 const text = (t: string): Result => ({ content: [{ type: "text", text: t }] });
 const json = (v: unknown): Result => text(JSON.stringify(v, null, 2));
 const formatIssues = (issues: Issue[]) =>
-  issues.map((i) => `${i.level === "error" ? "✗" : "!"} ${i.path}: ${i.message}${i.suggestion ? ` ${i.suggestion}` : ""}`).join("\n");
+  issues.map((i) => `${i.level === "error" ? "✗" : "!"} ${i.path}: ${i.message}${i.suggestion ? ` ${i.suggestion}` : ""} [${i.code}]`).join("\n");
 
 export function createServer(root = process.env.SINI_ROOT ?? process.cwd()): McpServer {
   const ROOT = resolve(root);

@@ -1,0 +1,228 @@
+{
+  "version": "0.4",
+  "video": {
+    "format": "16:9",
+    "fps": 30,
+    "background": "#1a1a1a",
+    "targetDuration": 20,
+    "safeZone": "reels"
+  },
+  "theme": {
+    "palette": {
+      "ink": "#1a1a1a",
+      "bone": "#ffffff",
+      "accent": "#0066cc",
+      "success": "#22c55e"
+    },
+    "fonts": {
+      "display": "Inter Tight",
+      "body": "Inter Tight"
+    },
+    "motion": "snappy",
+    "transition": {
+      "type": "crossfade",
+      "duration": 0.4
+    }
+  },
+  "assets": {
+    "dashboard": {
+      "type": "image",
+      "src": "assets/dashboard.png",
+      "hotspots": {
+        "export": {
+          "text": "Export PDF"
+        },
+        "outstanding": {
+          "text": "Outstanding"
+        },
+        "paid": {
+          "text": "Paid this month"
+        },
+        "overdue": {
+          "text": "Overdue"
+        }
+      }
+    }
+  },
+  "scenes": [
+    {
+      "id": "dashboard-intro",
+      "duration": 2.5,
+      "background": "#1a1a1a",
+      "elements": [
+        {
+          "id": "browser",
+          "type": "browser",
+          "content": "dashboard",
+          "url": "ledgerly.app",
+          "chrome": "dark",
+          "layout": {
+            "anchor": "center",
+            "width": 1400
+          }
+        }
+      ],
+      "timeline": []
+    },
+    {
+      "id": "zoom-export",
+      "duration": 4.5,
+      "background": "#1a1a1a",
+      "elements": [
+        {
+          "id": "browser-group",
+          "type": "group",
+          "layout": {
+            "anchor": "center",
+            "width": 1400
+          },
+          "children": [
+            {
+              "id": "browser2",
+              "type": "browser",
+              "content": "dashboard",
+              "url": "ledgerly.app",
+              "chrome": "dark"
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "id": "cam-zoom",
+          "behavior": "camera",
+          "target": "browser-group",
+          "ease": "cubic.inOut",
+          "keys": [
+            {
+              "at": 0,
+              "focus": "center",
+              "zoom": 1
+            },
+            {
+              "at": 2.5,
+              "focus": "browser2#export",
+              "zoom": 2.8
+            }
+          ]
+        },
+        {
+          "id": "click-export",
+          "behavior": "interaction",
+          "cursor": "pointer",
+          "from": "center",
+          "at": 2.6,
+          "pace": "normal",
+          "steps": [
+            {
+              "id": "export-click",
+              "click": "browser2#export"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pdf-ready",
+      "duration": "auto",
+      "background": "#1a1a1a",
+      "elements": [
+        {
+          "id": "browser3",
+          "type": "browser",
+          "content": "dashboard",
+          "url": "ledgerly.app",
+          "chrome": "dark",
+          "layout": {
+            "anchor": "center",
+            "width": 1400
+          }
+        },
+        {
+          "id": "pdf-toast",
+          "type": "toast",
+          "icon": "check-circle",
+          "title": "PDF exported",
+          "body": "INV-2041.pdf",
+          "style": {
+            "fill": "#1e1e1e",
+            "color": "bone"
+          },
+          "layout": {
+            "pin": {
+              "to": "browser3",
+              "point": "top-right",
+              "inside": 24
+            }
+          },
+          "enter": {
+            "preset": "slideIn",
+            "from": "right",
+            "distance": 60
+          }
+        }
+      ],
+      "timeline": []
+    },
+    {
+      "id": "highlight-stats",
+      "duration": 5,
+      "background": "#1a1a1a",
+      "elements": [
+        {
+          "id": "browser4",
+          "type": "browser",
+          "content": "dashboard",
+          "url": "ledgerly.app",
+          "chrome": "dark",
+          "layout": {
+            "anchor": "center",
+            "width": 1400
+          }
+        }
+      ],
+      "timeline": [
+        {
+          "id": "cycle-stats",
+          "behavior": "focusCycle",
+          "targets": [
+            "browser4#outstanding",
+            "browser4#paid",
+            "browser4#overdue"
+          ],
+          "at": 0.5,
+          "interval": 1.2,
+          "dim": 0.4,
+          "scale": 1.06
+        }
+      ]
+    },
+    {
+      "id": "cta",
+      "duration": "auto",
+      "background": "#1a1a1a",
+      "elements": [
+        {
+          "id": "cta-text",
+          "type": "text",
+          "role": "display",
+          "content": "Try Ledgerly free\nledgerly.app",
+          "style": {
+            "color": "bone",
+            "align": "center"
+          },
+          "layout": {
+            "anchor": "center"
+          },
+          "enter": "fadeUp"
+        }
+      ],
+      "timeline": []
+    }
+  ],
+  "notes": [
+    "Using dashboard screenshot hotspots for interactive regions",
+    "PDF filename (INV-2041.pdf) is a placeholder - client can customize",
+    "URL shown in browser chrome is ledgerly.app"
+  ]
+}

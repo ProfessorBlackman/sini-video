@@ -13,6 +13,8 @@ interface Section {
 
 /** Sections every author needs before writing a first spec; the rest come on request. */
 const ESSENTIAL = ["1", "2", "3", "4", "5", "6", "8", "10", "11", "12", "14", "15"];
+/** Essential sections sent without their subsections (those are listed in the index). */
+const HEAD_ONLY = ["15"];
 
 /** Names an author might ask for instead of a number. */
 const ALIASES: Record<string, string> = {
@@ -63,9 +65,10 @@ export function referenceSection(md: string, section?: string): string {
   const key = (section ?? "").trim().toLowerCase().replace(/^§/, "");
   if (key === "all") return md;
   if (!key) {
-    const essentials = tops.filter((s) => ESSENTIAL.includes(s.num)).map((s) => s.text).join("\n\n---\n\n");
+    const head = (s: Section) => (HEAD_ONLY.includes(s.num) ? s.text.split(/\n### /)[0]!.trim() : s.text);
+    const essentials = tops.filter((s) => ESSENTIAL.includes(s.num)).map(head).join("\n\n---\n\n");
     const index = tops
-      .filter((s) => !ESSENTIAL.includes(s.num))
+      .filter((s) => !ESSENTIAL.includes(s.num) || HEAD_ONLY.includes(s.num))
       .map((s) => {
         const subs = sections.filter((x) => x.num.startsWith(`${s.num}.`)).map((x) => `${x.num} ${x.title}`);
         return `- **${s.num}. ${s.title}** (${kb(s.text)})${subs.length ? `: ${subs.join(", ")}` : ""}`;

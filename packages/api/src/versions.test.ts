@@ -115,3 +115,17 @@ describe("patch paths by position", () => {
     expect(patchProject(d, [{ op: "set", path: "headline.style.size", value: 130 }]).issues.filter((i) => i.code === "index-path")).toEqual([]);
   });
 });
+
+describe("patches from the 0.1.4 re-test", () => {
+  it("add inside a parent without naming the scene, and set lint.accept", () => {
+    const d = tmp();
+    initProject(d);
+    patchProject(d, [{ op: "add", scene: "intro", element: { id: "box", type: "stack", children: [] } }]);
+    patchProject(d, [{ op: "add", parent: "box", element: { id: "inner", type: "text", content: "Hi" } }]);
+    patchProject(d, [{ op: "set", path: "lint.accept", value: [{ code: "tiny-text", reason: "Decorative" }] }]);
+    const spec = JSON.parse(readFileSync(join(d, "video.json"), "utf8"));
+    expect(spec.scenes[0].elements.find((e: { id: string }) => e.id === "box").children[0].id).toBe("inner");
+    expect(spec.lint.accept[0].code).toBe("tiny-text");
+    expect(() => patchProject(d, [{ op: "add", element: { id: "lost", type: "text", content: "?" } }])).toThrow(/Say where/);
+  });
+});

@@ -6,6 +6,14 @@ Images: `ghcr.io/professorblackman/sini:<version>` for linux/amd64 and linux/arm
 
 ## [Unreleased]
 
+### Changed
+- Connector `curve`: positive now bows to the left of the from → to direction (upward for a left-to-right line). It bowed the other way in 0.1.4.
+
+### Fixed
+- MCP results now show each issue's code (needed for `lint.accept`).
+- Patches can `set` `lint.accept`; `add` and `move` with `parent`, `after` or `before` no longer need `scene`.
+- A match cut from a circle or pill opened as a square window.
+
 ### Added
 - Validation warns when a platform `safeZone` (reels, tiktok, shorts) is set on a landscape or square video.
 - Reference: text hotspots cover the words only; use `[x, y, w, h]` to spotlight a whole card or panel.

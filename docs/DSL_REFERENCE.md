@@ -384,7 +384,7 @@ A line between two elements that follows them as they move: flow charts, network
 ```
 
 - `from`, `to`: elements, component paths or screenshot regions (`"app#export"`). The line runs between their edges (not centres), recalculated every frame, so it follows enters, camera moves and `follow`.
-- `curve`: −1 to 1, how far it bows to one side (0 = straight). `arrow`: `none` (default), `end`, `start`, `both`.
+- `curve`: −1 to 1, how far it bows (0 = straight). Positive bows to the left of the `from` → `to` direction: upward for a left-to-right line, so an arc over the top is positive. `arrow`: `none` (default), `end`, `start`, `both`.
 - `style.stroke`, `strokeWidth` (default 3), `dash`. It shows only while both ends are visible. Put it at scene level or in the same `group` as its ends; no `layout` needed.
 
 #### `particles`
@@ -880,7 +880,8 @@ When a human asks for changes, send a **patch** instead of rewriting the whole s
 
 - `set` paths start with an id, or with a top-level key (`"video.targetDuration"`, `"theme.palette.ink"`). `"value": null` deletes the key.
 - Array items are addressed by index: `"intro.timeline[2].at"` (or `"intro.timeline.2.at"`). Indexes shift when items are added or removed, so give timeline items and steps an `id` when you expect to edit them, and address them by id.
-- `add` and `move` place the element `after` / `before` another element, or inside a container with `"parent": "<id>"`, or at the end of the scene.
+- `add` and `move` place the element `after` / `before` another element, or inside a container with `"parent": "<id>"`, or at the end of `scene`. `scene` is needed only for that last case.
+- Top-level keys can be set too: `{ "op": "set", "path": "lint.accept", "value": [ … ] }`.
 - A patch is all-or-nothing: if the result doesn't validate, nothing is saved.
 
 Every patch creates a new version. Use `describe_at(time)` to find which elements a human means when they refer to a timestamp ("at 0:07 the text is too fast"). It lists what's visible, what's animating and the text on screen, and marks elements mostly hidden behind something drawn on top (`coveredBy`).
@@ -1159,7 +1160,7 @@ Start from the pattern that matches the brief, then adapt it. Use the real featu
 - Click with an `interaction` (`"click": "app#export"`); show the result with a `toast` in the device's `overlay`, changed by a `state` item.
 - Highlight regions with `focusCycle` on hotspots (`"targets": ["app#outstanding", "app#paid"]`): a spotlight moves between them and dims the rest of the screenshot. For a custom mark, pin an overlay shape to a hotspot (`"pin": { "to": "app#card" }`).
 
-**Phone app flow without screenshots** (complete spec below)
+**Phone app flow without screenshots** (complete spec in §15.1)
 - One `phone` with `screens`; build each screen from elements. Repeated rows are a component.
 - One `interaction` with `click` steps that `navigate` between screens and `set` states; `type` steps for text fields.
 - `scroll` long screens; `progress` for multi-step status, advanced with `"animate": { "value": n }`.
@@ -1180,7 +1181,7 @@ Start from the pattern that matches the brief, then adapt it. Use the real featu
 **Announcement or event**
 - Logo as an `svg` asset with `drawOutline`; details on a card (`stack` with `style.fill`, or a `group` to move several things together); end on a `button` with `pulse`.
 
-Phone app flow:
+### 15.1 Phone app flow (complete spec)
 
 ```json
 {

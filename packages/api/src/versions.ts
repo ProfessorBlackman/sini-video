@@ -121,8 +121,8 @@ export function readVersion(target: string, version: number): Spec {
 export type PatchOp =
   | { op: "set"; path: string; value: unknown }
   | { op: "remove"; id?: string; path?: string }
-  | { op: "add"; scene: string; element: J; after?: string; before?: string; parent?: string }
-  | { op: "move"; id: string; scene: string; after?: string; before?: string; parent?: string }
+  | { op: "add"; scene?: string; element: J; after?: string; before?: string; parent?: string }
+  | { op: "move"; id: string; scene?: string; after?: string; before?: string; parent?: string }
   | { op: "addScene"; scene: J; after?: string; before?: string }
   | { op: "addTimeline"; scene: string; item: J };
 
@@ -159,7 +159,7 @@ function findById(spec: J, id: string): Found | undefined {
   return visitList(spec.scenes);
 }
 
-const ROOT_KEYS = new Set(["version", "video", "theme", "assets", "components", "scenes", "notes"]);
+const ROOT_KEYS = new Set(["version", "video", "theme", "assets", "components", "scenes", "notes", "lint"]);
 
 function setPath(spec: J, path: string, value: unknown) {
   // Accept both "timeline.3.at" and "timeline[3].at".
@@ -197,8 +197,10 @@ function sceneById(spec: J, id: string): J {
   return s;
 }
 
-function insert(spec: J, scene: J, el: J, where: { after?: string; before?: string; parent?: string }) {
-  let list: J[] = scene.elements;
+/** Insert next to `after`/`before`, inside `parent`, or at the end of `scene` (needed only for that last case). */
+function insert(spec: J, scene: J | null, el: J, where: { after?: string; before?: string; parent?: string }) {
+  if (!scene && !where.parent && !where.after && !where.before) throw new SiniError('Say where: "scene", "parent", "after" or "before".');
+  let list: J[] = scene?.elements;
   if (where.parent) {
     const p = findById(spec, where.parent);
     if (!p) throw new SiniError(`No element '${where.parent}' to add into.`);
@@ -235,13 +237,13 @@ export function applyOps(spec: Spec, ops: PatchOp[]): Spec {
           break;
         }
         case "add":
-          insert(s, sceneById(s, op.scene), op.element, op);
+          insert(s, op.scene ? sceneById(s, op.scene) : null, op.element, op);
           break;
         case "move": {
           const f = findById(s, op.id);
           if (!f?.list) throw new SiniError(`No element '${op.id}'.`);
           const [el] = f.list.splice(f.index!, 1);
-          insert(s, sceneById(s, op.scene), el, op);
+          insert(s, op.scene ? sceneById(s, op.scene) : null, el, op);
           break;
         }
         case "addScene": {

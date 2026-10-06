@@ -1085,18 +1085,23 @@ function applyMatchCuts(fr: Frame) {
     const st = stage.getBoundingClientRect();
     const fr0 = visualRect(fromNode);
     const from = { x: (fr0.left - st.left) / scale, y: (fr0.top - st.top) / scale, w: fr0.width / scale, h: fr0.height / scale };
-    const radiusOf = (nd: Node, w: number) => radiusNum(nd.el.style.radius) * (w / Math.max(1, nd.outer.offsetWidth || w));
+    // Circles, ellipses, pills and circular badges are as round as their shape, whatever style.radius says.
+    const radiusOf = (nd: Node, w: number, h = w) => {
+      const shape = String(nd.el.props.shape ?? "");
+      if (["circle", "ellipse", "pill"].includes(shape)) return Math.min(w, h) / 2;
+      return radiusNum(nd.el.style.radius) * (w / Math.max(1, nd.outer.offsetWidth || w));
+    };
     const full = { x: 0, y: 0, w: W, h: H };
     const toNode = tr.matchTo && tr.matchTo !== "background" ? nodes.get(tr.matchTo) : undefined;
     const toBox = toNode ? staticBoxes.get(toNode.el.ref) : undefined;
     const lerp = (a: typeof from, b: typeof from, q: number) => ({ x: a.x + (b.x - a.x) * q, y: a.y + (b.y - a.y) * q, w: a.w + (b.w - a.w) * q, h: a.h + (b.h - a.h) * q });
-    const r0 = radiusOf(fromNode, from.w);
+    const r0 = radiusOf(fromNode, from.w, from.h);
     let rect: typeof from;
     let radius: number;
     if (toNode && toBox) {
       // Into the target element first, then open out to the whole frame.
       const to = { x: toBox.x, y: toBox.y, w: toBox.width, h: toBox.height };
-      const r1 = radiusOf(toNode, to.w);
+      const r1 = radiusOf(toNode, to.w, to.h);
       if (inc.p < 0.7) {
         const q = inc.p / 0.7;
         rect = lerp(from, to, q);
@@ -1606,8 +1611,9 @@ function updateConnectors() {
     const [x0, y0] = edgePoint(a, b.x + b.w / 2, b.y + b.h / 2, gap);
     const [x1, y1] = edgePoint(b, a.x + a.w / 2, a.y + a.h / 2, gap);
     const bend = Number(node.el.props.curve) || 0;
-    const mx = (x0 + x1) / 2 - ((y1 - y0) / 2) * bend;
-    const my = (y0 + y1) / 2 + ((x1 - x0) / 2) * bend;
+    // Positive bows to the left of the from → to direction: upward for a left-to-right line.
+    const mx = (x0 + x1) / 2 + ((y1 - y0) / 2) * bend;
+    const my = (y0 + y1) / 2 - ((x1 - x0) / 2) * bend;
     geo.setAttribute("d", bend ? `M${x0} ${y0} Q${mx} ${my} ${x1} ${y1}` : `M${x0} ${y0} L${x1} ${y1}`);
     strokeLen.set(node, geo.getTotalLength());
     if (node.el.style.dash) setDash(node, node.drawn ?? 1);

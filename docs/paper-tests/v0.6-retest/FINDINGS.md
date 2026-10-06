@@ -60,3 +60,22 @@ Same brief and prompt as U2, run on a build with `path`, `follow` and `dash` ([u
 - Found: a per-corner `radius` (`[0, 0, 22, 22]`) passed validation and was silently ignored. U1 had used the same thing. **Fixed:** per-corner radius is supported on shapes, containers, buttons and images, and other non-numeric style values are now rejected.
 - Found: text placed over the tray wasn't flagged by lint (text over objects isn't checked for readability). Still open.
 - `get_layout` filters were rejected only because the test session had cached the pre-0.1.2 tool definitions; not a Sini bug.
+
+---
+
+## 5. Follow-up: 0.1.4 re-tests (U3b, R1hb)
+
+Same prompts as U3 and R1h, on 0.1.4 (connectors, particles, spotlights on screenshot regions).
+
+| Run | Before | 0.1.4 | What changed |
+|---|---|---|---|
+| U3b code-to-network (Opus) | 3.5 | **3.5–4** | 49 connectors and 17 particle fields instead of hand-computed lines: spec 35KB instead of 264KB, made in 8 minutes instead of 22. Code characters lift into orbs, the network is linked live, the city's rooftops are joined by arcs. |
+| R1hb Ledgerly (Haiku) | 3 | **3.5** | Used `focusCycle` on screenshot regions (spotlights) instead of guessing highlight boxes. The regions were text hotspots on the card labels, so the spotlights wrap the labels, not the cards. |
+
+Found and fixed after these runs:
+- MCP results didn't show issue codes, so `lint.accept` couldn't be written from them.
+- `set` on `lint.accept` was rejected (`lint` wasn't a patchable top-level key); `add` with `parent` still demanded `scene`.
+- A match cut from a circle opened as a square window.
+- Connector `curve` bowed the opposite way to what agents expected; positive now bows upward for a left-to-right line.
+- A platform `safeZone` on a 16:9 video now gets a warning; the reference says text hotspots cover only the words (use `[x, y, w, h]` for whole cards).
+- The default `get_reference` answer had grown past 25KB; the complete phone-flow spec moved to §15.1 (listed in the index).
