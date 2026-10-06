@@ -6,6 +6,10 @@ Images: `ghcr.io/professorblackman/sini:<version>` for linux/amd64 and linux/arm
 
 ## [Unreleased]
 
+## [0.1.6] - 2026-10-06
+
+Helping the AI judge its own work.
+
 ### Added
 - **App-flow lint**: `device-per-scene` (a new phone or browser in each of consecutive scenes, instead of one device with `screens`) and `empty-screen` (a device screen whose content stops less than 40% of the way down).
 - `render_video` lists accepted lint warnings with their reasons, for the model to pass on to the human; the reference says to accept only warnings that are factually wrong, never to avoid work.
@@ -128,7 +132,8 @@ The first release: an AI writes a JSON spec, and Sini renders it to MP4 determin
 - Docker image only (about 940 MB): Node 24, Chromium headless shell, a minimal FFmpeg build with libx264 (GPL; run as a separate program), bundled fonts and icons.
 - Writes files as the owner of the mounted folder.
 
-[Unreleased]: https://github.com/ProfessorBlackman/sini-video/compare/v0.1.5...HEAD
+[Unreleased]: https://github.com/ProfessorBlackman/sini-video/compare/v0.1.6...HEAD
+[0.1.6]: https://github.com/ProfessorBlackman/sini-video/compare/v0.1.5...v0.1.6
 [0.1.5]: https://github.com/ProfessorBlackman/sini-video/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/ProfessorBlackman/sini-video/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/ProfessorBlackman/sini-video/compare/v0.1.2...v0.1.3
