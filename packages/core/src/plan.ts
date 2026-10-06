@@ -216,6 +216,9 @@ export interface ContentTrack extends TrackBase {
   field: "content" | "label" | "title" | "body";
   from: string;
   to: string;
+  /** Styled runs (markup: colour, bold, italic) when the text has any; `from`/`to` are then the plain text. */
+  fromRuns?: Run[];
+  toRuns?: Run[];
   ease: EaseSpec;
 }
 export interface StepTrack extends TrackBase {

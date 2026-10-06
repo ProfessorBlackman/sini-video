@@ -238,5 +238,21 @@ describe("words to avoid", () => {
     expect(base({ lint: { avoid: "safe" } }).issues.map((i) => i.code)).toContain("bad-lint");
     expect(base({}, { crop: [0, 270, 390, 790] }).ok).toBe(true);
     expect(base({}, { crop: [0, 270, 0, 790] }).issues.map((i) => i.code)).toContain("bad-crop");
+    // A ruled-out word has to be fixed, not accepted.
+    expect(base({ lint: { avoid: ["safe"], accept: [{ code: "avoided-word", reason: "not emphasised" }] } }).ok).toBe(false);
+  });
+});
+
+describe("state text with markup", () => {
+  it("rolls in styled runs and reports the plain text", () => {
+    const plan = make([{ id: "s", duration: 3, elements: [
+      { id: "cap", type: "text", content: "Scan the pack", states: { r: { content: "It is [registered]{#17915a} with the **FDA**." } } },
+    ], timeline: [{ target: "cap", state: "r", at: 1 }] }]);
+    const tr = plan.tracks.find((t) => t.kind === "content");
+    expect(tr).toMatchObject({ from: "Scan the pack", to: "It is registered with the FDA." });
+    expect((tr as { toRuns?: { text: string; color?: string; bold?: boolean }[] }).toRuns).toEqual(expect.arrayContaining([
+      expect.objectContaining({ text: "registered", color: "rgb(23, 145, 90)" }),
+      expect.objectContaining({ text: "FDA", bold: true }),
+    ]));
   });
 });

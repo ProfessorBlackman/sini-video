@@ -6,7 +6,7 @@
  * demand with `sini.render(t)`. Rendering is a pure function of t: every call sets every
  * animated style, so frames can be rendered in any order, in parallel.
  */
-import { clamp01, easeFn, elementFrame, formatLike, formatNumber, frameAt, type CursorFrame, type ElementFrame, type Font, type Frame, type PlanElement, type PlanScene, type Plan, type Run } from "@sini/core";
+import { clamp01, easeFn, elementFrame, formatLike, formatNumber, frameAt, parseCss, type CursorFrame, type ElementFrame, type Font, type Frame, type PlanElement, type PlanScene, type Plan, type Run } from "@sini/core";
 
 declare global {
   interface Window {
@@ -2103,9 +2103,15 @@ function applyElement(n: Node, f: ElementFrame | undefined) {
     n.text.textContent = f.typed.text;
     setCaret(n, n.text, f.typed.caret, true);
   } else if (n.text && f.content) {
-    const { from, to, p: q } = f.content;
+    const { from, to, p: q, fromRuns, toRuns } = f.content;
     n.text.dataset.rolled = "1";
-    if (q >= 1) n.text.textContent = to;
+    // Styled text (markup in the state) is drawn run by run, like the element's own text.
+    const fill = (host: HTMLElement, plain: string, runs?: Run[]) => {
+      if (!runs) return void (host.textContent = plain);
+      host.textContent = "";
+      for (const run of runs) runSpan({ text: run.text, run }, host);
+    };
+    if (q >= 1) fill(n.text, to, toRuns);
     else {
       n.text.innerHTML = "";
       // Labels (buttons, badges) roll on one line; text keeps wrapping to its width, so a longer caption
@@ -2115,8 +2121,8 @@ function applyElement(n: Node, f: ElementFrame | undefined) {
       const wrap = h("span", "", { display: wraps ? "grid" : "inline-grid", overflow: "hidden", verticalAlign: "top", padding: `${ROLL_PAD} 0`, margin: `-${ROLL_PAD} 0` });
       const a = h("span", "", { gridArea: "1 / 1", transform: `translateY(calc(${-q} * (100% + ${ROLL_GAP})))`, whiteSpace: ws });
       const b = h("span", "", { gridArea: "1 / 1", transform: `translateY(calc(${1 - q} * (100% + ${ROLL_GAP})))`, whiteSpace: ws });
-      a.textContent = from;
-      b.textContent = to;
+      fill(a, from, fromRuns);
+      fill(b, to, toRuns);
       wrap.append(a, b);
       n.text.appendChild(wrap);
     }
@@ -2594,6 +2600,27 @@ function shownPart(from: Element, r: DOMRect): { rect: DOMRect; fraction: number
 }
 
 const pct = (x: number) => Math.round(x * 100) / 100;
+/** Whether something opaque is drawn over `img` at a viewport point (a patch, a card, another image). */
+function coveredAt(img: Element, x: number, y: number): boolean {
+  for (const e of document.elementsFromPoint(x, y)) {
+    if (e === img) return false;
+    if (e.contains(img)) continue;
+    let o = 1;
+    for (let a: Element | null = e; a && a !== stage; a = a.parentElement) o *= Number(getComputedStyle(a).opacity);
+    if (o < 0.6) continue;
+    const cs = getComputedStyle(e);
+    if (e instanceof HTMLImageElement) return true;
+    if (e instanceof SVGGeometryElement) {
+      const fill = cs.fill;
+      if (fill && fill !== "none" && !/rgba\([^)]*,\s*0\)$/.test(fill) && Number(cs.fillOpacity) > 0.6) return true;
+      continue;
+    }
+    const bg = parseCss(cs.backgroundColor);
+    if ((bg && bg[3] > 0.6) || cs.backgroundImage !== "none") return true;
+  }
+  return false;
+}
+
 export interface RegionQuery { target?: string; src?: string; rect?: number[] }
 export interface RegionHit { query: number; ref: string; box: { x: number; y: number; width: number; height: number }; fraction: number; opacity: number }
 
@@ -2604,6 +2631,18 @@ export interface RegionHit { query: number; ref: string; box: { x: number; y: nu
  */
 function regions(t: number, queries: RegionQuery[]): RegionHit[] {
   render(t);
+  // Measuring sessions hide the page; hit testing needs it shown (nothing paints inside one call).
+  const root = document.documentElement.style;
+  const was = root.visibility;
+  root.visibility = "";
+  try {
+    return regionHits(queries);
+  } finally {
+    root.visibility = was;
+  }
+}
+
+function regionHits(queries: RegionQuery[]): RegionHit[] {
   const st = stage.getBoundingClientRect();
   const box = (r: DOMRect) => ({ x: round((r.left - st.left) / scale), y: round((r.top - st.top) / scale), width: round(r.width / scale), height: round(r.height / scale) });
   const out: RegionHit[] = [];
@@ -2629,7 +2668,11 @@ function regions(t: number, queries: RegionQuery[]): RegionHit[] {
           return new DOMRect(b.left + q.rect![0]! * sc, b.top + q.rect![1]! * sc, q.rect![2]! * sc, q.rect![3]! * sc);
         })();
         const s = shownPart(img, r);
-        if (s.fraction > 0 && s.opacity > 0.01) out.push({ query: i, ref: n.el.ref, box: box(r), fraction: pct(s.fraction), opacity: pct(s.opacity) });
+        if (!(s.fraction > 0 && s.opacity > 0.01)) continue;
+        // Covered by something drawn on top (a patch over a word): sample a 3×3 grid inside the region.
+        let hidden = 0;
+        for (const fx of [0.2, 0.5, 0.8]) for (const fy of [0.25, 0.5, 0.75]) if (coveredAt(img, r.left + r.width * fx, r.top + r.height * fy)) hidden++;
+        out.push({ query: i, ref: n.el.ref, box: box(r), fraction: pct(s.fraction * (1 - hidden / 9)), opacity: pct(s.opacity) });
       }
     }
   });

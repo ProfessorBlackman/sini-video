@@ -38,3 +38,28 @@ Not Sini bugs:
 
 - ~~**Brand fonts:** Plus Jakarta Sans isn't bundled; the agents substituted Manrope.~~ **Done after the round:** font assets can name any Google Fonts family (`"google": "Plus Jakarta Sans"`) or an https font file (`"url"`), downloaded once into the project's `fonts/` and pinned in `fonts.lock.json`.
 - ~~**Cropping screenshots by pixels**, **seeing what's in an asset**, **forbidden words**, **camera moves cutting off a spotlight**~~ **Done after the round:** image `crop: [x, y, w, h]`; `read_image_text` / `sini text` (every line of text with its box); `lint.avoid` checking the copy and visible screenshots (it flags Haiku's "Verified Safe" at 9.6–10.4s and M1's "Safe" chip, and passes M2); `spotlight-cut` / `camera-target-cut` (it flags M2's 1.35× zoom, 87% of the licence row on screen, and passes the fixed 1.2×).
+
+---
+
+## 4. Re-test on 0.1.8 (M1b, M2b, M2hb)
+
+Same briefs and prompts, no hints about the new features. Each agent ran as its own headless Claude Code session (the test session had cached the 0.1.7 tool list), connected to the 0.1.8 MCP server.
+
+| Run | Before | 0.1.8 (mine) | Agent's ratings | Notes |
+|---|---|---|---|---|
+| M2b reel (default) | 3.5–4 | **4** | 4 / 4.5 | Exactly 15s, no warnings accepted. The result screen is built from 4 crops that leave out the header, the "Batch … Verified" row and the past expiry date; the home screen is cropped above its "Safe" chip. The agent tested the avoid lint by putting the hidden labels back: it caught all of them, including "sate". |
+| M1b launch (default) | 3.5 | **3.5–4** | 4 / 4 | Two crops of the result screen, a white patch over the home screen's "Safe" chip (found with `read_image_text`), spotlights on the screenshots. 16:9 supporting text still small; one near-empty frame while copy enters. |
+| M2hb reel (Haiku) | 2.5 | **2** | 4 / 5 | 26s for a 15s brief; "Verified Safe" shown full-size again, with `avoided-word` accepted ("not emphasized"; "OCR misread"). Empty frames between scenes. |
+
+**Adoption without hints:** all three used `"google": "Plus Jakarta Sans"`, `read_image_text` and `lint.avoid` (the default model added "authentic"/"authenticity" itself); both default runs used `crop`.
+
+Found and fixed after the re-test:
+- Colour and bold markup in a state's `content` showed its brackets literally (M2b). State text now carries styled runs.
+- `avoided-word` ignored covers: M1b's patch over the "Safe" chip still warned, so it had to accept the warning. The region check now samples what's drawn on top; an opaque shape, card or image over the word counts as hidden.
+- `avoided-word` can no longer be accepted (Haiku accepted it with a false reason). Reword, crop, keep off screen, or cover.
+- The reference said a spotlight "darkens by `dim`"; `dim` is how much stays visible (`1` = none), as for elements (M1b set `dim: 0` expecting no darkening).
+
+Still open:
+- A spotlight doesn't dim shapes drawn over the screenshot (M1b's patch stayed bright).
+- No lint for an element moving under another during a camera zoom (M2b's phone went under the caption).
+- Haiku still treats warnings as negotiable and runs long; the default model is the one to use for client work.

@@ -82,7 +82,7 @@ All pixel values are in **canvas pixels** of the chosen size, except inside devi
 
 ## 4. `theme`
 
-Set the theme once; elements inherit from it.
+Set it once; elements inherit from it.
 
 ```json
 "theme": {
@@ -819,7 +819,7 @@ Exact timings by `pace` (default `normal`):
 ```
 
 - Each target is highlighted for `interval` seconds. Scaled items overlap their neighbours; layout doesn't reflow.
-- A target can be a screenshot region (`"app#export"`): a spotlight outlines it in `ring` (a colour, default white) and darkens the rest of the screenshot by `dim`, gliding from region to region. It stays inside the image or device, so it scrolls and zooms with it. Elements and regions can be mixed in one cycle.
+- A target can be a screenshot region (`"app#export"`): a spotlight outlines it in `ring` (a colour, default white) and darkens the rest of the screenshot, gliding from region to region. `dim` is how much of the rest stays visible, as for elements: `1` = no darkening, `0` = darkest. It stays inside the image or device, so it scrolls and zooms with it. Elements and regions can be mixed in one cycle.
 - After the last item, everything returns to normal over 0.3s. End: `at + interval × count`.
 
 ### 9.5 States
@@ -902,7 +902,7 @@ Treat lint warnings as problems to fix. Accept one, with the reason, only when i
 
 `element` is optional (without it, every warning with that code is accepted) and covers elements inside it. Errors can't be accepted. Don't delete content or lower `targetDuration` to silence a warning: fix the design. Accepted warnings and reasons are shown to the human with every render.
 
-When the brief rules words out, list them: `"lint": { "avoid": ["safe", "verified safe"] }`. Lint checks the copy and every screenshot on screen (by OCR).
+When the brief rules words out, list them: `"lint": { "avoid": ["safe", "verified safe"] }`. Lint checks copy and on-screen screenshots (OCR); these can't be accepted.
 
 Use the tools instead of estimating:
 - `validate`: schema and reference errors.

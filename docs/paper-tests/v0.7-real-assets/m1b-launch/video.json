@@ -1,0 +1,944 @@
+{
+  "version": "0.4",
+  "video": {
+    "format": "16:9",
+    "fps": 30,
+    "background": "deep",
+    "targetDuration": 29,
+    "end": "hold"
+  },
+  "theme": {
+    "palette": {
+      "forest": "#0b5d3b",
+      "deep": "#0a4a30",
+      "leaf": "#17915a",
+      "mint": "#e7f5ed",
+      "wash": "#f3faf6",
+      "ink": "#0d2b20",
+      "dim": "#4f6259",
+      "white": "#ffffff"
+    },
+    "fonts": {
+      "display": "Plus Jakarta Sans",
+      "body": "Plus Jakarta Sans"
+    },
+    "motion": "editorial",
+    "transition": {
+      "type": "wipe",
+      "from": "left",
+      "angle": 12,
+      "bar": "leaf",
+      "duration": 0.6
+    }
+  },
+  "assets": {
+    "logo": "assets/logo.webp",
+    "home": {
+      "type": "image",
+      "src": "assets/home.png",
+      "hotspots": {
+        "search": [
+          16,
+          71,
+          358,
+          50
+        ],
+        "scan": [
+          16,
+          144,
+          358,
+          175
+        ]
+      }
+    },
+    "manual": {
+      "type": "image",
+      "src": "assets/manual-search.png",
+      "hotspots": {
+        "field": [
+          20,
+          420,
+          350,
+          105
+        ],
+        "search-btn": [
+          16,
+          796,
+          358,
+          56
+        ]
+      }
+    },
+    "result": {
+      "type": "image",
+      "src": "assets/scan-result.png",
+      "hotspots": {
+        "card": [
+          16,
+          288,
+          357,
+          173
+        ],
+        "license": [
+          16,
+          491,
+          357,
+          72
+        ],
+        "dates": [
+          16,
+          563,
+          357,
+          143
+        ]
+      }
+    },
+    "jakarta": {
+      "type": "font",
+      "google": "Plus Jakarta Sans"
+    }
+  },
+  "components": {
+    "way-row": {
+      "params": {
+        "icon": "search",
+        "title": "",
+        "sub": ""
+      },
+      "root": {
+        "id": "row",
+        "type": "stack",
+        "direction": "horizontal",
+        "gap": 28,
+        "align": "center",
+        "style": {
+          "fill": "white",
+          "radius": 28,
+          "padding": [
+            22,
+            30
+          ],
+          "shadow": "soft"
+        },
+        "children": [
+          {
+            "id": "badge",
+            "type": "stack",
+            "style": {
+              "fill": "mint",
+              "radius": 22,
+              "padding": 18
+            },
+            "children": [
+              {
+                "id": "ic",
+                "type": "icon",
+                "name": "{{icon}}",
+                "style": {
+                  "color": "leaf",
+                  "size": 40
+                }
+              }
+            ]
+          },
+          {
+            "id": "txt",
+            "type": "stack",
+            "gap": 4,
+            "children": [
+              {
+                "id": "t",
+                "type": "text",
+                "role": "body",
+                "content": "{{title}}",
+                "style": {
+                  "color": "ink",
+                  "size": 40,
+                  "weight": 700
+                }
+              },
+              {
+                "id": "s",
+                "type": "text",
+                "role": "body",
+                "content": "{{sub}}",
+                "style": {
+                  "color": "dim",
+                  "size": 28
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "scenes": [
+    {
+      "id": "brand",
+      "duration": 2.4,
+      "background": {
+        "radial": [
+          "forest",
+          "deep"
+        ]
+      },
+      "elements": [
+        {
+          "id": "b-lockup",
+          "type": "stack",
+          "direction": "horizontal",
+          "gap": 36,
+          "align": "center",
+          "layout": {
+            "anchor": "center"
+          },
+          "children": [
+            {
+              "id": "b-logo",
+              "type": "image",
+              "asset": "logo",
+              "fit": "contain",
+              "layout": {
+                "width": 176,
+                "height": 176
+              },
+              "style": {
+                "radius": 40
+              },
+              "enter": {
+                "preset": "popIn",
+                "at": 0.2,
+                "duration": 0.6
+              }
+            },
+            {
+              "id": "b-name",
+              "type": "text",
+              "role": "display",
+              "content": "MedVerify",
+              "style": {
+                "color": "white",
+                "weight": 800,
+                "size": 130
+              },
+              "enter": {
+                "preset": "wordReveal",
+                "at": 0.5,
+                "duration": 0.8
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "problem",
+      "duration": "auto",
+      "background": {
+        "radial": [
+          "forest",
+          "deep"
+        ]
+      },
+      "elements": [
+        {
+          "id": "p-stack",
+          "type": "stack",
+          "gap": 34,
+          "layout": {
+            "anchor": "left",
+            "inset": [
+              0,
+              180
+            ],
+            "width": 1560
+          },
+          "children": [
+            {
+              "id": "p-kicker",
+              "type": "text",
+              "role": "label",
+              "content": "In Ghana",
+              "style": {
+                "color": "mint/0.75",
+                "size": 28
+              },
+              "enter": "fadeUp"
+            },
+            {
+              "id": "p-row1",
+              "type": "stack",
+              "direction": "horizontal",
+              "gap": 30,
+              "align": "center",
+              "enter": "fadeUp",
+              "children": [
+                {
+                  "id": "p-ic1-wrap",
+                  "type": "stack",
+                  "style": {
+                    "fill": "mint/0.12",
+                    "radius": 26,
+                    "padding": 20
+                  },
+                  "children": [
+                    {
+                      "id": "p-ic1",
+                      "type": "icon",
+                      "name": "bus",
+                      "style": {
+                        "color": "mint",
+                        "size": 60
+                      }
+                    }
+                  ]
+                },
+                {
+                  "id": "p-l1",
+                  "type": "text",
+                  "role": "subtitle",
+                  "content": "Medicine is sold from trotros…",
+                  "style": {
+                    "color": "white",
+                    "size": 76
+                  }
+                }
+              ]
+            },
+            {
+              "id": "p-row2",
+              "type": "stack",
+              "direction": "horizontal",
+              "gap": 30,
+              "align": "center",
+              "enter": "fadeUp",
+              "children": [
+                {
+                  "id": "p-ic2-wrap",
+                  "type": "stack",
+                  "style": {
+                    "fill": "mint/0.12",
+                    "radius": 26,
+                    "padding": 20
+                  },
+                  "children": [
+                    {
+                      "id": "p-ic2",
+                      "type": "icon",
+                      "name": "shopping-basket",
+                      "style": {
+                        "color": "mint",
+                        "size": 60
+                      }
+                    }
+                  ]
+                },
+                {
+                  "id": "p-l2",
+                  "type": "text",
+                  "role": "subtitle",
+                  "content": "…and from trays at the roadside.",
+                  "style": {
+                    "color": "white",
+                    "size": 76
+                  }
+                }
+              ]
+            },
+            {
+              "id": "p-q",
+              "type": "text",
+              "role": "display",
+              "content": "Is it even [registered?]{mint}",
+              "style": {
+                "color": "white",
+                "size": 150,
+                "weight": 800
+              },
+              "enter": {
+                "preset": "wordReveal",
+                "at": "p-row2.enter.end+0.6"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "app",
+      "duration": "auto",
+      "background": "wash",
+      "elements": [
+        {
+          "id": "phone",
+          "type": "phone",
+          "chrome": "dark",
+          "statusBar": true,
+          "background": "#FFFFFF",
+          "layout": {
+            "anchor": "left",
+            "inset": [
+              0,
+              250
+            ],
+            "width": 440
+          },
+          "enter": {
+            "preset": "slideIn",
+            "from": "down",
+            "distance": 240,
+            "at": 0.1,
+            "duration": 0.9
+          },
+          "screen": "home",
+          "screens": {
+            "home": [
+              {
+                "id": "home-wrap",
+                "type": "group",
+                "layout": {
+                  "width": 390,
+                  "height": 884
+                },
+                "children": [
+                  {
+                    "id": "home-img",
+                    "type": "image",
+                    "asset": "home",
+                    "layout": {
+                      "x": 0,
+                      "y": 0,
+                      "width": 390,
+                      "height": 884
+                    }
+                  },
+                  {
+                    "id": "hide-badge",
+                    "type": "shape",
+                    "shape": "rect",
+                    "layout": {
+                      "x": 302,
+                      "y": 588,
+                      "width": 66,
+                      "height": 28
+                    },
+                    "style": {
+                      "fill": "#FFFFFF"
+                    }
+                  }
+                ]
+              }
+            ],
+            "manual": [
+              {
+                "id": "manual-img",
+                "type": "image",
+                "asset": "manual",
+                "layout": {
+                  "height": 884
+                }
+              }
+            ],
+            "result": {
+              "gap": 0,
+              "children": [
+                {
+                  "id": "result-head",
+                  "type": "image",
+                  "asset": "result",
+                  "crop": [
+                    0,
+                    0,
+                    390,
+                    76
+                  ],
+                  "layout": {
+                    "height": 76
+                  }
+                },
+                {
+                  "id": "result-body",
+                  "type": "image",
+                  "asset": "result",
+                  "crop": [
+                    0,
+                    282,
+                    390,
+                    714
+                  ],
+                  "layout": {
+                    "height": 714
+                  }
+                }
+              ]
+            }
+          },
+          "overlay": [
+            {
+              "id": "hl-search",
+              "type": "shape",
+              "shape": "rect",
+              "layout": {
+                "pin": {
+                  "to": "home-img#search",
+                  "point": "top-left",
+                  "inside": 0
+                },
+                "offset": [
+                  -5,
+                  -5
+                ],
+                "width": 368,
+                "height": 60
+              },
+              "style": {
+                "fill": "leaf/0.08",
+                "stroke": "leaf",
+                "strokeWidth": 4,
+                "radius": 16
+              },
+              "enter": {
+                "preset": "scaleIn",
+                "from": 0.9,
+                "at": 1.8,
+                "duration": 0.4
+              }
+            },
+            {
+              "id": "hl-scan",
+              "type": "shape",
+              "shape": "rect",
+              "layout": {
+                "pin": {
+                  "to": "home-img#scan",
+                  "point": "top-left",
+                  "inside": 0
+                },
+                "offset": [
+                  -5,
+                  -5
+                ],
+                "width": 368,
+                "height": 185
+              },
+              "style": {
+                "fill": "leaf/0.06",
+                "stroke": "leaf",
+                "strokeWidth": 4,
+                "radius": 22
+              },
+              "enter": {
+                "preset": "scaleIn",
+                "from": 0.9,
+                "at": 4,
+                "duration": 0.4
+              }
+            }
+          ]
+        },
+        {
+          "id": "ways-col",
+          "type": "stack",
+          "gap": 26,
+          "layout": {
+            "anchor": "left",
+            "inset": [
+              0,
+              820
+            ],
+            "width": 900
+          },
+          "children": [
+            {
+              "id": "a-kicker",
+              "type": "text",
+              "role": "label",
+              "content": "MedVerify · Free for Android",
+              "style": {
+                "color": "forest",
+                "size": 26
+              },
+              "enter": {
+                "preset": "fadeUp",
+                "at": 0.4
+              }
+            },
+            {
+              "id": "a-head",
+              "type": "text",
+              "role": "title",
+              "content": "Three ways to check\nany medicine",
+              "style": {
+                "color": "ink",
+                "size": 76,
+                "weight": 800
+              },
+              "enter": {
+                "preset": "wordReveal",
+                "at": 0.6
+              }
+            },
+            {
+              "id": "way-1",
+              "use": "way-row",
+              "with": {
+                "icon": "search",
+                "title": "Search by name",
+                "sub": "Brand or generic"
+              },
+              "layout": {
+                "width": 760
+              },
+              "enter": {
+                "preset": "fadeUp",
+                "at": 1.7
+              }
+            },
+            {
+              "id": "way-2",
+              "use": "way-row",
+              "with": {
+                "icon": "scan-barcode",
+                "title": "Scan the barcode",
+                "sub": "Point your camera at the pack"
+              },
+              "layout": {
+                "width": 760
+              },
+              "enter": {
+                "preset": "fadeUp",
+                "at": 3.9
+              }
+            },
+            {
+              "id": "way-3",
+              "use": "way-row",
+              "with": {
+                "icon": "keyboard",
+                "title": "Type what you can read",
+                "sub": "Any details off the pack"
+              },
+              "layout": {
+                "width": 760
+              },
+              "enter": {
+                "preset": "fadeUp",
+                "at": 6.3
+              }
+            }
+          ]
+        },
+        {
+          "id": "res-col",
+          "type": "stack",
+          "gap": 26,
+          "layout": {
+            "anchor": "left",
+            "inset": [
+              0,
+              820
+            ],
+            "width": 900
+          },
+          "children": [
+            {
+              "id": "r-kicker",
+              "type": "text",
+              "role": "label",
+              "content": "The result",
+              "style": {
+                "color": "forest",
+                "size": 26
+              },
+              "enter": {
+                "preset": "fadeUp",
+                "at": 9.6
+              }
+            },
+            {
+              "id": "r-head",
+              "type": "text",
+              "role": "title",
+              "content": "Its registration status,\nfrom the official record",
+              "style": {
+                "color": "ink",
+                "size": 68,
+                "weight": 800
+              },
+              "enter": {
+                "preset": "wordReveal",
+                "at": 9.8
+              }
+            },
+            {
+              "id": "res-1",
+              "use": "way-row",
+              "with": {
+                "icon": "pill",
+                "title": "Product and maker",
+                "sub": "As listed in the register"
+              },
+              "layout": {
+                "width": 760
+              },
+              "enter": {
+                "preset": "fadeUp",
+                "at": 10.6
+              }
+            },
+            {
+              "id": "res-2",
+              "use": "way-row",
+              "with": {
+                "icon": "file-text",
+                "title": "Licence number",
+                "sub": "The official registration"
+              },
+              "layout": {
+                "width": 760
+              },
+              "enter": {
+                "preset": "fadeUp",
+                "at": 11.8
+              }
+            },
+            {
+              "id": "res-3",
+              "use": "way-row",
+              "with": {
+                "icon": "calendar-check",
+                "title": "Approval and expiry dates",
+                "sub": "Everything the record holds"
+              },
+              "layout": {
+                "width": 760
+              },
+              "enter": {
+                "preset": "fadeUp",
+                "at": 13
+              }
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "id": "to-manual",
+          "behavior": "navigate",
+          "target": "phone",
+          "to": "manual",
+          "transition": "push",
+          "at": 6.3
+        },
+        {
+          "id": "spot-manual",
+          "behavior": "focusCycle",
+          "targets": [
+            "manual-img#field"
+          ],
+          "at": 7,
+          "interval": 1.7,
+          "dim": 0.45,
+          "ring": "leaf"
+        },
+        {
+          "id": "tap-search",
+          "behavior": "interaction",
+          "at": 8.8,
+          "cursor": "touch",
+          "from": "bottom",
+          "steps": [
+            {
+              "id": "tap",
+              "click": "manual-img#search-btn",
+              "navigate": {
+                "phone": "result"
+              }
+            }
+          ]
+        },
+        {
+          "id": "ways-out",
+          "target": "ways-col",
+          "preset": "fadeOut",
+          "at": 9,
+          "duration": 0.4
+        },
+        {
+          "id": "spot-result",
+          "behavior": "focusCycle",
+          "targets": [
+            "result-body#card",
+            "result-body#license",
+            "result-body#dates"
+          ],
+          "at": 10.6,
+          "interval": 1.2,
+          "dim": 0.45,
+          "ring": "leaf"
+        },
+        {
+          "id": "hl-search-out",
+          "target": "hl-search",
+          "preset": "fadeOut",
+          "at": 3.8,
+          "duration": 0.3
+        },
+        {
+          "id": "hl-scan-out",
+          "target": "hl-scan",
+          "preset": "fadeOut",
+          "at": 6,
+          "duration": 0.3
+        },
+        {
+          "id": "manual-scroll",
+          "behavior": "scroll",
+          "target": "phone",
+          "to": "bottom",
+          "at": 6.9,
+          "duration": 0.8
+        }
+      ]
+    },
+    {
+      "id": "outro",
+      "duration": 6.5,
+      "background": {
+        "radial": [
+          "forest",
+          "deep"
+        ]
+      },
+      "elements": [
+        {
+          "id": "o-stack",
+          "type": "stack",
+          "gap": 48,
+          "align": "center",
+          "layout": {
+            "anchor": "center"
+          },
+          "children": [
+            {
+              "id": "o-brand",
+              "type": "stack",
+              "direction": "horizontal",
+              "gap": 28,
+              "align": "center",
+              "enter": {
+                "preset": "scaleIn",
+                "at": 0.3
+              },
+              "children": [
+                {
+                  "id": "o-logo",
+                  "type": "image",
+                  "asset": "logo",
+                  "fit": "contain",
+                  "layout": {
+                    "width": 132,
+                    "height": 132
+                  },
+                  "style": {
+                    "radius": 30
+                  }
+                },
+                {
+                  "id": "o-name",
+                  "type": "text",
+                  "role": "title",
+                  "content": "MedVerify",
+                  "style": {
+                    "color": "white",
+                    "weight": 800,
+                    "size": 96
+                  }
+                }
+              ]
+            },
+            {
+              "id": "o-free",
+              "type": "text",
+              "role": "subtitle",
+              "content": "Free · No account · No phone number",
+              "style": {
+                "color": "mint",
+                "weight": 700,
+                "align": "center",
+                "size": 60
+              },
+              "enter": {
+                "preset": "wordReveal",
+                "at": 0.9
+              }
+            },
+            {
+              "id": "o-btn",
+              "type": "button",
+              "label": "Get the app for Android",
+              "variant": "solid",
+              "style": {
+                "fill": "mint",
+                "color": "forest",
+                "size": 48,
+                "radius": 24
+              },
+              "enter": {
+                "preset": "scaleIn",
+                "at": 1.7
+              }
+            },
+            {
+              "id": "o-url",
+              "type": "text",
+              "role": "body",
+              "content": "medverify.versatechq.com",
+              "style": {
+                "color": "white",
+                "size": 56,
+                "weight": 600,
+                "align": "center"
+              },
+              "enter": {
+                "preset": "fadeUp",
+                "at": 2
+              }
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "target": "o-btn",
+          "preset": "pulse",
+          "at": 2.8,
+          "scale": 1.04,
+          "every": 1.2
+        }
+      ]
+    }
+  ],
+  "lint": {
+    "avoid": [
+      "safe",
+      "verified safe",
+      "genuine",
+      "authentic",
+      "authenticity"
+    ],
+    "accept": [
+      {
+        "code": "avoided-word",
+        "element": "home-img",
+        "reason": "The 'Safe' pill in Recent Scans is covered by the white 'hide-badge' patch (checked in frames at 9.0s and 10.5s); lint OCRs the raw screenshot and doesn't see the cover."
+      }
+    ]
+  },
+  "notes": [
+    "Copy written by us from the brief: 'Three ways to check any medicine', 'Brand or generic', 'Point your camera at the pack', 'Its registration status, from the official record', and the result row labels.",
+    "The home screenshot's 'Safe' pill in Recent Scans is covered with a white patch; the result screenshot is cropped to skip the 'Verified Safe' / 'Authenticity confirmed' header. A new result screenshot from the current design would remove the need for both.",
+    "Result screen shows example data (Amoxicillin, FDA/GHA/12345) from the client's screenshot."
+  ]
+}

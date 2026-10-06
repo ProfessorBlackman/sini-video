@@ -9,7 +9,7 @@ import {
   FOLLOW_DURATION, PACE, PERSONALITY, READING, ROLE_TABLE, SCROLL_DURATION, STATE_DURATION, TOP_LEVEL_TEXT_MARGIN,
 } from "./defaults.js";
 import type { EaseSpec } from "./ease.js";
-import { parseMarkup } from "./markup.js";
+import { parseMarkup, type Run } from "./markup.js";
 import { pointsToPath } from "./path.js";
 import type {
   Font, ImageSource, PartSelector, Plan, PlanElement, PlanIssue, PlanScene, PlanState, PlanStyle, PlanTransition, Track, TweenTrack,
@@ -930,10 +930,23 @@ class Compiler {
         this.tracks.push(this.tween(el.ref, p === "color" ? "color" : p, [null, target as number | string], t0, t1, "cubic.inOut", label));
       }
       for (const field of ["content", "label", "title", "body"] as const) {
-        const before = prev?.[field] ?? baseText(el, field);
-        const after = next?.[field] ?? baseText(el, field);
-        if (before !== undefined && after !== undefined && before !== after) {
-          this.tracks.push({ kind: "content", ref: el.ref, field, from: before, to: after, t0, t1, ease: "cubic.inOut", label });
+        // State text can carry markup like the element's own ([word]{colour}, *italic*, **bold**).
+        const side = (raw: string | undefined): { plain: string; runs?: Run[] } | undefined => {
+          if (raw === undefined) {
+            const base = baseText(el, field);
+            if (base === undefined) return undefined;
+            const styled = (field === "content" || field === "label") && el.text?.runs.some((r) => r.color || r.bold || r.italic);
+            return { plain: base, ...(styled ? { runs: el.text!.runs } : {}) };
+          }
+          if (field !== "content" && field !== "label") return { plain: raw };
+          const parsed = parseMarkup(String(raw));
+          const styled = parsed.runs.some((r) => r.color || r.bold || r.italic);
+          return { plain: parsed.plain, ...(styled ? { runs: parsed.runs.map((r) => (r.color ? { ...r, color: this.colour(r.color) ?? r.color } : r)) } : {}) };
+        };
+        const b = side(prev?.[field]);
+        const a = side(next?.[field]);
+        if (b && a && (b.plain !== a.plain || JSON.stringify(b.runs) !== JSON.stringify(a.runs))) {
+          this.tracks.push({ kind: "content", ref: el.ref, field, from: b.plain, to: a.plain, ...(b.runs ? { fromRuns: b.runs } : {}), ...(a.runs ? { toRuns: a.runs } : {}), t0, t1, ease: "cubic.inOut", label });
         }
       }
       if (next?.value !== undefined || prev?.value !== undefined) {

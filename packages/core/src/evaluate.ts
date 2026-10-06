@@ -4,6 +4,7 @@
  */
 import { mix, parseCss, toCss } from "./colour.js";
 import { easeFn } from "./ease.js";
+import type { Run } from "./markup.js";
 import type { Plan, PlanElement, PlanTransition, Track, TweenTrack } from "./plan.js";
 
 export interface PartFrame {
@@ -20,7 +21,7 @@ export interface ElementFrame {
   parts: PartFrame[];
   type?: { field: "text" | "url"; count: number; caret: boolean };
   count?: number;
-  content?: { field: "content" | "label"; from: string; to: string; p: number };
+  content?: { field: "content" | "label"; from: string; to: string; p: number; fromRuns?: Run[]; toRuns?: Run[] };
   /** Every rolling text field (toasts roll title and body together). */
   contents?: Partial<Record<"content" | "label" | "title" | "body", { from: string; to: string; p: number }>>;
   /** Discrete values switched by state changes (variant, toast icon). */
@@ -263,7 +264,9 @@ export function elementFrame(plan: Plan, ref: string, t: number): ElementFrame {
         if (t >= tr.t0) {
           const p = tr.t1 > tr.t0 ? easeFn(tr.ease)(clamp01((t - tr.t0) / (tr.t1 - tr.t0))) : 1;
           (frame.contents ??= {})[tr.field] = { from: tr.from, to: tr.to, p };
-          if (tr.field === "content" || tr.field === "label") frame.content = { field: tr.field, from: tr.from, to: tr.to, p };
+          if (tr.field === "content" || tr.field === "label") {
+            frame.content = { field: tr.field, from: tr.from, to: tr.to, p, ...(tr.fromRuns ? { fromRuns: tr.fromRuns } : {}), ...(tr.toRuns ? { toRuns: tr.toRuns } : {}) };
+          }
         }
         break;
       case "step":

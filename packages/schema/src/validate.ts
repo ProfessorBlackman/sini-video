@@ -156,6 +156,9 @@ class Validator {
       if (!isObj(a)) return this.err(p, "bad-lint", 'Each entry is { "code", "element"?, "reason" }.');
       this.unknownKeys(a, ["code", "element", "reason"], p);
       if (typeof a.code !== "string" || !a.code) this.err(`${p}.code`, "bad-lint", "Name the lint code to accept, e.g. \"tiny-text\".");
+      if (a.code === "avoided-word") {
+        this.err(`${p}.code`, "bad-lint", "A word the brief rules out can't be accepted.", "Reword the copy; for a screenshot, crop it out (image `crop`), keep it off screen, or cover it with a shape (lint sees covers).");
+      }
       if (typeof a.reason !== "string" || !a.reason.trim()) this.err(`${p}.reason`, "bad-lint", "Say why this warning is wrong for this video.");
       if ("element" in a && typeof a.element !== "string") this.err(`${p}.element`, "bad-lint", "Must be an element id.");
     });

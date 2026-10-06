@@ -453,6 +453,8 @@ describe("crops and regions", () => {
         { id: "cut", type: "image", asset: "shot", crop: [0, 200, 400, 400], layout: { x: 100, y: 100, width: 400, height: 400 }, enter: "none" },
         // The whole image, half off the right edge of the frame.
         { id: "off", type: "image", asset: "shot", fit: "contain", layout: { x: 1720, y: 0, width: 400, height: 1000 }, enter: "none" },
+        // A patch over part of 'cut' (image rows 400–450 → canvas y 300–350).
+        { id: "patch", type: "shape", shape: "rect", style: { fill: "#ffffff" }, layout: { x: 100, y: 290, width: 400, height: 70 }, enter: "none" },
       ] }],
     } as never, { projectDir: dir });
     const s = await RenderSession.open(p, { browser });
@@ -462,12 +464,15 @@ describe("crops and regions", () => {
         { src, rect: [100, 300, 100, 20] }, // inside the crop
         { src, rect: [100, 700, 100, 20] }, // cropped away in 'cut'
         { target: "off#edge" },
+        { src, rect: [100, 400, 100, 40] }, // under the patch in 'cut'
       ]);
       const at = (q: number, ref: string) => hits!.find((h) => h.query === q && h.ref === ref);
       expect(at(0, "cut")).toMatchObject({ box: { x: 200, y: 200, width: 100, height: 20 }, fraction: 1 });
       expect(at(1, "cut")).toBeUndefined();
       expect(at(1, "off")).toMatchObject({ fraction: 1 }); // the uncropped copy shows it (its left half is on screen)
       expect(at(2, "off#edge")!.fraction).toBeCloseTo(0.5, 1);
+      expect(at(3, "cut")!.fraction).toBe(0); // covered by the patch
+      expect(at(0, "cut")!.fraction).toBe(1); // the patch doesn't reach it
     } finally {
       await s.close();
       rmSync(dir, { recursive: true, force: true });

@@ -1,0 +1,699 @@
+{
+  "version": "0.4",
+  "video": {
+    "format": "9:16",
+    "fps": 30,
+    "background": "deep",
+    "safeZone": "reels",
+    "targetDuration": 15,
+    "end": "hold"
+  },
+  "theme": {
+    "palette": {
+      "forest": "#0b5d3b",
+      "deep": "#0a4a30",
+      "leaf": "#17915a",
+      "mint": "#e7f5ed",
+      "wash": "#f3faf6",
+      "ink": "#0d2b20",
+      "dim": "#4f6259",
+      "white": "#ffffff",
+      "screen": "#f2f6f3"
+    },
+    "fonts": {
+      "display": "Plus Jakarta Sans",
+      "body": "Inter Tight"
+    },
+    "roles": {
+      "display": {
+        "weight": 800,
+        "size": 150
+      },
+      "title": {
+        "weight": 800,
+        "size": 112
+      },
+      "subtitle": {
+        "weight": 700,
+        "size": 80
+      }
+    },
+    "motion": {
+      "base": "editorial",
+      "duration": 0.6,
+      "stagger": 0.05
+    },
+    "transition": {
+      "type": "wipe",
+      "angle": 12,
+      "bar": "leaf",
+      "duration": 0.5
+    },
+    "texture": {
+      "grain": 0.03
+    }
+  },
+  "assets": {
+    "logo": "assets/logo.webp",
+    "home": {
+      "type": "image",
+      "src": "assets/home.png",
+      "hotspots": {
+        "scan": [
+          37,
+          250,
+          316,
+          48
+        ]
+      }
+    },
+    "manual": "assets/manual-search.png",
+    "result": {
+      "type": "image",
+      "src": "assets/scan-result.png",
+      "hotspots": {
+        "license": [
+          17,
+          492,
+          356,
+          70
+        ]
+      }
+    },
+    "jakarta": {
+      "type": "font",
+      "google": "Plus Jakarta Sans"
+    }
+  },
+  "components": {
+    "perk": {
+      "params": {
+        "text": ""
+      },
+      "root": {
+        "id": "row",
+        "type": "stack",
+        "direction": "horizontal",
+        "align": "center",
+        "gap": 28,
+        "children": [
+          {
+            "id": "tick",
+            "type": "icon",
+            "name": "circle-check",
+            "style": {
+              "color": "leaf",
+              "size": 100,
+              "strokeWidth": 2.4
+            }
+          },
+          {
+            "id": "word",
+            "type": "text",
+            "role": "title",
+            "content": "{{text}}",
+            "style": {
+              "color": "ink",
+              "size": 124
+            }
+          }
+        ]
+      }
+    }
+  },
+  "scenes": [
+    {
+      "id": "hook",
+      "duration": "auto",
+      "background": {
+        "linear": [
+          "forest",
+          "deep"
+        ],
+        "angle": 180
+      },
+      "elements": [
+        {
+          "id": "hook-pill",
+          "type": "icon",
+          "name": "pill",
+          "style": {
+            "color": "leaf/0.35",
+            "size": 520,
+            "strokeWidth": 1.2,
+            "rotation": -20
+          },
+          "layout": {
+            "anchor": "bottom-right",
+            "inset": [
+              380,
+              -60
+            ]
+          },
+          "enter": "fadeIn"
+        },
+        {
+          "id": "hook-block",
+          "type": "stack",
+          "gap": 28,
+          "layout": {
+            "anchor": "left",
+            "inset": [
+              0,
+              84
+            ],
+            "offset": [
+              0,
+              0
+            ]
+          },
+          "children": [
+            {
+              "id": "hook-1",
+              "type": "text",
+              "role": "subtitle",
+              "content": "Bought medicine\non a trotro?",
+              "style": {
+                "color": "white"
+              },
+              "enter": {
+                "preset": "wordReveal",
+                "at": 0.2
+              }
+            },
+            {
+              "id": "hook-2",
+              "type": "text",
+              "role": "subtitle",
+              "content": "From a roadside tray?",
+              "style": {
+                "color": "white"
+              },
+              "enter": {
+                "preset": "wordReveal",
+                "at": "hook-1.enter.end-0.25"
+              }
+            },
+            {
+              "id": "hook-3",
+              "type": "text",
+              "role": "display",
+              "content": "Is it\n[registered?]{mint}",
+              "style": {
+                "color": "white"
+              },
+              "layout": {
+                "maxWidth": 850
+              },
+              "enter": {
+                "preset": "wordReveal",
+                "at": "hook-2.enter.end-0.1"
+              },
+              "fit": "shrink"
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "target": "hook-pill",
+          "preset": "float",
+          "amplitude": 14,
+          "period": 4
+        }
+      ]
+    },
+    {
+      "id": "app",
+      "duration": "auto",
+      "background": "wash",
+      "elements": [
+        {
+          "id": "app-cap",
+          "type": "text",
+          "role": "subtitle",
+          "content": "Scan the pack.",
+          "style": {
+            "color": "ink",
+            "align": "center",
+            "size": 64
+          },
+          "layout": {
+            "anchor": "top",
+            "inset": [
+              250,
+              0
+            ],
+            "maxWidth": 900
+          },
+          "enter": {
+            "preset": "fadeUp",
+            "at": 0.2
+          },
+          "exit": {
+            "preset": "fadeOut",
+            "at": "to-result.start",
+            "duration": 0.25
+          }
+        },
+        {
+          "id": "app-cap-2",
+          "type": "text",
+          "role": "subtitle",
+          "content": "It checks the\n[Ghana FDA register.]{leaf}",
+          "style": {
+            "color": "ink",
+            "align": "center",
+            "size": 64
+          },
+          "layout": {
+            "anchor": "top",
+            "inset": [
+              250,
+              0
+            ],
+            "maxWidth": 940
+          },
+          "z": 10,
+          "enter": {
+            "preset": "wordReveal",
+            "at": "app-cap.exit.end"
+          }
+        },
+        {
+          "id": "stage",
+          "type": "group",
+          "layout": {
+            "anchor": "top",
+            "inset": [
+              430,
+              0
+            ],
+            "width": "100%",
+            "height": 1490
+          },
+          "children": [
+            {
+              "id": "phone",
+              "type": "phone",
+              "background": "screen",
+              "layout": {
+                "anchor": "top",
+                "inset": [
+                  20,
+                  0
+                ],
+                "width": 680
+              },
+              "enter": {
+                "preset": "slideIn",
+                "from": "down",
+                "at": 0.15,
+                "duration": 0.8
+              },
+              "screen": "home",
+              "screens": {
+                "home": [
+                  {
+                    "id": "home-img",
+                    "type": "image",
+                    "asset": "home",
+                    "crop": [
+                      0,
+                      0,
+                      390,
+                      520
+                    ],
+                    "layout": {
+                      "height": 520
+                    }
+                  }
+                ],
+                "scanning": {
+                  "background": "ink",
+                  "children": [
+                    {
+                      "id": "scan-stage",
+                      "type": "group",
+                      "layout": {
+                        "height": 790
+                      },
+                      "children": [
+                        {
+                          "id": "scan-frame",
+                          "type": "icon",
+                          "name": "scan",
+                          "style": {
+                            "color": "mint",
+                            "size": 260,
+                            "strokeWidth": 1.5
+                          },
+                          "layout": {
+                            "anchor": "center",
+                            "offset": [
+                              0,
+                              -40
+                            ]
+                          }
+                        },
+                        {
+                          "id": "scan-line",
+                          "type": "shape",
+                          "shape": "line",
+                          "style": {
+                            "stroke": "#2fe08a",
+                            "strokeWidth": 3
+                          },
+                          "layout": {
+                            "anchor": "center",
+                            "width": 200,
+                            "offset": [
+                              0,
+                              -120
+                            ]
+                          }
+                        },
+                        {
+                          "id": "scan-label",
+                          "type": "text",
+                          "role": "body",
+                          "content": "Scanning…",
+                          "style": {
+                            "color": "mint",
+                            "align": "center"
+                          },
+                          "layout": {
+                            "anchor": "center",
+                            "offset": [
+                              0,
+                              140
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "result": [
+                  {
+                    "id": "res-top",
+                    "type": "image",
+                    "asset": "result",
+                    "crop": [
+                      0,
+                      0,
+                      390,
+                      72
+                    ],
+                    "layout": {
+                      "height": 72
+                    }
+                  },
+                  {
+                    "id": "res-card",
+                    "type": "image",
+                    "asset": "result",
+                    "crop": [
+                      0,
+                      288,
+                      390,
+                      128
+                    ],
+                    "layout": {
+                      "height": 128
+                    }
+                  },
+                  {
+                    "id": "res-details",
+                    "type": "image",
+                    "asset": "result",
+                    "crop": [
+                      0,
+                      490,
+                      390,
+                      146
+                    ],
+                    "layout": {
+                      "height": 146
+                    }
+                  },
+                  {
+                    "id": "res-more",
+                    "type": "image",
+                    "asset": "result",
+                    "crop": [
+                      0,
+                      730,
+                      390,
+                      330
+                    ],
+                    "layout": {
+                      "height": 330
+                    }
+                  }
+                ]
+              },
+              "overlay": [
+                {
+                  "id": "lic-ring",
+                  "type": "shape",
+                  "shape": "rect",
+                  "layout": {
+                    "pin": {
+                      "to": "res-details#license",
+                      "point": "center"
+                    },
+                    "width": 362,
+                    "height": 64
+                  },
+                  "style": {
+                    "fill": "none",
+                    "stroke": "leaf",
+                    "strokeWidth": 3,
+                    "radius": 14
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "id": "tap",
+          "behavior": "interaction",
+          "cursor": "touch",
+          "from": "bottom-right",
+          "at": 0.6,
+          "steps": [
+            {
+              "id": "tap-scan",
+              "click": "home-img#scan",
+              "navigate": {
+                "phone": "scanning"
+              },
+              "transition": "fade"
+            }
+          ]
+        },
+        {
+          "id": "sweep",
+          "target": "scan-line",
+          "at": "tap.end",
+          "duration": 0.7,
+          "ease": "sine.inOut",
+          "animate": {
+            "y": [
+              0,
+              230
+            ]
+          }
+        },
+        {
+          "id": "to-result",
+          "behavior": "navigate",
+          "target": "phone",
+          "to": "result",
+          "transition": "push",
+          "at": "sweep.end"
+        },
+        {
+          "id": "cam",
+          "behavior": "camera",
+          "target": "stage",
+          "ease": "cubic.inOut",
+          "keys": [
+            {
+              "at": "to-result.end",
+              "focus": "center",
+              "zoom": 1
+            },
+            {
+              "at": "to-result.end+0.8",
+              "focus": "res-details#license",
+              "zoom": 1.45
+            }
+          ]
+        },
+        {
+          "id": "ring-in",
+          "target": "lic-ring",
+          "preset": "drawOutline",
+          "at": "cam.end",
+          "duration": 0.6
+        }
+      ]
+    },
+    {
+      "id": "perks",
+      "duration": "auto",
+      "background": "mint",
+      "elements": [
+        {
+          "id": "perk-list",
+          "type": "stack",
+          "gap": 64,
+          "layout": {
+            "anchor": "center",
+            "offset": [
+              -40,
+              -60
+            ]
+          },
+          "children": [
+            {
+              "id": "perk-free",
+              "use": "perk",
+              "with": {
+                "text": "Free"
+              }
+            },
+            {
+              "id": "perk-acct",
+              "use": "perk",
+              "with": {
+                "text": "No account"
+              }
+            },
+            {
+              "id": "perk-phone",
+              "use": "perk",
+              "with": {
+                "text": "No phone\nnumber"
+              }
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "target": [
+            "perk-free",
+            "perk-acct",
+            "perk-phone"
+          ],
+          "preset": "fadeUp",
+          "at": 0.2,
+          "stagger": 0.3,
+          "duration": 0.6
+        }
+      ]
+    },
+    {
+      "id": "cta",
+      "duration": "auto",
+      "background": {
+        "radial": [
+          "forest",
+          "deep"
+        ]
+      },
+      "elements": [
+        {
+          "id": "cta-block",
+          "type": "stack",
+          "align": "center",
+          "gap": 44,
+          "layout": {
+            "anchor": "center",
+            "offset": [
+              0,
+              -60
+            ]
+          },
+          "children": [
+            {
+              "id": "cta-logo",
+              "type": "image",
+              "asset": "logo",
+              "layout": {
+                "width": 300,
+                "height": 300
+              },
+              "style": {
+                "radius": 60,
+                "shadow": "deep"
+              },
+              "enter": {
+                "preset": "popIn",
+                "at": 0.05
+              }
+            },
+            {
+              "id": "cta-head",
+              "type": "text",
+              "role": "title",
+              "content": "Get MedVerify\non [Android]{mint}",
+              "style": {
+                "color": "white",
+                "align": "center"
+              },
+              "enter": {
+                "preset": "wordReveal",
+                "at": "cta-logo.enter.end-0.3"
+              }
+            },
+            {
+              "id": "cta-url",
+              "type": "button",
+              "label": "medverify.versatechq.com",
+              "variant": "solid",
+              "style": {
+                "fill": "mint",
+                "color": "forest",
+                "size": 46,
+                "weight": 700
+              },
+              "enter": {
+                "preset": "fadeUp",
+                "at": "cta-head.enter.end-0.2"
+              }
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "target": "cta-url",
+          "preset": "pulse",
+          "scale": 1.04,
+          "every": 0.9,
+          "at": "cta-url.enter.end+0.2"
+        }
+      ]
+    }
+  ],
+  "lint": {
+    "avoid": [
+      "safe",
+      "genuine",
+      "verified safe",
+      "authenticity"
+    ]
+  },
+  "notes": [
+    "Invented copy: 'Scanning…' on the scan screen (no screenshot of the camera view was supplied), and 'It tells you if it's registered with the FDA.' paraphrases the brief.",
+    "The result screen in the phone is stitched from crops of scan-result.png so the old 'Verified Safe' / 'Authenticity confirmed' header, the 'Batch … Verified' row and the past expiry date (15 Oct 2025) never appear. Send a new result screenshot when the redesign ships and this can be a single image.",
+    "Home screen is cropped above 'Recent Scans' because that list shows a 'Safe' badge."
+  ]
+}
