@@ -8,6 +8,7 @@ Images: `ghcr.io/professorblackman/sini:<version>` for linux/amd64 and linux/arm
 
 ### Added
 - **App-flow lint**: `device-per-scene` (a new phone or browser in each of consecutive scenes, instead of one device with `screens`) and `empty-screen` (a device screen whose content stops less than 40% of the way down).
+- `render_video` lists accepted lint warnings with their reasons, for the model to pass on to the human; the reference says to accept only warnings that are factually wrong, never to avoid work.
 - **Design review**: every `render_contact_sheet` result ends with a short checklist (brief, hierarchy, one idea per scene, space, readability, consistency, motion) and asks for the three biggest problems to be fixed; the same review is in the `create-video` prompt and reference §14.
 
 ## [0.1.5] - 2026-10-06

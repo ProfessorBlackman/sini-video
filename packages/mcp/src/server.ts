@@ -209,7 +209,10 @@ export function createServer(root = process.env.SINI_ROOT ?? process.cwd()): Mcp
       `✓ ${shown(r.file)}\n${r.duration.toFixed(2)}s, ${r.width}×${r.height} @ ${r.fps}fps, ${r.frames} frames, rendered in ${r.seconds.toFixed(1)}s` +
         (open.length
           ? `\n\n${open.length} lint warning(s) still open. Fix them before calling the video done, or accept one in lint.accept with the reason it's wrong for this video:\n${formatIssues(open)}`
-          : "\nLint: no problems."),
+          : "\nLint: no problems.") +
+        (lint.acceptedNotes.length
+          ? `\n\nAccepted lint warnings (tell the human about these, with your reasons):\n${lint.acceptedNotes.map((n) => `- ${n}`).join("\n")}`
+          : ""),
     );
   })());
 
@@ -242,7 +245,7 @@ export function createServer(root = process.env.SINI_ROOT ?? process.cwd()): Mcp
           `3. validate_video and lint_video; fix everything with update_video patches.\n` +
           `4. render_contact_sheet and run its design review: name the 3 biggest problems (brief, hierarchy, one idea per scene, space, readability, consistency, motion), fix them with update_video, and look again. Repeat until you'd ship it (usually 2–3 rounds).\n` +
           `5. render_video with draft: true; fix or accept (lint.accept, with a reason) any lint warnings it lists.\n` +
-          `6. Report what you made, what you assumed or invented (also in notes), what the client should supply (real photos, logo, copy), and the file path.`,
+          `6. Report what you made, what you assumed or invented (also in notes), any lint warnings you accepted and why, what the client should supply (real photos, logo, copy), and the file path.`,
       },
     }],
   }));

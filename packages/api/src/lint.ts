@@ -17,6 +17,8 @@ export interface LintResult {
   duration: number;
   /** Warnings matched by the spec's `lint.accept` (left out of `issues`). */
   accepted: number;
+  /** The accepted warnings with the author's reasons, to show the human. */
+  acceptedNotes: string[];
 }
 
 /** Drop warnings the spec accepts: same code, and the same element (or one inside it) when one is named. */
@@ -50,8 +52,12 @@ export async function lint(target: string, opts: { layout?: boolean } = {}): Pro
       await session.close();
     }
   }
-  const { open, accepted } = applyAccepted(issues, loaded.spec.lint?.accept);
-  return { ok: !open.some((i) => i.level === "error"), issues: open, duration: plan.duration, accepted };
+  const accept = loaded.spec.lint?.accept ?? [];
+  const { open, accepted } = applyAccepted(issues, accept);
+  const acceptedNotes = accept
+    .filter((a) => issues.some((i) => i.code === a.code && (!a.element || i.path === a.element || i.path.startsWith(`${a.element}/`))))
+    .map((a) => `${a.code}${a.element ? ` on '${a.element}'` : ""}: ${a.reason}`);
+  return { ok: !open.some((i) => i.level === "error"), issues: open, duration: plan.duration, accepted, acceptedNotes };
 }
 
 function walk(plan: CompiledPlan): { el: PlanElement; parents: PlanElement[] }[] {
@@ -236,8 +242,8 @@ export async function motionRules(plan: CompiledPlan, session: { layout(t: numbe
       const share = (bottom - dev.current.y) / Math.max(1, dev.current.height);
       if (share < 0.4) {
         emptyFound.add(d);
-        found.set(`${d}#empty`, warn(d, "empty-screen", `'${d}' is mostly empty at ${r1(t)}s: its content stops ${Math.round(share * 100)}% of the way down the screen.`,
-          "Fill the screen: larger text and cards (in-device sizes are small), more rows, a map or image, or a smaller device."));
+        found.set(`${d}#empty`, warn(d, "empty-screen", `'${d}' is mostly empty at ${r1(t)}s: its content stops ${Math.round(share * 100)}% of the way down the screen, so most of the phone shows nothing.`,
+          "Fill it like a real app screen: a map or image placeholder (an image with a hint) at the top, bigger cards and text (style.size), more list rows, a bottom button bar; or make the device smaller and give the space to a caption."));
       }
     }
     for (const b of r.elements) {

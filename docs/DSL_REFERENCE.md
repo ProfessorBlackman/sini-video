@@ -898,6 +898,8 @@ Treat lint warnings as problems to fix. Keep one only when you're sure it's wron
 
 `element` is optional (without it, every warning with that code is accepted) and also covers elements inside it. Accepting doesn't hide errors.
 
+Accept a warning only when it's factually wrong for this video (e.g. text printed on a product that isn't meant to be read), never to avoid work. Don't delete content or lower `targetDuration` just to silence a warning: fix the design. Accepted warnings and their reasons are shown to the human with every render.
+
 Use the tools instead of estimating:
 - `validate`: schema and reference errors.
 - `lint`: design problems (below).

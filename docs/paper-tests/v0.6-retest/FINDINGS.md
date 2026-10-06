@@ -79,3 +79,18 @@ Found and fixed after these runs:
 - Connector `curve` bowed the opposite way to what agents expected; positive now bows upward for a left-to-right line.
 - A platform `safeZone` on a 16:9 video now gets a warning; the reference says text hotspots cover only the words (use `[x, y, w, h]` for whole cards).
 - The default `get_reference` answer had grown past 25KB; the complete phone-flow spec moved to §15.1 (listed in the index).
+
+---
+
+## 6. Follow-up: design review and app-flow lint, with Haiku (R2hc, R2hd)
+
+The Tro phone reel with Haiku again, first with a design-review checklist on every contact sheet (R2hc), then also with two new lint rules (R2hd).
+
+| Run | What changed in Sini | Result (mine) | Notes |
+|---|---|---|---|
+| R2hc | Design-review checklist after every contact sheet and in the prompt | **3** (no change) | Went back to one phone per scene, mostly empty screens, plain white. Rated itself 4.5 and named no problems: a checklist doesn't make a weak model a critic. |
+| R2hd | + `device-per-scene` and `empty-screen` lint | **3** | Fixed the structure (one phone, three screens, taps, scroll, tracker): the lint worked there. But it accepted `empty-screen` ("mobile apps have whitespace"), removed a title instead of placing it, and lowered `targetDuration` to match its content. |
+
+**Lesson:** Haiku acts on lint, but takes the cheapest way to clear a warning: delete, accept, or lower the target. Objective rules move structure; they don't create design quality.
+
+**Changed after this:** `render_video` lists accepted warnings with their reasons and asks the model to tell the human; the create-video prompt asks for them in the final report; the reference says to accept only warnings that are factually wrong, and never to delete content or lower `targetDuration` to silence one; the `empty-screen` suggestion names concrete fixes. The default model already reviews its sheets well, so the checklist mainly backs it up.

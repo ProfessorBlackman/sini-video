@@ -1,0 +1,525 @@
+{
+  "version": "0.4",
+  "video": {
+    "format": "9:16",
+    "fps": 30,
+    "background": "#FFFFFF",
+    "targetDuration": 15,
+    "safeZone": "reels",
+    "end": "hold"
+  },
+  "theme": {
+    "palette": {
+      "primary": "#FF6B35",
+      "secondary": "#004E89",
+      "accent": "#F7B801",
+      "ink": "#1A1A1A",
+      "bone": "#FFFFFF",
+      "light": "#F0F0F0"
+    },
+    "fonts": {
+      "display": "Instrument Serif",
+      "body": "Inter Tight"
+    },
+    "motion": "snappy",
+    "transition": {
+      "type": "slide",
+      "from": "right",
+      "duration": 0.45
+    }
+  },
+  "assets": {
+    "map": {
+      "type": "placeholder",
+      "hint": "map showing Accra area",
+      "color": "light"
+    }
+  },
+  "components": {
+    "ride-card": {
+      "params": {
+        "name": "Standard",
+        "price": "12.50",
+        "time": "3"
+      },
+      "root": {
+        "id": "card-root",
+        "type": "stack",
+        "direction": "horizontal",
+        "align": "center",
+        "gap": 16,
+        "style": {
+          "fill": "bone",
+          "stroke": "light",
+          "strokeWidth": 2,
+          "radius": 16,
+          "padding": [
+            16,
+            20
+          ]
+        },
+        "children": [
+          {
+            "id": "card-icon",
+            "type": "icon",
+            "name": "car",
+            "style": {
+              "color": "secondary",
+              "size": 32
+            }
+          },
+          {
+            "id": "card-text",
+            "type": "stack",
+            "direction": "vertical",
+            "gap": 4,
+            "children": [
+              {
+                "id": "card-name",
+                "type": "text",
+                "role": "body",
+                "content": "{{name}}",
+                "style": {
+                  "color": "ink",
+                  "weight": 600
+                }
+              },
+              {
+                "id": "card-time",
+                "type": "text",
+                "role": "caption",
+                "content": "{{time}} min",
+                "style": {
+                  "color": "secondary",
+                  "opacity": 0.7,
+                  "size": 26
+                }
+              }
+            ]
+          },
+          {
+            "id": "card-price",
+            "type": "text",
+            "role": "body",
+            "content": "GH₵{{price}}",
+            "style": {
+              "color": "primary",
+              "weight": 700,
+              "size": 34
+            }
+          }
+        ]
+      }
+    }
+  },
+  "scenes": [
+    {
+      "id": "home",
+      "duration": "auto",
+      "background": "bone",
+      "transition": "cut",
+      "elements": [
+        {
+          "id": "phone-home",
+          "type": "phone",
+          "layout": {
+            "anchor": "center",
+            "width": 600
+          },
+          "background": "bone",
+          "screen": "home",
+          "screens": {
+            "home": {
+              "background": "light",
+              "padding": [
+                24,
+                24
+              ],
+              "gap": 20,
+              "children": [
+                {
+                  "id": "home-title",
+                  "type": "text",
+                  "role": "title",
+                  "content": "Where to?",
+                  "style": {
+                    "color": "ink"
+                  }
+                },
+                {
+                  "id": "home-map",
+                  "type": "image",
+                  "asset": "map",
+                  "layout": {
+                    "width": "100%",
+                    "height": 200
+                  },
+                  "style": {
+                    "radius": 12
+                  }
+                },
+                {
+                  "id": "home-btn",
+                  "type": "button",
+                  "label": "Pick a destination",
+                  "variant": "solid",
+                  "style": {
+                    "fill": "primary",
+                    "color": "bone"
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "search",
+      "duration": "auto",
+      "background": "bone",
+      "elements": [
+        {
+          "id": "phone-search",
+          "type": "phone",
+          "layout": {
+            "anchor": "center",
+            "width": 600
+          },
+          "background": "bone",
+          "screen": "search",
+          "screens": {
+            "search": {
+              "background": "light",
+              "padding": [
+                24,
+                24
+              ],
+              "gap": 16,
+              "children": [
+                {
+                  "id": "search-title",
+                  "type": "text",
+                  "role": "title",
+                  "content": "Where to?",
+                  "style": {
+                    "color": "ink"
+                  }
+                },
+                {
+                  "id": "search-field",
+                  "type": "text",
+                  "role": "body",
+                  "content": "Osu Business District",
+                  "style": {
+                    "color": "secondary",
+                    "size": 17
+                  }
+                },
+                {
+                  "id": "search-label",
+                  "type": "text",
+                  "role": "label",
+                  "content": "RECENT",
+                  "style": {
+                    "color": "secondary",
+                    "size": 20
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "rides",
+      "duration": "auto",
+      "background": "bone",
+      "elements": [
+        {
+          "id": "phone-rides",
+          "type": "phone",
+          "layout": {
+            "anchor": "center",
+            "width": 700
+          },
+          "background": "bone",
+          "screen": "rides",
+          "screens": {
+            "rides": {
+              "background": "light",
+              "padding": [
+                24,
+                24
+              ],
+              "gap": 16,
+              "children": [
+                {
+                  "id": "rides-title",
+                  "type": "text",
+                  "role": "title",
+                  "content": "Rides available",
+                  "style": {
+                    "color": "ink"
+                  }
+                },
+                {
+                  "id": "ride-1",
+                  "use": "ride-card",
+                  "with": {
+                    "name": "Premium",
+                    "price": "18.00",
+                    "time": "2"
+                  }
+                },
+                {
+                  "id": "ride-2",
+                  "use": "ride-card",
+                  "with": {
+                    "name": "Standard",
+                    "price": "12.50",
+                    "time": "4"
+                  }
+                },
+                {
+                  "id": "ride-3",
+                  "use": "ride-card",
+                  "with": {
+                    "name": "Budget",
+                    "price": "9.50",
+                    "time": "6"
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "timeline": [
+        {
+          "id": "rides-scroll",
+          "behavior": "scroll",
+          "target": "phone-rides",
+          "to": "ride-3",
+          "at": 1.5,
+          "duration": 1.2
+        }
+      ]
+    },
+    {
+      "id": "selecting",
+      "duration": "auto",
+      "background": "bone",
+      "elements": [
+        {
+          "id": "phone-select",
+          "type": "phone",
+          "layout": {
+            "anchor": "center",
+            "width": 700
+          },
+          "background": "bone",
+          "screen": "rides",
+          "screens": {
+            "rides": {
+              "background": "light",
+              "padding": [
+                24,
+                24
+              ],
+              "gap": 16,
+              "children": [
+                {
+                  "id": "sel-title",
+                  "type": "text",
+                  "role": "title",
+                  "content": "Rides available",
+                  "style": {
+                    "color": "ink"
+                  }
+                },
+                {
+                  "id": "sel-ride-1",
+                  "use": "ride-card",
+                  "with": {
+                    "name": "Premium",
+                    "price": "18.00",
+                    "time": "2"
+                  }
+                },
+                {
+                  "id": "sel-ride-2",
+                  "use": "ride-card",
+                  "with": {
+                    "name": "Standard",
+                    "price": "12.50",
+                    "time": "4"
+                  }
+                },
+                {
+                  "id": "sel-ride-3",
+                  "use": "ride-card",
+                  "with": {
+                    "name": "Budget",
+                    "price": "9.50",
+                    "time": "6"
+                  },
+                  "states": {
+                    "selected": {
+                      "style": {
+                        "fill": "accent",
+                        "stroke": "accent"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "timeline": [
+        {
+          "target": "sel-ride-3",
+          "state": "selected",
+          "at": 0.2
+        },
+        {
+          "id": "select-tap",
+          "behavior": "interaction",
+          "cursor": "touch",
+          "from": "bottom-right",
+          "pace": "normal",
+          "at": 0.9,
+          "steps": [
+            {
+              "id": "tap-ride",
+              "click": "sel-ride-3"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "driver",
+      "duration": "auto",
+      "background": "bone",
+      "elements": [
+        {
+          "id": "phone-driver",
+          "type": "phone",
+          "layout": {
+            "anchor": "center",
+            "width": 600
+          },
+          "background": "bone",
+          "screen": "waiting",
+          "screens": {
+            "waiting": {
+              "background": "light",
+              "padding": [
+                24,
+                24
+              ],
+              "gap": 24,
+              "children": [
+                {
+                  "id": "driver-title",
+                  "type": "text",
+                  "role": "title",
+                  "content": "Driver on the way",
+                  "style": {
+                    "color": "ink"
+                  }
+                },
+                {
+                  "id": "tracker",
+                  "type": "progress",
+                  "steps": [
+                    "Driver found",
+                    "Arriving soon",
+                    "Arrived"
+                  ],
+                  "value": 0,
+                  "style": {
+                    "fill": "primary",
+                    "color": "ink"
+                  }
+                },
+                {
+                  "id": "driver-card",
+                  "type": "stack",
+                  "direction": "horizontal",
+                  "align": "center",
+                  "gap": 12,
+                  "style": {
+                    "fill": "light",
+                    "radius": 12,
+                    "padding": [
+                      16,
+                      16
+                    ]
+                  },
+                  "children": [
+                    {
+                      "id": "avatar",
+                      "type": "shape",
+                      "shape": "circle",
+                      "layout": {
+                        "width": 48,
+                        "height": 48
+                      },
+                      "style": {
+                        "fill": "secondary"
+                      }
+                    },
+                    {
+                      "id": "driver-name",
+                      "type": "text",
+                      "role": "body",
+                      "content": "Kwame",
+                      "style": {
+                        "color": "ink",
+                        "weight": 600
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "timeline": [
+        {
+          "id": "progress-step-1",
+          "target": "tracker",
+          "animate": {
+            "value": 1
+          },
+          "at": 1,
+          "duration": 0.5,
+          "ease": "cubic.inOut"
+        },
+        {
+          "id": "progress-step-2",
+          "target": "tracker",
+          "animate": {
+            "value": 2
+          },
+          "at": 2,
+          "duration": 0.5,
+          "ease": "cubic.inOut"
+        }
+      ]
+    }
+  ],
+  "notes": [
+    "Tro - ride-share app for Accra",
+    "Using placeholder for map asset",
+    "Standard ride selected (middle option)",
+    "Budget option (GH₵ 9.50) is cheapest but user taps Standard (GH₵ 12.50)",
+    "Color palette: bright orange (#FF6B35) with navy blue (#004E89) for friendly, professional feel"
+  ]
+}

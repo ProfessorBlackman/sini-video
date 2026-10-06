@@ -1,0 +1,383 @@
+{
+  "version": "0.4",
+  "video": {
+    "format": "9:16",
+    "fps": 30,
+    "background": "#FFFFFF",
+    "targetDuration": 12.5,
+    "safeZone": "reels",
+    "end": "hold"
+  },
+  "theme": {
+    "palette": {
+      "primary": "#FF6B35",
+      "accent": "#F7931E",
+      "success": "#06A77D",
+      "dark": "#1A1A1A",
+      "light": "#F5F5F5",
+      "text": "#333333"
+    },
+    "fonts": {
+      "display": "Instrument Serif",
+      "body": "Inter Tight"
+    },
+    "motion": "snappy",
+    "transition": {
+      "type": "slide",
+      "from": "right",
+      "duration": 0.5
+    },
+    "texture": {
+      "grain": 0.05,
+      "vignette": 0
+    }
+  },
+  "assets": {},
+  "components": {},
+  "scenes": [
+    {
+      "id": "intro",
+      "duration": 2.5,
+      "background": "dark",
+      "transition": "cut",
+      "elements": [
+        {
+          "id": "logo",
+          "type": "text",
+          "role": "display",
+          "content": "Tro",
+          "style": {
+            "color": "primary",
+            "align": "center"
+          },
+          "layout": {
+            "anchor": "center",
+            "inset": [
+              0,
+              0
+            ]
+          },
+          "enter": "popIn"
+        },
+        {
+          "id": "tagline",
+          "type": "text",
+          "role": "body",
+          "content": "Ride-share for Accra",
+          "style": {
+            "color": "accent",
+            "align": "center"
+          },
+          "layout": {
+            "below": "logo",
+            "gap": 32,
+            "align": "center"
+          },
+          "enter": "fadeUp"
+        }
+      ],
+      "timeline": []
+    },
+    {
+      "id": "app-flow",
+      "duration": "auto",
+      "background": "light",
+      "transition": "slide",
+      "elements": [
+        {
+          "id": "phone",
+          "type": "phone",
+          "layout": {
+            "anchor": "center",
+            "width": 680,
+            "inset": [
+              80,
+              0
+            ]
+          },
+          "background": "#FFFFFF",
+          "padding": [
+            24,
+            20
+          ],
+          "gap": 20,
+          "screen": "home",
+          "screens": {
+            "home": [
+              {
+                "id": "heading",
+                "type": "text",
+                "role": "title",
+                "content": "Where to?",
+                "style": {
+                  "color": "dark"
+                }
+              },
+              {
+                "id": "dest-input",
+                "type": "button",
+                "label": "Select destination",
+                "variant": "outline",
+                "style": {
+                  "color": "text",
+                  "fill": "none"
+                }
+              }
+            ],
+            "rides": [
+              {
+                "id": "header2",
+                "type": "text",
+                "role": "title",
+                "content": "Available rides",
+                "style": {
+                  "color": "dark"
+                }
+              },
+              {
+                "id": "ride-1",
+                "type": "stack",
+                "direction": "horizontal",
+                "gap": 12,
+                "align": "center",
+                "style": {
+                  "fill": "light",
+                  "padding": 12,
+                  "radius": 12,
+                  "stroke": "primary",
+                  "strokeWidth": 2
+                },
+                "children": [
+                  {
+                    "id": "car-type-1",
+                    "type": "text",
+                    "role": "body",
+                    "content": "Standard",
+                    "style": {
+                      "color": "dark"
+                    }
+                  },
+                  {
+                    "id": "price-1",
+                    "type": "text",
+                    "role": "body",
+                    "content": "GH₵ 45",
+                    "style": {
+                      "color": "success",
+                      "weight": 700
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "ride-2",
+                "type": "stack",
+                "direction": "horizontal",
+                "gap": 12,
+                "align": "center",
+                "style": {
+                  "fill": "light",
+                  "padding": 12,
+                  "radius": 12
+                },
+                "children": [
+                  {
+                    "id": "car-type-2",
+                    "type": "text",
+                    "role": "body",
+                    "content": "Comfort",
+                    "style": {
+                      "color": "dark"
+                    }
+                  },
+                  {
+                    "id": "price-2",
+                    "type": "text",
+                    "role": "body",
+                    "content": "GH₵ 65",
+                    "style": {
+                      "color": "text"
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "ride-3",
+                "type": "stack",
+                "direction": "horizontal",
+                "gap": 12,
+                "align": "center",
+                "style": {
+                  "fill": "light",
+                  "padding": 12,
+                  "radius": 12
+                },
+                "children": [
+                  {
+                    "id": "car-type-3",
+                    "type": "text",
+                    "role": "body",
+                    "content": "Premium",
+                    "style": {
+                      "color": "dark"
+                    }
+                  },
+                  {
+                    "id": "price-3",
+                    "type": "text",
+                    "role": "body",
+                    "content": "GH₵ 85",
+                    "style": {
+                      "color": "text"
+                    }
+                  }
+                ]
+              }
+            ],
+            "tracking": [
+              {
+                "id": "status-title",
+                "type": "text",
+                "role": "title",
+                "content": "Driver on the way",
+                "style": {
+                  "color": "dark"
+                }
+              },
+              {
+                "id": "progress",
+                "type": "progress",
+                "steps": [
+                  "Accepted",
+                  "Arriving",
+                  "Here"
+                ],
+                "value": 0,
+                "style": {
+                  "fill": "primary",
+                  "color": "dark"
+                }
+              },
+              {
+                "id": "driver-info",
+                "type": "stack",
+                "direction": "horizontal",
+                "gap": 12,
+                "align": "center",
+                "style": {
+                  "fill": "#F0F0F0",
+                  "padding": 16,
+                  "radius": 12
+                },
+                "children": [
+                  {
+                    "id": "driver-icon",
+                    "type": "icon",
+                    "name": "user",
+                    "style": {
+                      "color": "primary",
+                      "size": 32
+                    }
+                  },
+                  {
+                    "id": "driver-name",
+                    "type": "text",
+                    "role": "body",
+                    "content": "Kwame\n2 min away",
+                    "style": {
+                      "color": "dark"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "enter": "slideIn"
+        }
+      ],
+      "timeline": [
+        {
+          "id": "tap-dest",
+          "behavior": "interaction",
+          "cursor": "touch",
+          "from": "bottom-right",
+          "pace": "normal",
+          "at": 0.8,
+          "steps": [
+            {
+              "id": "tap",
+              "click": "dest-input",
+              "navigate": {
+                "phone": "rides"
+              }
+            }
+          ]
+        },
+        {
+          "id": "scroll-rides",
+          "behavior": "scroll",
+          "target": "phone",
+          "to": "ride-3",
+          "at": 1.8,
+          "duration": 0.8
+        },
+        {
+          "id": "tap-cheapest",
+          "behavior": "interaction",
+          "cursor": "touch",
+          "from": "bottom-right",
+          "pace": "normal",
+          "at": 3,
+          "steps": [
+            {
+              "id": "select-ride",
+              "click": "ride-1",
+              "navigate": {
+                "phone": "tracking"
+              }
+            }
+          ]
+        },
+        {
+          "target": "progress",
+          "at": 4.5,
+          "duration": 0.5,
+          "animate": {
+            "value": 1
+          }
+        },
+        {
+          "target": "progress",
+          "at": 5.5,
+          "duration": 0.5,
+          "animate": {
+            "value": 2
+          }
+        },
+        {
+          "target": "progress",
+          "at": 6.5,
+          "duration": 0.5,
+          "animate": {
+            "value": 3
+          }
+        }
+      ]
+    }
+  ],
+  "notes": [
+    "Bright orange/yellow palette for Accra ride-share brand Tro",
+    "Flow: destination → ride selection → driver tracking",
+    "Interaction shows tapping destination, scrolling rides, selecting cheapest",
+    "Progress tracker animates through 3 driver status steps"
+  ],
+  "lint": {
+    "accept": [
+      {
+        "code": "empty-screen",
+        "element": "phone",
+        "reason": "Mobile apps have whitespace; small screens are intentional for readability"
+      }
+    ]
+  }
+}
