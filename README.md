@@ -33,7 +33,7 @@ Sini runs in Docker. The image bundles Chromium, FFmpeg and the fonts, is about 
 docker pull ghcr.io/professorblackman/sini:0.1
 ```
 
-The examples below use the `0.1` tag, which follows the 0.1 release line and picks up its fixes. A fix can change how an affected video renders (see the [CHANGELOG](CHANGELOG.md)), so pin a full version like `0.1.4` when a video must re-render identically later. Use `latest` to follow every release. Renders are byte-identical for the same image on the same architecture; amd64 and arm64 may differ by a few pixel values.
+The examples below use the `0.1` tag, which follows the 0.1 release line and picks up its fixes. A fix can change how an affected video renders (see the [CHANGELOG](CHANGELOG.md)), so pin a full version like `0.1.5` when a video must re-render identically later. Use `latest` to follow every release. Renders are byte-identical for the same image on the same architecture; amd64 and arm64 may differ by a few pixel values.
 
 To build the image yourself instead, run `docker build -t sini .` and use `sini` in place of the image name below.
 
