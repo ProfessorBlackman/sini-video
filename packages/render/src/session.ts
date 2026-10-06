@@ -68,6 +68,12 @@ export interface SessionOptions {
   scale?: number;
   /** Reuse a browser (faster when opening many sessions). */
   browser?: Browser;
+  /**
+   * Layout only, no pictures: the page is hidden so nothing is painted (complex frames can take seconds to
+   * paint, and each measurement would wait for it). Element visibility is read from their own styles, so
+   * layout reports are unchanged. Don't take frames from such a session.
+   */
+  measureOnly?: boolean;
 }
 
 /** One loaded plan in one page. Frames can be requested in any order. */
@@ -103,6 +109,7 @@ export class RenderSession {
       throw new Error(`The renderer failed to start: ${errors[0] ?? (e as Error).message}`);
     }
     if (scale !== 1) await page.evaluate((f) => window.sini.setScale(f), scale);
+    if (opts.measureOnly) await page.evaluate(() => void (document.documentElement.style.visibility = "hidden"));
     return new RenderSession(plan, page, context, opts.browser ? null : browser, dir, scale);
   }
 
@@ -122,7 +129,16 @@ export class RenderSession {
   }
 
   async layout(t: number): Promise<LayoutReport> {
-    return (await this.page.evaluate((time) => window.sini.layout(time), t)) as LayoutReport;
+    // As a JSON string: Playwright's object serialisation of a few hundred nested boxes takes up to a second.
+    return JSON.parse(await this.page.evaluate((time) => JSON.stringify(window.sini.layout(time)), t)) as LayoutReport;
+  }
+
+  /**
+   * Layouts at many times in one page call. Between separate calls the browser produces a frame, which for
+   * heavy scenes costs far more than measuring; in one call it produces none.
+   */
+  async layouts(ts: number[]): Promise<LayoutReport[]> {
+    return JSON.parse(await this.page.evaluate((times) => JSON.stringify(window.sini.layouts(times)), ts)) as LayoutReport[];
   }
 
   async close(): Promise<void> {
@@ -134,6 +150,6 @@ export class RenderSession {
 
 declare global {
   interface Window {
-    sini: { ready: Promise<void>; render(t: number): void; layout(t: number): unknown; setScale(f: number): void };
+    sini: { ready: Promise<void>; render(t: number): void; layout(t: number): unknown; layouts(ts: number[]): unknown[]; setScale(f: number): void };
   }
 }

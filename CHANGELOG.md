@@ -6,6 +6,9 @@ Images: `ghcr.io/professorblackman/sini:<version>` for linux/amd64 and linux/arm
 
 ## [Unreleased]
 
+### Changed
+- **Lint is much faster on big videos** (a 229-element, 15s video: 24.5s → 2.8s): the mid-animation samples are measured in one page call, measuring sessions skip painting, and layouts come back as JSON instead of through Playwright's slower object serialisation. `get_layout` and `describe_at` benefit too.
+
 ## [0.1.6] - 2026-10-06
 
 Helping the AI judge its own work.

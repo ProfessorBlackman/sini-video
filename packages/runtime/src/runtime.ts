@@ -17,6 +17,8 @@ declare global {
       ready: Promise<void>;
       render(t: number): void;
       layout(t: number): LayoutReport;
+      /** Several layouts in one call (no frames are produced between them). */
+      layouts(ts: number[]): LayoutReport[];
       setScale(f: number): void;
     };
   }
@@ -2445,6 +2447,7 @@ window.sini = {
   ready: boot(),
   render,
   layout,
+  layouts: (ts: number[]) => ts.map(layout),
   setScale(f: number) {
     scale = f;
     stage.style.transform = f === 1 ? "" : `scale(${f})`;

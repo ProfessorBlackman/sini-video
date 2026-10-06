@@ -47,7 +47,7 @@ export async function layoutAt(target: string, t: number): Promise<LayoutReport>
   await resolveTextHotspots(target);
   const { plan: p } = plan(target);
   checkTime(p, t);
-  const session = await RenderSession.open(p);
+  const session = await RenderSession.open(p, { measureOnly: true });
   try {
     return await session.layout(t);
   } finally {

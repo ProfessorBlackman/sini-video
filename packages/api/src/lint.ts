@@ -43,7 +43,7 @@ export async function lint(target: string, opts: { layout?: boolean } = {}): Pro
   issues.push(...deviceRules(plan));
   issues.push(...glyphRules(plan));
   if (opts.layout !== false) {
-    const session = await RenderSession.open(plan);
+    const session = await RenderSession.open(plan, { measureOnly: true });
     try {
       const report = await session.layout(0);
       issues.push(...layoutRules(plan, report));
@@ -199,7 +199,7 @@ const ON_OFF_PRESETS = new Set([...ENTER_PRESETS, ...EXIT_PRESETS]);
  * (e.g. trackIn letter spacing) or runs past its edge outside of an enter or exit. Text inside camera groups
  * (zooming past the edges is the point) and inside devices is skipped.
  */
-export async function motionRules(plan: CompiledPlan, session: { layout(t: number): Promise<LayoutReport> }): Promise<Issue[]> {
+export async function motionRules(plan: CompiledPlan, session: { layout(t: number): Promise<LayoutReport>; layouts?(ts: number[]): Promise<LayoutReport[]> }): Promise<Issue[]> {
   const W = plan.width;
   const H = plan.height;
   const entries = new Map(walk(plan).map((e) => [e.el.ref, e]));
@@ -228,8 +228,12 @@ export async function motionRules(plan: CompiledPlan, session: { layout(t: numbe
   }
   const deviceOf = (ref: string) => pageContent.get(ref);
   const emptyFound = new Set<string>();
-  for (let t = 0.25; t < plan.duration; t += 0.5) {
-    const r = await session.layout(t);
+  const times: number[] = [];
+  for (let t = 0.25; t < plan.duration; t += 0.5) times.push(t);
+  // All samples in one page call when the session can (much faster for heavy scenes).
+  const reports = session.layouts ? await session.layouts(times) : await Promise.all(times.map((t) => session.layout(t)));
+  for (const r of reports) {
+    const t = r.time;
     // Mostly empty device screens: content reaching less than 40% of the way down.
     const lowest = new Map<string, number>();
     for (const b of r.elements) {
