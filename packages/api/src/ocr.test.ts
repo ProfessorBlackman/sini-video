@@ -33,3 +33,14 @@ describe("OCR tiles", () => {
     expect(t.some((r) => 171 >= r.left && 268 >= r.top && 240 <= r.left + r.width && 279 <= r.top + r.height)).toBe(true); // "Scan Now" on MedVerify's home screen
   });
 });
+
+describe("reading a screenshot's text", () => {
+  it("groups words into lines by row and gap", async () => {
+    const { toLines } = await import("./ocr.js");
+    const b = (text: string, x0: number, y0: number, x1: number) => ({ text, bbox: { x0, y0, x1, y1: y0 + 12 } });
+    // "instantly" sits a pixel higher than the words before it; "Search" is far to the right.
+    const lines = toLines([b("instantly", 171, 198, 225), b("Verify", 38, 199, 75), b("FDA", 81, 199, 105), b("approval", 110, 199, 166), b("Search", 300, 199, 350), b("Good", 38, 11, 70)]);
+    expect(lines.map((l) => l.text)).toEqual(["Good", "Verify FDA approval instantly", "Search"]);
+    expect(lines[1]!.box).toEqual([38, 198, 187, 13]);
+  });
+});

@@ -4,13 +4,14 @@
  * overlaps, overflow), colours (contrast) and the font files (missing glyphs).
  */
 import { existsSync } from "node:fs";
+import { resolve } from "node:path";
 import * as fontkit from "fontkit";
 import { contrast, over, parseCss, READING, SAFE_ZONES, TOP_LEVEL_TEXT_MARGIN, type CompiledPlan, type PlanElement, type RGBA } from "@sini/core";
-import { fontFile, RenderSession, type LayoutReport } from "@sini/render";
+import { fontFile, RenderSession, type LayoutReport, type RegionQuery } from "@sini/render";
 import { ENTER_PRESETS, EXIT_PRESETS, type Issue } from "@sini/schema";
-import { plan as loadPlan } from "./project.js";
+import { plan as loadPlan, type Loaded } from "./project.js";
 import { resolveFonts } from "./fonts.js";
-import { resolveTextHotspots } from "./ocr.js";
+import { assetText, findText, resolveTextHotspots, type TextLine } from "./ocr.js";
 
 export interface LintResult {
   ok: boolean;
@@ -44,12 +45,15 @@ export async function lint(target: string, opts: { layout?: boolean } = {}): Pro
   issues.push(...timelineRules(plan));
   issues.push(...deviceRules(plan));
   issues.push(...glyphRules(plan));
+  const avoid = loaded.spec.lint?.avoid ?? [];
+  issues.push(...avoidCopyRules(plan, avoid));
   if (opts.layout !== false) {
     const session = await RenderSession.open(plan, { measureOnly: true });
     try {
       const report = await session.layout(0);
       issues.push(...layoutRules(plan, report));
       issues.push(...(await motionRules(plan, session)));
+      issues.push(...(await regionRules(plan, session, loaded, avoid)));
     } finally {
       await session.close();
     }
@@ -265,6 +269,156 @@ export async function motionRules(plan: CompiledPlan, session: { layout(t: numbe
     }
   }
   return [...found.values()];
+}
+
+// ---------------------------------------------------------------- words to avoid, regions on screen
+
+/** A phrase as a case-insensitive whole-word pattern ("verified safe" also matches "Verified  Safe"). */
+const phrase = (w: string) => new RegExp(`(?<![\\p{L}\\p{N}])${w.trim().split(/\s+/).map((x) => x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("\\s+")}(?![\\p{L}\\p{N}])`, "iu");
+
+/** The words the brief rules out (lint.avoid), in the video's own copy: text, labels, toasts, state changes, typing. */
+export function avoidCopyRules(plan: CompiledPlan, avoid: string[]): Issue[] {
+  if (!avoid.length) return [];
+  const pats = avoid.map((w) => ({ w, re: phrase(w) }));
+  const issues: Issue[] = [];
+  const check = (ref: string, text: string | undefined, where: string) => {
+    if (!text) return;
+    for (const { w, re } of pats) {
+      const m = re.exec(text);
+      if (m) issues.push(warn(ref, "avoided-word", `'${ref}' says "${m[0]}"${where}, and lint.avoid rules out "${w}".`, "Reword it; the brief says not to claim this."));
+    }
+  };
+  for (const { el } of walk(plan)) {
+    check(el.ref, el.text?.plain, "");
+    for (const k of ["title", "body", "label", "url"]) check(el.ref, typeof el.props?.[k] === "string" ? (el.props[k] as string) : undefined, ` (${k})`);
+  }
+  for (const tr of plan.tracks) {
+    if (tr.kind === "content") check(tr.ref, tr.to, ` after ${r1(tr.t0)}s`);
+    if (tr.kind === "typed") check(tr.ref, tr.text, " (typed)");
+  }
+  return issues;
+}
+
+/** Group sample times into ranges for messages ("6.0–8.5s"). */
+function spans(ts: number[], step: number): string {
+  const out: string[] = [];
+  let a = ts[0]!;
+  let b = a;
+  for (const t of ts.slice(1).concat(Infinity)) {
+    if (t - b > step * 1.5) {
+      out.push(a === b ? `${r1(a)}s` : `${r1(a)}–${r1(b)}s`);
+      a = t;
+    }
+    b = t;
+  }
+  return out.join(", ");
+}
+
+/**
+ * Checks on regions inside images, measured by the renderer:
+ * - avoided words visible in a screenshot (OCR'd), unless cropped, scrolled or clipped away;
+ * - a spotlit region, or a camera target while zoomed, cut by the frame or its device screen.
+ */
+export async function regionRules(plan: CompiledPlan, session: RenderSession, loaded: Loaded, avoid: string[]): Promise<Issue[]> {
+  if (!session.regions) return [];
+  const queries: RegionQuery[] = [];
+  const meta: ({ kind: "word"; asset: string; text: string; word: string } | { kind: "spot" | "camera"; target: string; times: number[] })[] = [];
+  const step = 0.25;
+
+  // Words to avoid inside screenshots and images.
+  if (avoid.length) {
+    const found: { asset: string; src: string; rect: number[]; text: string; word: string }[] = [];
+    for (const [id, a] of Object.entries((loaded.spec.assets ?? {}) as Record<string, any>)) {
+      const src = typeof a === "string" ? a : a?.src;
+      if (typeof src !== "string" || !/\.(png|jpe?g|webp)$/i.test(src) || (typeof a === "object" && a.type && a.type !== "image")) continue;
+      let lines: TextLine[];
+      try {
+        lines = (await assetText(loaded.dir, id)).lines;
+      } catch {
+        continue;
+      }
+      for (const l of lines) {
+        const words = l.words.map((x) => ({ text: x.text, bbox: { x0: x.box[0], y0: x.box[1], x1: x.box[0] + x.box[2], y1: x.box[1] + x.box[3] } }));
+        for (const w of avoid) {
+          // Tolerates a misread letter, as text hotspots do ("Safe" read as "Sate").
+          const r = findText(words, w);
+          if (!r) continue;
+          const text = l.words.filter((x) => x.box[0] >= r[0] - 1 && x.box[0] + x.box[2] <= r[0] + r[2] + 1).map((x) => x.text).join(" ");
+          found.push({ asset: id, src, rect: r, text, word: w });
+        }
+      }
+    }
+
+    // "safe" inside a reported "verified safe": one warning.
+    const inside = (a: number[], b: number[]) => a !== b && a[0]! >= b[0]! - 1 && a[1]! >= b[1]! - 1 && a[0]! + a[2]! <= b[0]! + b[2]! + 1 && a[1]! + a[3]! <= b[1]! + b[3]! + 1;
+    for (const f of found) {
+      if (found.some((g) => g.asset === f.asset && g.word.length > f.word.length && inside(f.rect, g.rect))) continue;
+      queries.push({ src: resolve(loaded.dir, f.src), rect: f.rect });
+      meta.push({ kind: "word", asset: f.asset, text: f.text, word: f.word });
+    }
+  }
+
+  // Spotlights (focusCycle on hotspots), from just after they arrive to when they move on.
+  const refs = new Set(walk(plan).map((e) => e.el.ref));
+  for (const tr of plan.tracks) {
+    if (tr.kind === "spot") {
+      const times: number[] = [];
+      for (let t = tr.t0 + 0.3; t <= tr.t1 - 0.05; t += step) times.push(t);
+      if (times.length) {
+        queries.push({ target: `${tr.ref}#${tr.hotspot}` });
+        meta.push({ kind: "spot", target: `${tr.ref}#${tr.hotspot}`, times });
+      }
+    }
+    if (tr.kind === "camera") {
+      tr.keys.forEach((k, i) => {
+        if (k.zoom < 1.05 || !refs.has(k.focus.split("#")[0]!)) return;
+        const end = tr.keys[i + 1]?.t ?? tr.t1;
+        const times: number[] = [];
+        for (let t = k.t + 0.05; t <= end; t += step) times.push(t);
+        if (times.length) {
+          queries.push({ target: k.focus });
+          meta.push({ kind: "camera", target: k.focus, times });
+        }
+      });
+    }
+  }
+  if (!queries.length) return [];
+
+  const times: number[] = [];
+  for (let t = 0.125; t < plan.duration; t += step) times.push(t);
+  const extra = meta.flatMap((m) => (m.kind === "word" ? [] : m.times));
+  const all = [...new Set([...times, ...extra].map((t) => Math.round(t * 1000) / 1000))].sort((a, b) => a - b);
+  const hits = await session.regions(all, queries);
+
+  const issues: Issue[] = [];
+  meta.forEach((m, q) => {
+    if (m.kind === "word") {
+      const seen = new Map<string, number[]>();
+      all.forEach((t, i) => {
+        for (const h of hits[i]!) if (h.query === q && h.fraction >= 0.5 && h.opacity >= 0.3) seen.set(h.ref, [...(seen.get(h.ref) ?? []), t]);
+      });
+      for (const [ref, ts] of seen) {
+        issues.push(warn(ref, "avoided-word", `Screenshot '${m.asset}' shows "${m.text}"${m.text.toLowerCase() === m.word.toLowerCase() ? "" : ` (OCR's reading of "${m.word}")`} in '${ref}' at ${spans(ts, step)}, and lint.avoid rules out "${m.word}".`,
+          "Crop it out (image `crop`), scroll or frame the screen so it stays off screen, cover it, or ask the human for an updated screenshot."));
+      }
+      return;
+    }
+    const cut: { t: number; f: number }[] = [];
+    for (const t of m.times) {
+      const i = all.indexOf(Math.round(t * 1000) / 1000);
+      const h = hits[i]?.find((x) => x.query === q);
+      if (h && h.opacity > 0.3 && h.fraction < 0.9) cut.push({ t, f: h.fraction });
+    }
+    if (!cut.length) return;
+    const worst = cut.reduce((a, b) => (b.f < a.f ? b : a));
+    const ref = m.target.split("#")[0]!;
+    issues.push(m.kind === "spot"
+      ? warn(ref, "spotlight-cut", `The spotlight on '${m.target}' is cut off at ${spans(cut.map((c) => c.t), step)}: only ${Math.round(worst.f * 100)}% of it is on screen at ${r1(worst.t)}s.`,
+        "Zoom the camera less or focus nearer the region, or scroll / crop so the region sits inside the screen.")
+      : warn(ref, "camera-target-cut", `The camera zooms on '${m.target}' but cuts it off at ${spans(cut.map((c) => c.t), step)}: only ${Math.round(worst.f * 100)}% is in frame at ${r1(worst.t)}s.`,
+        "Use a smaller zoom, or focus on the region itself (a hotspot) rather than a point beside it."));
+  });
+  return issues;
 }
 
 export function layoutRules(plan: CompiledPlan, report: LayoutReport): Issue[] {

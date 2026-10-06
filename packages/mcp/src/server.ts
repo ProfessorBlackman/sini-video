@@ -188,6 +188,19 @@ export function createServer(root = process.env.SINI_ROOT ?? process.cwd()): Mcp
     return json({ ...r, elements: kept, ...(omitted ? { omitted: `${omitted} elements not shown (hidden, or not in \`elements\`); visibleOnly: false shows hidden ones` } : {}) });
   })());
 
+  server.registerTool("read_image_text", {
+    title: "Read the text in an image",
+    description: "Every line of text in a screenshot or image asset (OCR), with its box [x, y, width, height] in the image's own pixels. " +
+      "Use the boxes for hotspots, `crop` and spotlights instead of measuring by eye, and to find words the brief rules out.",
+    inputSchema: { ...projectArg, asset: z.string().describe("Image asset id from the spec's assets") },
+    annotations: readOnly,
+  }, (a) => run(async () => {
+    const r = await api.assetText(project(a.project), a.asset);
+    const size = r.width ? ` (${r.width}×${r.height} px)` : "";
+    const lines = r.lines.map((l) => `[${l.box.join(", ")}]  ${l.text}`).join("\n");
+    return text(`${r.asset}: ${r.file}${size}, ${r.lines.length} lines. Boxes are image pixels; OCR can misread a letter.\n${lines}`);
+  })());
+
   server.registerTool("render_frame", {
     title: "Render one frame",
     description: "Returns a PNG of the video at a time.",
@@ -253,7 +266,7 @@ export function createServer(root = process.env.SINI_ROOT ?? process.cwd()): Mcp
         text:
           `Make a video with Sini for this brief:\n\n${brief}\n\n` +
           `1. Read the DSL reference: get_reference, then get_reference with section "7" and "9".\n` +
-          `2. Write the spec and create_video in "${dir ?? "video"}".\n` +
+          `2. Write the spec and create_video in "${dir ?? "video"}". For screenshots, read_image_text gives every line of text with its box (for hotspots and crop). If the brief rules words out, list them in lint.avoid.\n` +
           `3. validate_video and lint_video; fix everything with update_video patches.\n` +
           `4. render_contact_sheet and run its design review: name the 3 biggest problems (brief, hierarchy, one idea per scene, space, readability, consistency, motion), fix them with update_video, and look again. Repeat until you'd ship it (usually 2–3 rounds).\n` +
           `5. render_video with draft: true; fix or accept (lint.accept, with a reason) any lint warnings it lists.\n` +

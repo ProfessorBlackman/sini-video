@@ -438,6 +438,43 @@ describe("clips and cutouts", () => {
   }, 60_000);
 });
 
+describe("crops and regions", () => {
+  it("crop an image to a pixel region, and report where image regions are and how much is on screen", async () => {
+    const { mkdtempSync, rmSync, writeFileSync } = await import("node:fs");
+    const { tmpdir } = await import("node:os");
+    const { join } = await import("node:path");
+    const dir = mkdtempSync(join(tmpdir(), "sini-crop-"));
+    writeFileSync(join(dir, "shot.png"), discPng(400, 1000));
+    const p = compile({
+      version: "0.4", video: { format: "16:9" },
+      assets: { shot: { type: "image", src: "shot.png", hotspots: { low: [100, 700, 200, 50], edge: [0, 300, 400, 100] } } },
+      scenes: [{ id: "s", duration: 2, elements: [
+        // Rows 200–600 of the image, shown at 1:1.
+        { id: "cut", type: "image", asset: "shot", crop: [0, 200, 400, 400], layout: { x: 100, y: 100, width: 400, height: 400 }, enter: "none" },
+        // The whole image, half off the right edge of the frame.
+        { id: "off", type: "image", asset: "shot", fit: "contain", layout: { x: 1720, y: 0, width: 400, height: 1000 }, enter: "none" },
+      ] }],
+    } as never, { projectDir: dir });
+    const s = await RenderSession.open(p, { browser });
+    try {
+      const src = join(dir, "shot.png");
+      const [hits] = await s.regions([1], [
+        { src, rect: [100, 300, 100, 20] }, // inside the crop
+        { src, rect: [100, 700, 100, 20] }, // cropped away in 'cut'
+        { target: "off#edge" },
+      ]);
+      const at = (q: number, ref: string) => hits!.find((h) => h.query === q && h.ref === ref);
+      expect(at(0, "cut")).toMatchObject({ box: { x: 200, y: 200, width: 100, height: 20 }, fraction: 1 });
+      expect(at(1, "cut")).toBeUndefined();
+      expect(at(1, "off")).toMatchObject({ fraction: 1 }); // the uncropped copy shows it (its left half is on screen)
+      expect(at(2, "off#edge")!.fraction).toBeCloseTo(0.5, 1);
+    } finally {
+      await s.close();
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }, 60_000);
+});
+
 describe("stacking", () => {
   it("draws a negative z behind other elements but in front of the scene background", async () => {
     const p = compile({ version: "0.4", video: { format: "1:1" }, scenes: [{ id: "s", duration: 1, background: "#0000ff", elements: [

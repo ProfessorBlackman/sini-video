@@ -1,7 +1,7 @@
 import { createRequire } from "node:module";
 import { Command } from "commander";
 import { readFileSync } from "node:fs";
-import { contactSheet, describeWithLayout, initProject, inspect, layoutAt, lint, listVersions, patchProject, renderFrame, renderMp4, restoreVersion, SiniError, snapshot, type PatchOp } from "@sini/api";
+import { assetText, contactSheet, describeWithLayout, initProject, inspect, layoutAt, lint, listVersions, patchProject, renderFrame, renderMp4, restoreVersion, SiniError, snapshot, type PatchOp } from "@sini/api";
 import { formatIssue, runValidate } from "./validate-command.js";
 
 const require = createRequire(import.meta.url);
@@ -157,6 +157,21 @@ export function createProgram(): Command {
           const anim = e.animating.length ? `  ⟳ ${e.animating.join(", ")}` : "";
           console.log(`  ${e.ref} [${e.type}] ${state}${e.text ? ` "${e.text}"` : ""}${anim}`);
         }
+      })(),
+    );
+
+  program
+    .command("text")
+    .description("List the text in an image asset (OCR), with boxes in the image's pixels")
+    .argument("<asset>", "image asset id")
+    .argument("[project]", "project folder or spec file", ".")
+    .option("--json", "machine-readable output")
+    .action((asset: string, project: string, opts: { json?: boolean }) =>
+      guard(async () => {
+        const r = await assetText(project, asset);
+        if (opts.json) return void console.log(JSON.stringify(r, null, 2));
+        console.log(`${r.asset}: ${r.file}${r.width ? ` (${r.width}×${r.height} px)` : ""}`);
+        for (const l of r.lines) console.log(`  [${l.box.join(", ")}]  ${l.text}`);
       })(),
     );
 

@@ -11,6 +11,10 @@ Any font, and fixes from the real-assets round ([findings](docs/paper-tests/v0.7
 ### Added
 - **Downloaded fonts**: `{ "type": "font", "google": "Plus Jakarta Sans" }` fetches a Google Fonts family (every weight and italic), and `{ "type": "font", "url": "https://…", "family": "…" }` fetches one font file. Each is downloaded once, when the video is created or changed or at the next render, into the project's `fonts/` folder with a `fonts.lock.json` (and the licence); renders then never use the network, so they stay identical. Font files are checked to be TTF, OTF, WOFF or WOFF2.
 - Font assets take `weight` (a number, or a range for variable fonts) and `style`.
+- **`crop` on images**: `[x, y, width, height]` in the image's own pixels; only that region is shown, then fitted to the box. Hotspots keep their image coordinates.
+- **`read_image_text`** (MCP) and `sini text <asset>`: every line of text in a screenshot with its box in image pixels, for hotspots and crops without guessing. Cached per image.
+- **`lint.avoid`**: words or phrases the video must not say or show. Lint checks the copy (text, labels, toasts, state changes, typing) and, by OCR, every screenshot while it's on screen, so a cropped-away or scrolled-off word passes and a visible one doesn't (`avoided-word`).
+- **`spotlight-cut`** and **`camera-target-cut`** lint: a spotlit region, or the camera's zoom target, cut off by the frame or its device screen.
 
 ### Fixed
 - Text hotspots missed labels on coloured buttons (e.g. "Scan Now" on a bright green button): a fine-tile OCR pass runs when the others miss.

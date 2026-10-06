@@ -6,5 +6,5 @@ export {
   initProject, snapshot, replaceSpec, restoreVersion, readVersion, listVersions, saveVersion, applyOps, patchProject, projectDir,
   type PatchOp, type VersionInfo,
 } from "./versions.js";
-export { resolveTextHotspots, cachedTextHotspots, findText } from "./ocr.js";
+export { resolveTextHotspots, cachedTextHotspots, findText, assetText, toLines, imageSize, type TextLine } from "./ocr.js";
 export { resolveFonts, cachedFontFaces, parseMetadata, fontKind } from "./fonts.js";

@@ -144,8 +144,11 @@ class Validator {
 
   /** `lint.accept`: warnings the author has judged wrong for this video, each with a reason. */
   lintDecl(l: J) {
-    if (!isObj(l)) return this.err("lint", "bad-lint", 'Must be an object: { "accept": [ … ] }.');
-    this.unknownKeys(l, ["accept"], "lint");
+    if (!isObj(l)) return this.err("lint", "bad-lint", 'Must be an object: { "accept": [ … ], "avoid": [ … ] }.');
+    this.unknownKeys(l, ["accept", "avoid"], "lint");
+    if ("avoid" in l && !(Array.isArray(l.avoid) && l.avoid.every((w: J) => typeof w === "string" && /[\p{L}\p{N}]/u.test(w)))) {
+      this.err("lint.avoid", "bad-lint", 'A list of words or phrases the video must not say or show, e.g. ["safe", "verified safe"].');
+    }
     if (!("accept" in l)) return;
     if (!Array.isArray(l.accept)) return this.err("lint.accept", "bad-lint", "Must be a list.");
     l.accept.forEach((a: J, i: number) => {
@@ -628,6 +631,12 @@ class Validator {
       this.err(`${p}.asset`, "unknown-asset", `Asset '${e.asset}' isn't declared.`, didYouMean(e.asset, this.assets.keys()));
     }
     if (ty === "image" && "fit" in e) this.oneOf(e.fit, ["cover", "contain"], `${p}.fit`, "fit");
+    if (ty === "image" && "crop" in e) {
+      const c = e.crop;
+      if (!(Array.isArray(c) && c.length === 4 && c.every((n: J) => typeof n === "number" && n >= 0) && c[2] > 0 && c[3] > 0)) {
+        this.err(`${p}.crop`, "bad-crop", "crop is [x, y, width, height] in the image's own pixels.");
+      }
+    }
     if (ty === "chart") {
       this.oneOf(e.kind, CHART_KINDS, `${p}.kind`, "chart kind");
       const data = e.data;

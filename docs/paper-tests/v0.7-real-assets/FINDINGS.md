@@ -37,7 +37,4 @@ Not Sini bugs:
 ## 3. Open
 
 - ~~**Brand fonts:** Plus Jakarta Sans isn't bundled; the agents substituted Manrope.~~ **Done after the round:** font assets can name any Google Fonts family (`"google": "Plus Jakarta Sans"`) or an https font file (`"url"`), downloaded once into the project's `fonts/` and pinned in `fonts.lock.json`.
-- **Cropping screenshots by pixels** (`crop: [x, y, w, h]` on images) instead of computing a `cover` `focus` percentage: both default agents did this arithmetic by hand.
-- **Seeing what's in an asset:** the agents built a throwaway "peek" scene to read screenshots and measure hotspots. A tool returning an asset's OCR'd words with boxes would replace that.
-- **Forbidden words:** a brief-level list (`"avoid": ["safe", "genuine"]`) that lint checks in the copy and, via OCR, in screenshots on screen.
-- **Lint for a camera move that pushes a spotlighted region out of frame** (M2 cut the licence number at 1.45×).
+- ~~**Cropping screenshots by pixels**, **seeing what's in an asset**, **forbidden words**, **camera moves cutting off a spotlight**~~ **Done after the round:** image `crop: [x, y, w, h]`; `read_image_text` / `sini text` (every line of text with its box); `lint.avoid` checking the copy and visible screenshots (it flags Haiku's "Verified Safe" at 9.6–10.4s and M1's "Safe" chip, and passes M2); `spotlight-cut` / `camera-target-cut` (it flags M2's 1.35× zoom, 87% of the licence row on screen, and passes the fixed 1.2×).

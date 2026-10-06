@@ -348,7 +348,7 @@ class Compiler {
       el.font = this.font("body", src.style, ctx.inDevice, ctx.textColour);
       el.props = { name: src.name };
     } else if (type === "image") {
-      el.props = { image: this.image(src.asset, `${ctx.path}.asset`), fit: src.fit ?? "cover", focus: src.focus ?? [50, 50], hotspots: this.hotspots(src.asset, ctx.path) };
+      el.props = { image: this.image(src.asset, `${ctx.path}.asset`), fit: src.fit ?? "cover", focus: src.focus ?? [50, 50], ...(src.crop ? { crop: src.crop } : {}), hotspots: this.hotspots(src.asset, ctx.path) };
     } else if (type === "shape") {
       el.props = { shape: src.shape };
       if (src.shape !== "line" && !style.fill && !style.stroke) style.fill = ctx.textColour;

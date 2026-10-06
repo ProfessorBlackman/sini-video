@@ -9,7 +9,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { join, resolve } from "node:path";
 import type { Spec } from "@sini/schema";
-import { load } from "./project.js";
+import { load, SiniError } from "./project.js";
 
 const require = createRequire(import.meta.url);
 type Rect = [number, number, number, number];
@@ -123,10 +123,19 @@ export function tiles(width: number, height: number, fine = false): Tile[] {
   return out;
 }
 
-/** Pixel size of a PNG or JPEG, read from its header (no image library). */
+/** Pixel size of a PNG, JPEG or WebP, read from its header (no image library). */
 export function imageSize(file: string): { width: number; height: number } | null {
   const b = readFileSync(file);
   if (b.length > 24 && b.readUInt32BE(0) === 0x89504e47) return { width: b.readUInt32BE(16), height: b.readUInt32BE(20) };
+  if (b.length > 30 && b.toString("ascii", 0, 4) === "RIFF" && b.toString("ascii", 8, 12) === "WEBP") {
+    const kind = b.toString("ascii", 12, 16);
+    if (kind === "VP8X") return { width: 1 + b.readUIntLE(24, 3), height: 1 + b.readUIntLE(27, 3) };
+    if (kind === "VP8 ") return { width: b.readUInt16LE(26) & 0x3fff, height: b.readUInt16LE(28) & 0x3fff };
+    if (kind === "VP8L") {
+      const bits = b.readUInt32LE(21);
+      return { width: (bits & 0x3fff) + 1, height: ((bits >> 14) & 0x3fff) + 1 };
+    }
+  }
   if (b.length > 4 && b[0] === 0xff && b[1] === 0xd8) {
     let i = 2;
     while (i + 9 < b.length) {
@@ -211,4 +220,110 @@ export async function resolveTextHotspots(target: string): Promise<{ resolved: n
     writeFileSync(cacheFile(dir), `${JSON.stringify(cache, null, 2)}\n`);
   }
   return { resolved: spots.length - missing.length, missing };
+}
+
+// ---------------------------------------------------------------- reading a whole screenshot
+
+export interface TextLine { text: string; box: Rect; words: { text: string; box: Rect }[] }
+interface ScoredWord extends Word { confidence: number }
+
+const real = (w: ScoredWord) => w.confidence >= 55 && /[\p{L}\p{N}]/u.test(w.text);
+const overlaps = (a: Word["bbox"], b: Word["bbox"]) => {
+  const ix = Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0);
+  const iy = Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0);
+  if (ix <= 0 || iy <= 0) return false;
+  const area = (r: Word["bbox"]) => (r.x1 - r.x0) * (r.y1 - r.y0);
+  return (ix * iy) / Math.min(area(a), area(b)) > 0.4;
+};
+
+/** Group words into lines: rows of vertically overlapping words, split where the gap is wider than ~1.5 letters' height. */
+export function toLines(words: Word[]): TextLine[] {
+  const bands: Word[][] = [];
+  for (const w of [...words].sort((a, b) => (a.bbox.y0 + a.bbox.y1) - (b.bbox.y0 + b.bbox.y1))) {
+    const mid = (w.bbox.y0 + w.bbox.y1) / 2;
+    const band = bands.find((r) => r.some((x) => mid > x.bbox.y0 && mid < x.bbox.y1));
+    if (band) band.push(w);
+    else bands.push([w]);
+  }
+  const rows: Word[][] = [];
+  for (const band of bands) {
+    band.sort((a, b) => a.bbox.x0 - b.bbox.x0);
+    let row: Word[] = [];
+    for (const w of band) {
+      const prev = row[row.length - 1];
+      if (prev && w.bbox.x0 - prev.bbox.x1 > 1.5 * Math.max(w.bbox.y1 - w.bbox.y0, prev.bbox.y1 - prev.bbox.y0)) {
+        rows.push(row);
+        row = [];
+      }
+      row.push(w);
+    }
+    if (row.length) rows.push(row);
+  }
+  return rows.map((r) => {
+    r.sort((a, b) => a.bbox.x0 - b.bbox.x0);
+    const x0 = Math.min(...r.map((w) => w.bbox.x0));
+    const y0 = Math.min(...r.map((w) => w.bbox.y0));
+    const x1 = Math.max(...r.map((w) => w.bbox.x1));
+    const y1 = Math.max(...r.map((w) => w.bbox.y1));
+    return {
+      text: r.map((w) => w.text).join(" "),
+      box: [x0, y0, x1 - x0, y1 - y0] as Rect,
+      words: r.map((w) => ({ text: w.text, box: [w.bbox.x0, w.bbox.y0, w.bbox.x1 - w.bbox.x0, w.bbox.y1 - w.bbox.y0] as Rect })),
+    };
+  }).sort((a, b) => a.box[1] - b.box[1] || a.box[0] - b.box[0]);
+}
+
+/**
+ * Every line of text in an image asset, with boxes in the image's own pixels: the whole page, plus labels on
+ * buttons and chips that only the fine tiles read. Cached per image content in out/.cache/.
+ */
+export async function assetText(target: string, assetId: string): Promise<{ asset: string; file: string; width?: number; height?: number; lines: TextLine[] }> {
+  const { spec, dir } = load(target);
+  const a = (spec.assets ?? {})[assetId] as unknown;
+  const src = typeof a === "string" ? a : a && typeof a === "object" ? (a as { src?: string; type?: string }).src : undefined;
+  if (!src || (typeof a === "object" && (a as { type?: string }).type && !["image"].includes((a as { type: string }).type))) {
+    const images = Object.entries((spec.assets ?? {}) as Record<string, any>).filter(([, v]) => typeof v === "string" || (v && typeof v === "object" && v.src && (v.type ?? "image") === "image")).map(([k]) => k);
+    throw new SiniError(`'${assetId}' isn't an image asset of this video.${images.length ? ` Its images: ${images.join(", ")}.` : ""}`);
+  }
+  const file = resolve(dir, src);
+  if (!existsSync(file)) throw new SiniError(`Asset file '${src}' not found.`);
+  hashes.delete(file);
+  const cached = join(dir, "out", ".cache", `text-${fileHash(file)}.json`);
+  const size = imageSize(file) ?? undefined;
+  if (existsSync(cached)) return { asset: assetId, file: src, ...(size ?? {}), lines: JSON.parse(readFileSync(cached, "utf8")) as TextLine[] };
+  const { createWorker } = await import("tesseract.js");
+  const data = require("@tesseract.js-data/eng") as { langPath: string; gzip: boolean };
+  let worker: Awaited<ReturnType<typeof createWorker>>;
+  try {
+    worker = await createWorker("eng", 1, { langPath: data.langPath, gzip: data.gzip, cacheMethod: "none", logger: () => {}, errorHandler: () => {} });
+  } catch (e) {
+    throw new SiniError(`OCR is unavailable: ${(e as Error).message}`);
+  }
+  const words: ScoredWord[] = [];
+  try {
+    const read = async (rectangle?: Tile): Promise<ScoredWord[]> => {
+      const { data: page } = await worker.recognize(file, rectangle ? { rectangle } : {}, { blocks: true });
+      const out: ScoredWord[] = [];
+      for (const b of page.blocks ?? []) for (const p of b.paragraphs) for (const l of p.lines) for (const w of l.words) out.push({ text: w.text, bbox: w.bbox, confidence: w.confidence });
+      return out;
+    };
+    words.push(...(await read()).filter(real));
+    if (size) {
+      await worker.setParameters({ tessedit_pageseg_mode: "11" as never });
+      for (const t of tiles(size.width, size.height, true)) {
+        for (const w of (await read(t)).filter(real)) {
+          // The same word read twice: keep the more confident reading.
+          const i = words.findIndex((x) => overlaps(x.bbox, w.bbox));
+          if (i < 0) words.push(w);
+          else if (w.confidence > words[i]!.confidence + 5) words[i] = w;
+        }
+      }
+    }
+  } finally {
+    await worker.terminate();
+  }
+  const lines = toLines(words);
+  mkdirSync(join(dir, "out", ".cache"), { recursive: true });
+  writeFileSync(cached, `${JSON.stringify(lines)}\n`);
+  return { asset: assetId, file: src, ...(size ?? {}), lines };
 }

@@ -25,7 +25,7 @@ export interface Spec {
   scenes: Scene[];
   notes?: string[];
   /** Lint warnings judged wrong for this video, each with a reason. */
-  lint?: { accept?: { code: string; element?: string; reason: string }[] };
+  lint?: { accept?: { code: string; element?: string; reason: string }[]; avoid?: string[] };
 }
 
 export interface VideoConfig {

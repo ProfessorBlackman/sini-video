@@ -45,7 +45,7 @@ Sini turns a JSON description of a video into a deterministic MP4. You (the AI) 
 | `components` | no | Reusable element templates (§7.4) |
 | `scenes` | yes | Ordered list of scenes (§6) |
 | `notes` | no | Strings for the human: invented copy, assumptions, assets to replace. Not rendered |
-| `lint` | no | `{ "accept": [ … ] }`: lint warnings judged wrong for this video, each with a reason (§12) |
+| `lint` | no | `{ "accept": [ … ], "avoid": [ … ] }`: lint warnings judged wrong for this video, each with a reason, and words the video must not say or show (§12) |
 
 The video's total duration is the **sum of the scene durations**.
 
@@ -82,7 +82,7 @@ All pixel values are in **canvas pixels** of the chosen size, except inside devi
 
 ## 4. `theme`
 
-The theme makes a video coherent. Set it once; elements inherit from it.
+Set the theme once; elements inherit from it.
 
 ```json
 "theme": {
@@ -108,20 +108,11 @@ Palette values must be hex.
 
 ### 4.2 Fonts and text roles
 
-`fonts` maps three slots to font families: `display`, `body`, `mono`. Families must be bundled with Sini or declared as font assets (§5).
+`fonts` maps three slots to font families: `display`, `body`, `mono`.
 
-Bundled fonts (all SIL Open Font License, with Latin Extended coverage). Any glyph a font lacks falls back to Inter Tight, so `₵ € £ ✓ • … → ▶ — “ ”` always render. No emoji: use `icon` instead. Lint flags characters no bundled font can draw.
+Bundled (SIL OFL, Latin Extended): Inter Tight, Instrument Serif, Bricolage Grotesque, Fraunces, DM Serif Display, Space Grotesk, Manrope, JetBrains Mono. Missing glyphs fall back to Inter Tight, so `₵ € £ ✓ • … → ▶ — “ ”` always render. No emoji (use `icon`).
 
-The bundled families: Inter Tight, Instrument Serif, Bricolage Grotesque, Fraunces, DM Serif Display, Space Grotesk, Manrope, JetBrains Mono.
-
-**Any other font: download it.** When the brand names a font that isn't bundled, declare it as a font asset and use its family name; don't substitute a bundled one:
-
-```json
-"assets": { "brand": { "type": "font", "google": "Plus Jakarta Sans" } },
-"theme":  { "fonts": { "display": "Plus Jakarta Sans", "body": "Plus Jakarta Sans" } }
-```
-
-`google` takes any family on fonts.google.com, with every weight and italic it has. For a font elsewhere, give an https link to one file and its family: `{ "type": "font", "url": "https://…/Brand-Bold.woff2", "family": "Brand", "weight": 700 }` (one asset per weight or style; `"weight": "100 900"` for a variable file). Sini downloads each font once, when the video is created or changed (or at the next render), into the project's `fonts/` folder with a `fonts.lock.json`; after that it never uses the network for it, so renders stay identical. A wrong name or a missing network is reported then. A font file the human gave you goes in the project with `src` (§5).
+**Any other font: download it**, don't substitute: `"assets": { "brand": { "type": "font", "google": "Plus Jakarta Sans" } }` (any fonts.google.com family, all weights and italics), then use its name in `fonts`. Elsewhere: `{ "type": "font", "url": "https://…/Brand-Bold.woff2", "family": "Brand", "weight": 700 }`, one asset per file (`"weight": "100 900"` if variable). Sini downloads each once into `fonts/` (pinned in `fonts.lock.json`); a wrong name or no network is reported when you save. A file from the human: `src` (§5).
 
 Text elements pick a **role**, which sets font, size, weight and line height.
 
@@ -135,7 +126,7 @@ Text elements pick a **role**, which sets font, size, weight and line height.
 | `label` | body | 22 | 11 | 1.2 | Uppercase, letter-spacing 0.08em |
 | `mono` | mono | 28 | 14 | 1.4 | |
 
-- **Canvas sizes** are for a canvas whose **short side** is 1080px, which is every standard format (9:16, 1:1, 4:5 and 16:9). They do **not** change between formats. On a custom canvas they scale with the short side.
+- **Canvas sizes** are for a 1080px **short side** (every standard format), so they don't change between formats; custom canvases scale them.
 - **In-device sizes** apply to text inside a `phone` or `browser` (§7.3), in that device's logical pixels.
 - Override roles in `theme.roles`, e.g. `"roles": { "title": { "size": 120 } }`. Partial overrides merge with the defaults.
 
@@ -150,13 +141,13 @@ Text elements pick a **role**, which sets font, size, weight and line height.
 | `calm` | `cubic.inOut` | 1.1 | 0.12 | `fadeUp` |
 | `playful` | `spring` | 0.6 | 0.06 | `bounceIn` |
 
-Override individual values: `"motion": { "base": "editorial", "duration": 0.6 }`.
+Override values: `"motion": { "base": "editorial", "duration": 0.6 }`.
 
 The **default text enter** applies to every `text` element placed directly in a scene's `elements` that has no `enter` (§7.1). Text inside containers, devices and components does not get it.
 
 ### 4.4 Default transition and texture
 
-- `transition`: used by every scene that doesn't set its own (§10). Use one signature transition; switch type only to mark a change of section.
+- `transition`: used by every scene that doesn't set its own (§10). Use one signature transition; switch only to mark a new section.
 - `texture.grain`: film grain opacity, 0–0.2. `texture.vignette`: 0–1.
 
 ---
@@ -182,8 +173,7 @@ Assets are declared once and referenced by ID.
 |---|---|
 | `"path"` | Shorthand for an image; type inferred from extension |
 | `{ "type": "image" \| "svg" \| "font", "src": ... }` | Explicit asset. Fonts need `family`, and take `weight` (`700`, or `"200 800"` for a variable file) and `style` (`"italic"`) |
-| `{ "type": "font", "google": "Family Name" }` | A Google Fonts family, downloaded once into `fonts/` (§4.2) |
-| `{ "type": "font", "url": "https://…", "family": ... }` | One font file downloaded once into `fonts/` |
+| `{ "type": "font", "google": … }` / `{ "type": "font", "url": …, "family": … }` | Downloaded fonts (§4.2) |
 | `{ "type": "placeholder", "hint": ..., "color": ... }` | Procedural stand-in (textured gradient). `hint` is kept so a human can swap in a real asset later |
 | `fallback` | Used automatically if `src` is missing |
 | `hotspots` | Named regions inside an image (see below) |
@@ -194,7 +184,7 @@ Paths are relative to the project folder. Remote URLs are not allowed for images
 
 A hotspot names a region of an image so it can be clicked, focused, zoomed into or pinned to, like an element.
 
-- `[x, y, width, height]` in the **image's own pixels**. Only use this if you have seen the image or the human gave you the coordinates.
+- `[x, y, width, height]` in the **image's own pixels**. Get them from `read_image_text` (`sini text <asset>`), which lists every line of text in the image with its box, or from the human; don't guess.
 - `{ "text": "Export PDF" }`: Sini finds the region by reading the text in the image. Use this when you haven't seen the image. The region is the words themselves, which suits buttons and links; for a whole card or panel (a spotlight or highlight around it), give `[x, y, width, height]`.
 
 Refer to a hotspot as `"<element-id>#<hotspot>"`, where the element shows that image (an `image`, or a `browser`/`phone` whose `content` is that image): e.g. `"click": "dashboard#export"`.
@@ -362,7 +352,7 @@ Text, buttons and containers are `"auto"`-sized by default: they size to their c
   "fit": "cover", "focus": [50, 30] }
 ```
 
-`fit`: `cover | contain`. `focus`: `[x%, y%]` point kept in view when cropping. `style.radius` rounds the corners; animations such as `kenBurns` stay clipped inside the frame.
+`fit`: `cover | contain`. `focus`: `[x%, y%]` point kept in view when cropping. `crop`: `[x, y, width, height]` in the image's own pixels: only that region is shown (then fitted to the box), e.g. a screenshot without its header: `"crop": [0, 270, 390, 790]`. Hotspots keep their image coordinates. `style.radius` rounds the corners; animations such as `kenBurns` stay clipped inside the frame.
 
 #### `shape`
 
@@ -904,21 +894,22 @@ Every patch creates a new version. Use `describe_at(time)` to find which element
 
 ## 12. Tools, errors and lint
 
-Treat lint warnings as problems to fix. Keep one only when you're sure it's wrong for this video, and accept it with the reason, so it stops being reported:
+Treat lint warnings as problems to fix. Accept one, with the reason, only when it's factually wrong for this video (e.g. text printed on a product, not meant to be read), never to avoid work:
 
 ```json
 "lint": { "accept": [ { "code": "tiny-text", "element": "bottle-label", "reason": "Printed on the bottle; not meant to be read" } ] }
 ```
 
-`element` is optional (without it, every warning with that code is accepted) and also covers elements inside it. Accepting doesn't hide errors.
+`element` is optional (without it, every warning with that code is accepted) and covers elements inside it. Errors can't be accepted. Don't delete content or lower `targetDuration` to silence a warning: fix the design. Accepted warnings and reasons are shown to the human with every render.
 
-Accept a warning only when it's factually wrong for this video (e.g. text printed on a product that isn't meant to be read), never to avoid work. Don't delete content or lower `targetDuration` just to silence a warning: fix the design. Accepted warnings and their reasons are shown to the human with every render.
+When the brief rules words out, list them: `"lint": { "avoid": ["safe", "verified safe"] }`. Lint checks the copy and every screenshot on screen (by OCR).
 
 Use the tools instead of estimating:
 - `validate`: schema and reference errors.
 - `lint`: design problems (below).
 - `layout`: the computed box (`x`, `y`, `width`, `height`) of every element at a given time. Use it instead of computing text heights by hand. Text also reports `ink`, where its letters are drawn: the box includes the font's spacing above and below, so align big type (numbers, headlines against a rule or an image edge) by `ink`.
 - `render_contact_sheet`: one image of about 12 frames, to check the look.
+- `read_image_text`: each line of text in a screenshot, with its box in image pixels (for hotspots and `crop`).
 
 Errors are structured. Fix them and resubmit.
 
@@ -941,6 +932,8 @@ Lint checks include:
 - missing glyph in the chosen font
 - missing asset (placeholder used)
 - low motion: a scene longer than 6s with nothing animating
+- a word from `lint.avoid` in the copy, or on screen in a screenshot (`avoided-word`)
+- a spotlit region, or the camera's zoom target, cut off by the frame or its device screen (`spotlight-cut`, `camera-target-cut`)
 
 ---
 
@@ -1184,7 +1177,8 @@ Name the three biggest problems, fix them, and look again. Stop when you'd ship 
 Start from the pattern that matches the brief, then adapt it. Use the real features below rather than imitating them: don't scale a whole scene to fake a zoom, draw boxes to fake a highlight, or make one scene per app screen.
 
 **App or website demo from a screenshot** (full example: §13.3)
-- `browser` (or `phone`) with `content` = the screenshot asset; declare `hotspots` on the asset (`{ "text": "Export PDF" }` finds the words for you).
+- `browser` (or `phone`) with `content` = the screenshot asset; declare `hotspots` on the asset (`{ "text": "Export PDF" }` finds the words for you). Start with `read_image_text` on each screenshot: it lists every line of text with its box, so you know what's on it and where.
+- To show part of a tall screenshot, use an `image` with `crop` inside the device's screen, or `scroll`.
 - Put the device in a `group` and zoom with a `camera` behavior on that group: `"focus": "app#export"`.
 - Click with an `interaction` (`"click": "app#export"`); show the result with a `toast` in the device's `overlay`, changed by a `state` item.
 - Highlight regions with `focusCycle` on hotspots (`"targets": ["app#outstanding", "app#paid"]`): a spotlight moves between them and dims the rest of the screenshot. For a custom mark, pin an overlay shape to a hotspot (`"pin": { "to": "app#card" }`).

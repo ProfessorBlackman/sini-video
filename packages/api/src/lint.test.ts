@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { compile } from "@sini/core";
-import { glyphRules, layoutRules, timelineRules } from "./lint.js";
+import { validate } from "@sini/schema";
+import { avoidCopyRules, glyphRules, layoutRules, timelineRules } from "./lint.js";
 
 const make = (scenes: unknown[], video: Record<string, unknown> = {}) =>
   compile({ version: "0.4", video: { format: "9:16", ...video }, theme: { motion: "editorial" }, scenes } as never);
@@ -216,5 +217,26 @@ describe("device flow rules", () => {
     ] };
     const issues = await motionRules(plan, { layout: async () => report });
     expect(issues.map((i) => i.code)).toContain("empty-screen");
+  });
+});
+
+describe("words to avoid", () => {
+  it("find avoided words and phrases in text, labels and state changes, as whole words", () => {
+    const plan = make([{ id: "s", duration: 4, elements: [
+      { id: "h", type: "text", content: "Is your medicine *safe*?", states: { later: { content: "Verified   safe by us" } } },
+      { id: "ok", type: "text", content: "Safety first, unsafe never" },
+      { id: "b", type: "button", label: "Genuine check" },
+    ], timeline: [{ target: "h", state: "later", at: 2 }] }]);
+    const hits = avoidCopyRules(plan, ["safe", "verified safe", "genuine"]).map((i) => `${i.path}:${i.message.match(/says "([^"]+)"/)![1]}`);
+    expect(hits).toEqual(expect.arrayContaining(["h:safe", "h:Verified   safe", "b:Genuine"]));
+    expect(hits.some((h) => h.startsWith("ok:"))).toBe(false);
+  });
+  it("validate lint.avoid and image crop", () => {
+    const base = (extra: Record<string, unknown>, el: Record<string, unknown> = {}) => validate({ version: "0.4", video: { format: "1:1" }, assets: { a: "a.png" }, ...extra,
+      scenes: [{ id: "s", duration: 1, elements: [{ id: "i", type: "image", asset: "a", ...el }] }] } as never);
+    expect(base({ lint: { avoid: ["safe", "verified safe"] } }).ok).toBe(true);
+    expect(base({ lint: { avoid: "safe" } }).issues.map((i) => i.code)).toContain("bad-lint");
+    expect(base({}, { crop: [0, 270, 390, 790] }).ok).toBe(true);
+    expect(base({}, { crop: [0, 270, 0, 790] }).issues.map((i) => i.code)).toContain("bad-crop");
   });
 });

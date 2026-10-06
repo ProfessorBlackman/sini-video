@@ -51,7 +51,7 @@ const DEVICE_KEYS = ["content", "children", "screens", "screen", "overlay", "bac
 
 export const TYPE_KEYS: Record<ElementType, readonly string[]> = {
   text: ["content", "role", "fit", "maxLines"],
-  image: ["asset", "fit", "focus"],
+  image: ["asset", "fit", "focus", "crop"],
   shape: ["shape"],
   path: ["d", "points", "smooth", "closed", "viewBox"],
   connector: ["from", "to", "curve", "arrow"],

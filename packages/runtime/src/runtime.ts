@@ -19,6 +19,8 @@ declare global {
       layout(t: number): LayoutReport;
       /** Several layouts in one call (no frames are produced between them). */
       layouts(ts: number[]): LayoutReport[];
+      /** Where hotspots or image regions are on screen at each time (see regions()). */
+      regions(ts: number[], queries: RegionQuery[]): RegionHit[][];
       setScale(f: number): void;
     };
   }
@@ -235,9 +237,11 @@ function placeholderGradient(c: string, fx: number, fy: number): string {
   return `radial-gradient(ellipse at ${fx}% ${fy}%, ${stops.join(", ")})`;
 }
 
-function picture(src: { kind: "file"; src: string } | { kind: "placeholder"; color: string; seed: number }, fit: string, focus: number[] = [50, 50]): HTMLElement {
+function picture(src: { kind: "file"; src: string } | { kind: "placeholder"; color: string; seed: number }, fit: string, focus: number[] = [50, 50], crop?: number[]): HTMLElement {
   if (src.kind === "file") {
     const img = h("img", "pic", { width: "100%", height: "100%", objectFit: fit, objectPosition: `${focus[0]}% ${focus[1]}%`, display: "block" });
+    // Only this region of the image exists for fit and focus (image pixels).
+    if (crop) img.style.setProperty("object-view-box", `xywh(${crop[0]}px ${crop[1]}px ${crop[2]}px ${crop[3]}px)`);
     img.src = `file://${encodeURI(src.src)}`;
     img.decoding = "sync";
     return img;
@@ -499,7 +503,7 @@ function build(el: PlanElement, flow: boolean, sceneId: string): HTMLElement {
       const f = h("div", "frame", { width: "100%", height: "100%", overflow: "hidden", position: "relative" });
       paintBox(f, el);
       const inner = h("div", "inner", { width: "100%", height: "100%" });
-      inner.appendChild(picture(el.props.image as never, String(el.props.fit), el.props.focus as number[]));
+      inner.appendChild(picture(el.props.image as never, String(el.props.fit), el.props.focus as number[], el.props.crop as number[] | undefined));
       f.appendChild(inner);
       anim.appendChild(f);
       Object.assign(anim.style, { width: "100%", height: "100%" });
@@ -1066,7 +1070,7 @@ function buildMatchClones() {
     const from = nodes.get(tr.matchFrom);
     if (!from || from.el.type !== "image") continue;
     const clone = h("div", "match-clone", { position: "absolute", overflow: "hidden", zIndex: "790", display: "none", pointerEvents: "none" });
-    clone.appendChild(picture(from.el.props.image as never, "cover", from.el.props.focus as number[]));
+    clone.appendChild(picture(from.el.props.image as never, "cover", from.el.props.focus as number[], from.el.props.crop as number[] | undefined));
     sceneEls.get(s.id)!.appendChild(clone);
     matchClones.set(s.id, clone);
   }
@@ -2308,18 +2312,27 @@ function spotRect(n: Node, hs: string): DOMRect | undefined {
   const img = (n.screen ?? n.box ?? n.anim).querySelector?.("img") as HTMLImageElement | null;
   if (!img || !img.naturalWidth) return undefined;
   const r = img.getBoundingClientRect();
+  return imageRect(n, img, spot);
+}
+
+/** Where a region of an image ([x, y, w, h] in its own pixels) is drawn right now (viewport coordinates). */
+function imageRect(n: Node, img: HTMLImageElement, region: number[]): DOMRect {
+  const r = img.getBoundingClientRect();
   const fit = String(n.el.props.fit ?? (n.screen ? "width" : "cover"));
+  // A crop makes that region the whole image.
+  const crop = n.screen ? undefined : (n.el.props.crop as number[] | undefined);
+  const [cx, cy, nw, nh] = crop ?? [0, 0, img.naturalWidth, img.naturalHeight];
   let sc: number;
   let ox = 0;
   let oy = 0;
-  if (fit === "width") sc = r.width / img.naturalWidth;
+  if (fit === "width") sc = r.width / nw!;
   else {
-    sc = fit === "contain" ? Math.min(r.width / img.naturalWidth, r.height / img.naturalHeight) : Math.max(r.width / img.naturalWidth, r.height / img.naturalHeight);
+    sc = fit === "contain" ? Math.min(r.width / nw!, r.height / nh!) : Math.max(r.width / nw!, r.height / nh!);
     const focus = (n.el.props.focus as number[] | undefined) ?? [50, 50];
-    ox = ((r.width - img.naturalWidth * sc) * focus[0]!) / 100;
-    oy = ((r.height - img.naturalHeight * sc) * focus[1]!) / 100;
+    ox = ((r.width - nw! * sc) * focus[0]!) / 100;
+    oy = ((r.height - nh! * sc) * focus[1]!) / 100;
   }
-  return new DOMRect(r.left + ox + spot[0]! * sc, r.top + oy + spot[1]! * sc, spot[2]! * sc, spot[3]! * sc);
+  return new DOMRect(r.left + ox + (region[0]! - cx!) * sc, r.top + oy + (region[1]! - cy!) * sc, region[2]! * sc, region[3]! * sc);
 }
 
 const SHAPED = new Set(["button", "badge", "icon", "toast"]);
@@ -2555,11 +2568,80 @@ function decodeImages(): Promise<unknown> {
   return Promise.all([...document.images].map((i) => i.decode().catch(() => undefined)));
 }
 
+/** What part of a viewport rect is really on screen: inside the stage and every clipping container. */
+function shownPart(from: Element, r: DOMRect): { rect: DOMRect; fraction: number; opacity: number } {
+  let x0 = r.left;
+  let y0 = r.top;
+  let x1 = r.right;
+  let y1 = r.bottom;
+  let opacity = 1;
+  const clipTo = (c: DOMRect) => {
+    x0 = Math.max(x0, c.left);
+    y0 = Math.max(y0, c.top);
+    x1 = Math.min(x1, c.right);
+    y1 = Math.min(y1, c.bottom);
+  };
+  for (let e: Element | null = from; e && e !== stage; e = e.parentElement) {
+    const cs = getComputedStyle(e);
+    opacity *= Number(cs.opacity);
+    if (e !== from && cs.overflow !== "visible") clipTo(e.getBoundingClientRect());
+  }
+  if (getComputedStyle(from).visibility === "hidden") opacity = 0;
+  clipTo(stage.getBoundingClientRect());
+  const area = r.width * r.height;
+  const shown = Math.max(0, x1 - x0) * Math.max(0, y1 - y0);
+  return { rect: r, fraction: area > 0 ? shown / area : 0, opacity };
+}
+
+const pct = (x: number) => Math.round(x * 100) / 100;
+export interface RegionQuery { target?: string; src?: string; rect?: number[] }
+export interface RegionHit { query: number; ref: string; box: { x: number; y: number; width: number; height: number }; fraction: number; opacity: number }
+
+/**
+ * Where regions are drawn at t, in canvas pixels, how much of each is inside the frame and its clipping
+ * containers (a phone screen, a cropped image), and its opacity. A query is a hotspot target ("app#export"),
+ * or a rect in an image file's own pixels ({ src, rect }), reported for every element showing that file.
+ */
+function regions(t: number, queries: RegionQuery[]): RegionHit[] {
+  render(t);
+  const st = stage.getBoundingClientRect();
+  const box = (r: DOMRect) => ({ x: round((r.left - st.left) / scale), y: round((r.top - st.top) / scale), width: round(r.width / scale), height: round(r.height / scale) });
+  const out: RegionHit[] = [];
+  queries.forEach((q, i) => {
+    if (q.target) {
+      const [ref, hs] = q.target.split("#") as [string, string | undefined];
+      const n = nodes.get(ref);
+      const r = n && (hs ? spotRect(n, hs) : visualRect(n));
+      if (!n || !r) return;
+      const img = (n.screen ?? n.box ?? n.anim).querySelector?.("img") ?? n.anim;
+      const s = shownPart(hs ? img : n.anim, r);
+      out.push({ query: i, ref: q.target, box: box(r), fraction: pct(s.fraction), opacity: pct(s.opacity) });
+    } else if (q.src && q.rect) {
+      for (const img of document.images) {
+        if (decodeURI(img.src) !== `file://${q.src}` || !img.naturalWidth) continue;
+        const owner = img.closest<HTMLElement>(".el");
+        const n = owner ? nodes.get(owner.dataset.ref ?? "") : undefined;
+        if (!n) continue;
+        // In a device the screenshot is a page shown at the screen's width; as an image element it has fit, focus and crop.
+        const r = n.el.type === "image" ? imageRect(n, img, q.rect) : (() => {
+          const b = img.getBoundingClientRect();
+          const sc = b.width / img.naturalWidth;
+          return new DOMRect(b.left + q.rect![0]! * sc, b.top + q.rect![1]! * sc, q.rect![2]! * sc, q.rect![3]! * sc);
+        })();
+        const s = shownPart(img, r);
+        if (s.fraction > 0 && s.opacity > 0.01) out.push({ query: i, ref: n.el.ref, box: box(r), fraction: pct(s.fraction), opacity: pct(s.opacity) });
+      }
+    }
+  });
+  return out;
+}
+
 window.sini = {
   ready: boot(),
   render,
   layout,
   layouts: (ts: number[]) => ts.map(layout),
+  regions: (ts: number[], queries: RegionQuery[]) => ts.map((t) => regions(t, queries)),
   setScale(f: number) {
     scale = f;
     stage.style.transform = f === 1 ? "" : `scale(${f})`;

@@ -56,6 +56,11 @@ export interface LayoutBox {
   overflow?: boolean;
   shrink?: number;
 }
+/** A hotspot target ("app#export"), or a rect in an image file's own pixels (src is the absolute path). */
+export interface RegionQuery { target?: string; src?: string; rect?: number[] }
+/** One place a queried region is drawn: canvas box, the part inside the frame and clipping containers, opacity. */
+export interface RegionHit { query: number; ref: string; box: { x: number; y: number; width: number; height: number }; fraction: number; opacity: number }
+
 export interface LayoutReport {
   time: number;
   width: number;
@@ -137,6 +142,10 @@ export class RenderSession {
    * Layouts at many times in one page call. Between separate calls the browser produces a frame, which for
    * heavy scenes costs far more than measuring; in one call it produces none.
    */
+  /** Where hotspot targets ("app#export") or regions of image files ({ src, rect }) are on screen at each time. */
+  async regions(ts: number[], queries: RegionQuery[]): Promise<RegionHit[][]> {
+    return JSON.parse(await this.page.evaluate(([times, q]) => JSON.stringify(window.sini.regions(times as number[], q as unknown[])), [ts, queries] as const)) as RegionHit[][];
+  }
   async layouts(ts: number[]): Promise<LayoutReport[]> {
     return JSON.parse(await this.page.evaluate((times) => JSON.stringify(window.sini.layouts(times)), ts)) as LayoutReport[];
   }
@@ -150,6 +159,6 @@ export class RenderSession {
 
 declare global {
   interface Window {
-    sini: { ready: Promise<void>; render(t: number): void; layout(t: number): unknown; layouts(ts: number[]): unknown[]; setScale(f: number): void };
+    sini: { ready: Promise<void>; render(t: number): void; layout(t: number): unknown; layouts(ts: number[]): unknown[]; regions(ts: number[], q: unknown[]): unknown[]; setScale(f: number): void };
   }
 }
