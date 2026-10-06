@@ -6,6 +6,9 @@ Images: `ghcr.io/professorblackman/sini:<version>` for linux/amd64 and linux/arm
 
 ## [Unreleased]
 
+### Fixed
+- The `zoom` transition scaled whole scenes, so the incoming scene's edges showed as a hard rectangle; it now zooms the content while backgrounds crossfade full-frame.
+
 ### Added
 - **`connector` element**: a line between two elements (or screenshot regions) that follows them every frame, from edge to edge, with `curve`, arrowheads, dashes and `drawOutline`; hidden while an end is hidden.
 - **`particles` element**: a seeded field of glowing dots that drift, rise, fall or twinkle; deterministic.

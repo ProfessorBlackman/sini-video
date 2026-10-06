@@ -396,6 +396,24 @@ describe("text ink", () => {
   }, 60_000);
 });
 
+describe("zoom transition", () => {
+  it("scales the scenes' content, never their backgrounds (a scaled background shows its edges)", async () => {
+    const p = compile({ version: "0.4", video: { format: "1:1" }, scenes: [
+      { id: "a", duration: 1, background: "#000000", elements: [] },
+      { id: "b", duration: 1, background: "#ffffff", transition: { type: "zoom", duration: 0.6 }, elements: [{ id: "t", type: "text", content: "Hi", enter: "none" }] },
+    ] } as never);
+    const s = await RenderSession.open(p, { browser });
+    try {
+      await s.render(1.3);
+      const r = await s.page.evaluate(() => [...document.querySelectorAll<HTMLElement>("section.scene")].map((sec) => ({ sec: sec.style.transform, layer: (sec.querySelector(":scope > .layer") as HTMLElement).style.transform })));
+      expect(r.every((x) => x.sec === "")).toBe(true);
+      expect(r.some((x) => x.layer.startsWith("scale("))).toBe(true);
+    } finally {
+      await s.close();
+    }
+  }, 60_000);
+});
+
 describe("connectors", () => {
   it("run between the edges of their ends, follow them, and hide while an end is hidden", async () => {
     const p = compile({ version: "0.4", video: { format: "1:1" }, scenes: [{ id: "s", duration: 3, elements: [

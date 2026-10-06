@@ -2036,6 +2036,9 @@ function applyScenes(fr: Frame) {
     sec.style.clipPath = "";
     sec.style.opacity = "1";
     sec.style.transform = "";
+    // Zoom transitions scale the scene's content, never its background (a scaled background shows its edges).
+    const content = sec.querySelector<HTMLElement>(":scope > .layer");
+    if (content) content.style.transform = "";
     if (!sf.visible) continue;
     const inc = sf.incoming;
     if (inc) {
@@ -2052,7 +2055,7 @@ function applyScenes(fr: Frame) {
         sec.style.clipPath = `circle(${px(r)} at ${px(ox)} ${px(oy)})`;
       } else if (tr.type === "zoom") {
         const s0 = tr.direction === "out" ? 1.25 : 0.8;
-        sec.style.transform = `scale(${s0 + (1 - s0) * p})`;
+        if (content) content.style.transform = `scale(${s0 + (1 - s0) * p})`;
         sec.style.opacity = String(p);
       }
     }
@@ -2063,7 +2066,7 @@ function applyScenes(fr: Frame) {
         const [dx, dy] = slideVec(tr.from);
         sec.style.transform = `translate(${px(-dx * out.p * W)}, ${px(-dy * out.p * H)})`;
       } else if (tr.type === "zoom") {
-        sec.style.transform = `scale(${1 + (tr.direction === "out" ? -0.15 : 0.35) * out.p})`;
+        if (content) content.style.transform = `scale(${1 + (tr.direction === "out" ? -0.15 : 0.35) * out.p})`;
       }
     }
   }
