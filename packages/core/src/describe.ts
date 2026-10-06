@@ -1,6 +1,7 @@
 /** describe_at: what is on screen and what is moving at a given time. */
 import { frameAt, isVisible, planElements } from "./evaluate.js";
-import type { Plan } from "./plan.js";
+import type { ElementFrame } from "./evaluate.js";
+import type { Plan, PlanElement } from "./plan.js";
 
 export interface Description {
   time: number;
@@ -33,12 +34,27 @@ export function describeAt(plan: Plan, t: number): Description {
       scene: el.sceneId,
       visible,
       ...(typeof op === "number" && op < 1 ? { opacity: round(op) } : {}),
-      ...(el.text ? { text: shorten(el.text.plain.replace(/\n/g, " / ")) } : {}),
+      ...(currentText(el, frame.elements[ref]) !== undefined ? { text: shorten(currentText(el, frame.elements[ref])!.replace(/\n/g, " / ")) } : {}),
       ...(highlighted ? { highlighted: true } : {}),
       animating,
     });
   }
   return { time: t, scenes, elements };
+}
+
+/** The words on screen now: typed text, state changes (mid-roll as "old → new"), toast title and body. */
+function currentText(el: PlanElement, f: ElementFrame | undefined): string | undefined {
+  const roll = (r: { from: string; to: string; p: number } | undefined, base: string) =>
+    !r ? base : r.p >= 1 ? r.to : r.p <= 0 ? r.from : `${r.from} → ${r.to}`;
+  if (f?.typed) return f.typed.text;
+  if (el.type === "toast") {
+    const title = roll(f?.contents?.title, String(el.props.title ?? ""));
+    const body = roll(f?.contents?.body, String(el.props.body ?? ""));
+    return [title, body].filter(Boolean).join(" / ") || undefined;
+  }
+  const base = el.text?.plain ?? (typeof el.props.label === "string" ? el.props.label : undefined);
+  if (base === undefined) return undefined;
+  return roll(f?.content ?? f?.contents?.content ?? f?.contents?.label, base);
 }
 
 const round = (x: number) => Math.round(x * 100) / 100;

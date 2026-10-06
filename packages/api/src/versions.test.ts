@@ -105,3 +105,13 @@ describe("icons inside components", () => {
     expect(bad.issues[0]).toMatchObject({ path: "scenes[0].elements[0].with", code: "unknown-icon", suggestion: "Did you mean 'bike'?" });
   });
 });
+
+describe("patch paths by position", () => {
+  it("warn when an index reaches an item that has an id", () => {
+    const d = tmp();
+    initProject(d);
+    const r = patchProject(d, [{ op: "set", path: "intro.elements[0].style.size", value: 120 }]);
+    expect(r.issues[0]).toMatchObject({ code: "index-path", suggestion: "Use 'headline.style.size' instead." });
+    expect(patchProject(d, [{ op: "set", path: "headline.style.size", value: 130 }]).issues.filter((i) => i.code === "index-path")).toEqual([]);
+  });
+});

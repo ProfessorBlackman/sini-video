@@ -325,6 +325,29 @@ describe("fixes from the MCP test", () => {
   }, 60_000);
 });
 
+describe("fixes from the re-test round", () => {
+  it("paints shapes with gradient fills (SVG can't use CSS gradients)", async () => {
+    const p = compile({ version: "0.4", video: { format: "1:1" }, scenes: [{ id: "s", duration: 1, elements: [
+      { id: "g", type: "shape", shape: "rect", style: { fill: { linear: ["#ff0000", "#0000ff"], angle: 90 } }, layout: { anchor: "center", width: 400, height: 200 } },
+    ] }] } as never);
+    const s = await RenderSession.open(p, { browser });
+    try {
+      await s.render(0.5);
+      const r = await s.page.evaluate(() => {
+        const geo = document.querySelector("svg rect")!;
+        const ref = geo.getAttribute("fill")!;
+        const grad = document.querySelector(ref.slice(4, -1))!;
+        return { ref, tag: grad.tagName, stops: [...grad.querySelectorAll("stop")].map((x) => x.getAttribute("stop-color")) };
+      });
+      expect(r.ref).toMatch(/^url\(#sini-grad-\d+\)$/);
+      expect(r.tag).toBe("linearGradient");
+      expect(r.stops).toHaveLength(2);
+    } finally {
+      await s.close();
+    }
+  }, 60_000);
+});
+
 describe("svg and template", () => {
   it("sanitises SVG files", async () => {
     const { sanitizeSvg } = await import("./index.js");

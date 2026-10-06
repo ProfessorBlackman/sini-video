@@ -102,6 +102,41 @@ export function findText(words: Word[], text: string): Rect | null {
   return best?.rect ?? null;
 }
 
+type Tile = { left: number; top: number; width: number; height: number };
+
+/** Half-width, half-height tiles at quarter steps, so every label sits whole inside at least one. */
+export function tiles(width: number, height: number): Tile[] {
+  const tw = Math.min(width, Math.max(320, Math.round(width / 2)));
+  const th = Math.min(height, Math.max(200, Math.round(height / 2)));
+  const out: Tile[] = [];
+  const steps = (total: number, size: number) => {
+    const xs: number[] = [];
+    for (let v = 0; v + size < total; v += Math.round(size / 2)) xs.push(v);
+    xs.push(Math.max(0, total - size));
+    return [...new Set(xs)];
+  };
+  for (const top of steps(height, th)) for (const left of steps(width, tw)) out.push({ left, top, width: tw, height: th });
+  return out;
+}
+
+/** Pixel size of a PNG or JPEG, read from its header (no image library). */
+export function imageSize(file: string): { width: number; height: number } | null {
+  const b = readFileSync(file);
+  if (b.length > 24 && b.readUInt32BE(0) === 0x89504e47) return { width: b.readUInt32BE(16), height: b.readUInt32BE(20) };
+  if (b.length > 4 && b[0] === 0xff && b[1] === 0xd8) {
+    let i = 2;
+    while (i + 9 < b.length) {
+      if (b[i] !== 0xff) return null;
+      const marker = b[i + 1]!;
+      const len = b.readUInt16BE(i + 2);
+      // SOF0–SOF15, except DHT (C4), JPG (C8) and DAC (CC), carry the frame size.
+      if (marker >= 0xc0 && marker <= 0xcf && ![0xc4, 0xc8, 0xcc].includes(marker)) return { width: b.readUInt16BE(i + 7), height: b.readUInt16BE(i + 5) };
+      i += 2 + len;
+    }
+  }
+  return null;
+}
+
 /** Locate every uncached text hotspot of a project with OCR. Returns the ones it couldn't find. */
 export async function resolveTextHotspots(target: string): Promise<{ resolved: number; missing: string[] }> {
   const { spec, dir } = load(target);
@@ -123,15 +158,40 @@ export async function resolveTextHotspots(target: string): Promise<{ resolved: n
       return { resolved: spots.length - todo.length - missing.length, missing: [...missing, ...todo.map((s) => `${s.asset}#${s.name}: OCR failed (${(e as Error).message})`)] };
     }
     try {
-      const byFile = new Map<string, Word[]>();
-      for (const s of todo) {
-        if (!byFile.has(s.file)) {
-          const { data: page } = await worker.recognize(s.file, {}, { blocks: true });
-          const words: Word[] = [];
-          for (const b of page.blocks ?? []) for (const p of b.paragraphs) for (const l of p.lines) for (const w of l.words) words.push({ text: w.text, bbox: w.bbox });
-          byFile.set(s.file, words);
+      // Word lists per file: the whole page first; tiles are read only if some text isn't found there.
+      const whole = new Map<string, Word[][]>();
+      const tiled = new Map<string, Word[][]>();
+      const read = async (file: string, rectangle?: Tile): Promise<Word[]> => {
+        const { data: page } = await worker.recognize(file, rectangle ? { rectangle } : {}, { blocks: true });
+        const words: Word[] = [];
+        for (const b of page.blocks ?? []) for (const p of b.paragraphs) for (const l of p.lines) for (const w of l.words) words.push({ text: w.text, bbox: w.bbox });
+        return words;
+      };
+      const search = (lists: Word[][], text: string) => {
+        for (const l of lists) {
+          const r = findText(l, text);
+          if (r) return r;
         }
-        const r = findText(byFile.get(s.file)!, s.text);
+        return null;
+      };
+      for (const s of todo) {
+        if (!whole.has(s.file)) whole.set(s.file, [await read(s.file)]);
+        let r = search(whole.get(s.file)!, s.text);
+        if (!r) {
+          // Whole-page layout analysis drops small isolated labels (buttons, tabs, badges).
+          // Sparse-text mode over overlapping tiles finds them.
+          if (!tiled.has(s.file)) {
+            const lists: Word[][] = [];
+            const size = imageSize(s.file);
+            if (size) {
+              await worker.setParameters({ tessedit_pageseg_mode: "11" as never });
+              for (const t of tiles(size.width, size.height)) lists.push(await read(s.file, t));
+              await worker.setParameters({ tessedit_pageseg_mode: "3" as never });
+            }
+            tiled.set(s.file, lists);
+          }
+          r = search(tiled.get(s.file)!, s.text);
+        }
         cache[keyOf(s)] = r;
         if (!r) missing.push(`${s.asset}#${s.name}`);
       }

@@ -268,12 +268,34 @@ export function applyOps(spec: Spec, ops: PatchOp[]): Spec {
   return s;
 }
 
+/** Paths that reach an item with an id by position ("intro.elements[2].style"): positions shift, ids don't. */
+function indexPathNotes(spec: Spec, ops: PatchOp[]): Issue[] {
+  const notes: Issue[] = [];
+  ops.forEach((op, i) => {
+    const path = "path" in op && typeof op.path === "string" ? op.path : undefined;
+    if (!path) return;
+    const parts = path.replace(/\[(\d+)\]/g, ".$1").split(".").filter(Boolean);
+    let obj: J = ROOT_KEYS.has(parts[0]!) ? spec : findById(spec, parts[0]!)?.obj;
+    const rest = ROOT_KEYS.has(parts[0]!) ? parts : parts.slice(1);
+    for (let k = 0; k < rest.length && obj && typeof obj === "object"; k++) {
+      obj = Array.isArray(obj) ? obj[Number(rest[k])] : obj[rest[k]!];
+      if (/^\d+$/.test(rest[k]!) && obj && typeof obj === "object" && typeof obj.id === "string") {
+        const tail = rest.slice(k + 1).join(".");
+        notes.push({ level: "warning", path: `patch[${i}]`, code: "index-path", message: `'${path}' reaches '${obj.id}' by position; positions shift when items are added or removed.`, suggestion: `Use '${obj.id}${tail ? `.${tail}` : ""}' instead.` });
+        break;
+      }
+    }
+  });
+  return notes;
+}
+
 /** Apply a patch to the project; validates and saves a new version. Nothing is saved if the result is invalid. */
 export function patchProject(target: string, ops: PatchOp[], message?: string): { version: VersionInfo; issues: Issue[] } {
   const { dir, spec } = load(target);
   if (!Array.isArray(ops)) throw new SiniError("A patch is a list of operations.");
+  const notes = indexPathNotes(spec, ops);
   const next = applyOps(spec, ops);
   const v = validateFull(next, dir);
   if (!v.ok) throw new SiniError("The patched spec has errors; nothing was saved.", v.issues);
-  return { version: saveVersion(dir, next, message ?? `patch (${ops.map((o) => o.op).join(", ")})`), issues: v.issues };
+  return { version: saveVersion(dir, next, message ?? `patch (${ops.map((o) => o.op).join(", ")})`), issues: [...notes, ...v.issues] };
 }

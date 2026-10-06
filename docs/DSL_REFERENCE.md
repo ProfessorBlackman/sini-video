@@ -97,7 +97,7 @@ The theme makes a video coherent. Set it once; elements inherit from it.
 
 Anywhere a colour is accepted you can use:
 - a palette token: `"wine"`
-- a token with opacity (0–1): `"bone/0.6"`. `"ink/0"` is fully transparent
+- a token or hex value with opacity (0–1): `"bone/0.6"`, `"#2A1208/0.6"`. `"ink/0"` is fully transparent
 - `"none"` or `"transparent"`, e.g. an outline-only shape: `"style": { "fill": "none", "stroke": "gold" }`
 - a hex value: `"#5B1A24"` or `"#5B1A2499"`
 - a linear gradient: `{ "linear": ["wine", "ink"], "angle": 180 }`. `angle` follows CSS: `180` = top to bottom (default), `90` = left to right. Two or more stops, spread evenly

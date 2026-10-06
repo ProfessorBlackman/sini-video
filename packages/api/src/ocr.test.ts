@@ -15,3 +15,15 @@ describe("finding text hotspots in OCR words", () => {
     expect(findText(words, "Download CSV")).toBeNull();
   });
 });
+
+describe("OCR tiles", () => {
+  it("cover the image with overlapping half-size tiles", async () => {
+    const { tiles } = await import("./ocr.js");
+    const t = tiles(1440, 900);
+    expect(t.every((r) => r.left >= 0 && r.top >= 0 && r.left + r.width <= 1440 && r.top + r.height <= 900)).toBe(true);
+    // A small label anywhere (here a 140×40 button in the top-right corner) sits whole inside some tile.
+    const inside = (x: number, y: number, w: number, h: number) => t.some((r) => x >= r.left && y >= r.top && x + w <= r.left + r.width && y + h <= r.top + r.height);
+    expect(inside(1290, 10, 140, 40)).toBe(true);
+    expect(inside(700, 430, 140, 40)).toBe(true);
+  });
+});

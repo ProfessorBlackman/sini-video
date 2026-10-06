@@ -161,6 +161,60 @@ function shade(css: string, amt: number): string {
   return `rgb(${f(m[1]!)}, ${f(m[2]!)}, ${f(m[3]!)})`;
 }
 
+/** Split on commas that aren't inside parentheses (colours like rgba(1, 2, 3, 0.5) contain commas). */
+function topLevelParts(s: string): string[] {
+  const out: string[] = [];
+  let depth = 0;
+  let cur = "";
+  for (const ch of s) {
+    if (ch === "(") depth++;
+    if (ch === ")") depth--;
+    if (ch === "," && depth === 0) {
+      out.push(cur.trim());
+      cur = "";
+    } else cur += ch;
+  }
+  if (cur.trim()) out.push(cur.trim());
+  return out;
+}
+
+let gradientId = 0;
+/** SVG can't paint with CSS gradients: turn `linear-gradient(…)` / `radial-gradient(…)` into a <defs> gradient. */
+function svgPaint(svg: SVGSVGElement, css: string): string {
+  const m = /^(linear|radial)-gradient\((.*)\)$/s.exec(css.trim());
+  if (!m) return css;
+  const parts = topLevelParts(m[2]!);
+  const kind = m[1]!;
+  let angle = 180;
+  if (kind === "linear" && /deg$/.test(parts[0] ?? "")) angle = parseFloat(parts.shift()!);
+  if (kind === "radial" && /^(circle|ellipse)|^at /.test(parts[0] ?? "")) parts.shift();
+  const id = `sini-grad-${++gradientId}`;
+  const g = document.createElementNS(SVGNS, kind === "linear" ? "linearGradient" : "radialGradient");
+  g.setAttribute("id", id);
+  if (kind === "linear") {
+    // CSS angles: 0deg points up, clockwise.
+    const a = (angle * Math.PI) / 180;
+    const [dx, dy] = [Math.sin(a) / 2, -Math.cos(a) / 2];
+    for (const [k, v] of [["x1", 0.5 - dx], ["y1", 0.5 - dy], ["x2", 0.5 + dx], ["y2", 0.5 + dy]] as const) g.setAttribute(k, String(v));
+  } else {
+    // CSS "ellipse at center" reaches the farthest corner.
+    for (const [k, v] of [["cx", "0.5"], ["cy", "0.5"], ["r", "0.7071"]]) g.setAttribute(k!, v!);
+  }
+  parts.forEach((c, i) => {
+    const stop = document.createElementNS(SVGNS, "stop");
+    stop.setAttribute("offset", String(parts.length > 1 ? i / (parts.length - 1) : 0));
+    stop.setAttribute("stop-color", c);
+    g.appendChild(stop);
+  });
+  let defs = svg.querySelector("defs");
+  if (!defs) {
+    defs = document.createElementNS(SVGNS, "defs");
+    svg.prepend(defs);
+  }
+  defs.appendChild(g);
+  return `url(#${id})`;
+}
+
 /** Light centre to dark edge along a cosine curve: three linear stops left a visible crease at the middle one. */
 function placeholderGradient(c: string, fx: number, fy: number): string {
   const stops: string[] = [];
@@ -460,9 +514,9 @@ function build(el: PlanElement, flow: boolean, sceneId: string): HTMLElement {
       } else {
         for (const [a, v] of [["x", px(sw / 2)], ["y", px(sw / 2)], ["width", `calc(100% - ${sw}px)`], ["height", `calc(100% - ${sw}px)`]]) geo.style.setProperty(a!, v!);
       }
-      geo.setAttribute("fill", el.style.fill ?? "none");
+      geo.setAttribute("fill", svgPaint(svg, el.style.fill ?? "none"));
       if (el.style.stroke) {
-        geo.setAttribute("stroke", el.style.stroke);
+        geo.setAttribute("stroke", svgPaint(svg, el.style.stroke));
         geo.setAttribute("stroke-width", String(sw));
         geo.setAttribute("stroke-linecap", "round");
       }

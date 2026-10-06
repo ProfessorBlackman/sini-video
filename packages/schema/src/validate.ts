@@ -130,7 +130,7 @@ class Validator {
     }
     if (HEX.test(v) || /\{\{/.test(v) || v === "none" || v === "transparent") return;
     const [tok, alpha] = v.split("/");
-    if (!this.palette.has(tok!)) {
+    if (!this.palette.has(tok!) && !HEX.test(tok!)) {
       this.err(path, "unknown-colour", `Colour '${v}' is not hex or a palette token.`, didYouMean(tok, this.palette));
     }
     if (alpha !== undefined) {

@@ -339,3 +339,14 @@ describe("targetDuration warnings", () => {
     expect(w.message).toMatch(/short [\d.]+s \(auto, at its limit\)/);
   });
 });
+
+describe("describeAt text", () => {
+  it("reports the words on screen now, not the original content", () => {
+    const p = compile({ version: "0.4", video: { format: "1:1" }, scenes: [{ id: "s", duration: 3, elements: [
+      { id: "t", type: "text", content: "Before", enter: "none", states: { after: { content: "After" } } },
+    ], timeline: [{ target: "t", state: "after", at: 1 }] }] } as never);
+    const text = (time: number) => describeAt(p, time).elements.find((e) => e.ref === "t")!.text;
+    expect(text(0.5)).toBe("Before");
+    expect(text(2.5)).toBe("After");
+  });
+});

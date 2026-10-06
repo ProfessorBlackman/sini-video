@@ -96,3 +96,10 @@ describe("messages from the MCP test", () => {
     expect(e.filter((i) => i.code === "misplaced-key").map((i) => i.path)).toEqual(["scenes[0].timeline[1].animate.id", "scenes[0].timeline[1].animate.duration"]);
   });
 });
+
+describe("colours from the re-test round", () => {
+  it("accepts hex colours with an opacity suffix", () => {
+    const spec = { version: "0.4", video: { format: "1:1" }, scenes: [{ id: "s", duration: 1, background: "#2A1208/0.6", elements: [] }] };
+    expect(errors(spec)).toEqual([]);
+  });
+});
