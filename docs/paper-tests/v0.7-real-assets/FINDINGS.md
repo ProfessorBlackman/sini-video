@@ -36,7 +36,7 @@ Not Sini bugs:
 
 ## 3. Open
 
-- **Brand fonts:** Plus Jakarta Sans isn't bundled; the agents substituted Manrope and noted it. Bundling a few common brand sans families (Plus Jakarta Sans, DM Sans, Poppins…) would cover most clients without a font file.
+- ~~**Brand fonts:** Plus Jakarta Sans isn't bundled; the agents substituted Manrope.~~ **Done after the round:** font assets can name any Google Fonts family (`"google": "Plus Jakarta Sans"`) or an https font file (`"url"`), downloaded once into the project's `fonts/` and pinned in `fonts.lock.json`.
 - **Cropping screenshots by pixels** (`crop: [x, y, w, h]` on images) instead of computing a `cover` `focus` percentage: both default agents did this arithmetic by hand.
 - **Seeing what's in an asset:** the agents built a throwaway "peek" scene to read screenshots and measure hotspots. A tool returning an asset's OCR'd words with boxes would replace that.
 - **Forbidden words:** a brief-level list (`"avoid": ["safe", "genuine"]`) that lint checks in the copy and, via OCR, in screenshots on screen.
