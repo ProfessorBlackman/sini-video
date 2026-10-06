@@ -10,7 +10,7 @@ Images: `ghcr.io/professorblackman/sini:<version>` for linux/amd64 and linux/arm
 - **`connector` element**: a line between two elements (or screenshot regions) that follows them every frame, from edge to edge, with `curve`, arrowheads, dashes and `drawOutline`; hidden while an end is hidden.
 - **`particles` element**: a seeded field of glowing dots that drift, rise, fall or twinkle; deterministic.
 - **Lint over time**: text is sampled every 0.5s; `too-wide-in-motion` (e.g. trackIn spreading past the frame) and `leaves-frame` (outside enters, exits, scene transitions and camera zooms).
-- `get_layout` reports `ink` for text: where the words are drawn, including letter spacing.
+- `get_layout` reports `ink` for text: where the letters are drawn (cap tops to descenders, side bearings and italic overhang, letter spacing), for aligning big type.
 - **`text-over-image` lint**: text sitting over an image, screenshot, SVG or path without a card behind it.
 - **Spotlights on screenshot regions**: `focusCycle` targets can be hotspots (`"app#export"`); a spotlight outlines each region in turn (`ring` colour) and dims the rest of the screenshot.
 

@@ -2207,6 +2207,38 @@ function drawnEl(n: Node): HTMLElement {
   return SHAPED.has(n.el.type) && n.box instanceof HTMLElement ? n.box : n.outer;
 }
 
+let inkCtx: CanvasRenderingContext2D | null = null;
+/**
+ * Where a text's glyphs are drawn: the run of words, tightened to the letters' cap tops and descenders
+ * (font metrics measured on a canvas) and widened by italic or swash overhang. Approximate for several lines:
+ * the whole text's extremes are applied to the first and last line.
+ */
+function inkRect(n: Node): DOMRect {
+  const r = visualRect(n);
+  const t = n.text!;
+  const words = (t.textContent ?? "").replace(/\s+/g, " ").trim();
+  if (!words || !r.height) return r;
+  inkCtx ??= document.createElement("canvas").getContext("2d");
+  if (!inkCtx) return r;
+  const cs = getComputedStyle(t);
+  inkCtx.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+  inkCtx.letterSpacing = cs.letterSpacing === "normal" ? "0px" : cs.letterSpacing;
+  const m = inkCtx.measureText(words);
+  const fa = m.fontBoundingBoxAscent;
+  const fd = m.fontBoundingBoxDescent;
+  // CSS px of the element → viewport px (stage scale, animation scale).
+  const f = t.offsetHeight ? t.getBoundingClientRect().height / t.offsetHeight : 1;
+  // Text runs span the font's ascent to descent (not the line height): trim to the glyphs.
+  const top = r.top + (fa - m.actualBoundingBoxAscent) * f;
+  const bottom = r.bottom - (fd - m.actualBoundingBoxDescent) * f;
+  // Side bearings: positive actualBoundingBoxLeft = ink left of the pen (italics), negative = a gap. One line only;
+  // with several lines the run's edges are kept.
+  const oneLine = r.height <= (fa + fd) * f * 1.5;
+  const left = oneLine ? r.left - m.actualBoundingBoxLeft * f : r.left;
+  const right = oneLine ? r.right + (m.actualBoundingBoxRight - m.width) * f : r.right;
+  return new DOMRect(left, top, right - left, Math.max(1, bottom - top));
+}
+
 /** What's actually drawn: the button/badge/icon shape or the text's own bounds, not a stretched layout box. */
 function visualRect(n: Node): DOMRect {
   if (SHAPED.has(n.el.type) && n.box) return n.box.getBoundingClientRect();
@@ -2302,7 +2334,7 @@ function layout(t: number): LayoutReport {
       scene: n.sceneId,
       box: staticBoxes.get(n.el.ref) ?? box(outerRect),
       current: box((SHAPED.has(n.el.type) && n.box instanceof HTMLElement ? n.box : n.anim).getBoundingClientRect()),
-      ...(n.el.type === "text" && n.text ? { ink: box(visualRect(n)) } : {}),
+      ...(n.el.type === "text" && n.text ? { ink: box(inkRect(n)) } : {}),
       visible,
       inDevice: n.el.inDevice,
       ...(n.el.text ? { text: n.el.text.plain } : {}),

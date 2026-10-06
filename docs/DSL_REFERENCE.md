@@ -900,7 +900,7 @@ Treat lint warnings as problems to fix. Keep one only when you're sure it's wron
 Use the tools instead of estimating:
 - `validate`: schema and reference errors.
 - `lint`: design problems (below).
-- `layout`: the computed box (`x`, `y`, `width`, `height`) of every element at a given time. Use it instead of computing text heights by hand.
+- `layout`: the computed box (`x`, `y`, `width`, `height`) of every element at a given time. Use it instead of computing text heights by hand. Text also reports `ink`, where its letters are drawn: the box includes the font's spacing above and below, so align big type (numbers, headlines against a rule or an image edge) by `ink`.
 - `render_contact_sheet`: one image of about 12 frames, to check the look.
 
 Errors are structured. Fix them and resubmit.

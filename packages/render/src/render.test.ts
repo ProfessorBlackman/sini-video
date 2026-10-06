@@ -376,6 +376,26 @@ describe("paths", () => {
   }, 60_000);
 });
 
+describe("text ink", () => {
+  it("reports where the letters are drawn, inside the line box", async () => {
+    const p = compile({ version: "0.4", video: { format: "1:1" }, scenes: [{ id: "s", duration: 1, elements: [
+      { id: "big", type: "text", role: "display", content: "340", enter: "none", layout: { anchor: "center" } },
+    ] }] } as never);
+    const s = await RenderSession.open(p, { browser });
+    try {
+      const e = (await s.layout(0.5)).elements.find((x) => x.ref === "big")!;
+      expect(e.ink).toBeDefined();
+      expect(e.ink!.y).toBeGreaterThan(e.box.y);
+      expect(e.ink!.y + e.ink!.height).toBeLessThan(e.box.y + e.box.height);
+      // Digits are about 0.7 of the font size tall.
+      expect(e.ink!.height / e.fontSize!).toBeGreaterThan(0.6);
+      expect(e.ink!.height / e.fontSize!).toBeLessThan(0.85);
+    } finally {
+      await s.close();
+    }
+  }, 60_000);
+});
+
 describe("connectors", () => {
   it("run between the edges of their ends, follow them, and hide while an end is hidden", async () => {
     const p = compile({ version: "0.4", video: { format: "1:1" }, scenes: [{ id: "s", duration: 3, elements: [

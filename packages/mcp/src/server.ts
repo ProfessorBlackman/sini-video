@@ -155,7 +155,7 @@ export function createServer(root = process.env.SINI_ROOT ?? process.cwd()): Mcp
 
   server.registerTool("get_layout", {
     title: "Computed layout",
-    description: "Exact boxes (canvas px) of every element at a time, with text overflow and shrink info. Use instead of estimating text sizes.",
+    description: "Exact boxes (canvas px) of every element at a time, with text overflow and shrink info. Text also has `ink`: where the letters are drawn (cap tops to descenders, overhang included); align big type by `ink`. Use instead of estimating text sizes.",
     inputSchema: { ...projectArg, time: z.number().min(0), ...filterArgs },
     annotations: readOnly,
   }, (a) => run(async () => {
