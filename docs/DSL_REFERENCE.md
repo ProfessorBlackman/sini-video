@@ -253,7 +253,7 @@ Every element accepts:
 | `rotation` | degrees, clockwise |
 | `scale`, `scaleX`, `scaleY` | 1 = natural size |
 | `origin` | Pivot for rotation and scale: an anchor name (§7.2). Default `"center"` |
-| `radius` | px. A value of half the height or more makes a pill or circle |
+| `radius` | px. A value of half the height or more makes a pill or circle. `[top-left, top-right, bottom-right, bottom-left]` rounds corners separately (tabs, speech bubbles) |
 | `fill`, `stroke` | colours (gradients work for `fill`) |
 | `strokeWidth` | px |
 | `dash` | Shapes and paths: `[dash, gap]` in px for a dashed stroke (`[2, 10]` with round ends = dotted), `[n]` for equal dash and gap |

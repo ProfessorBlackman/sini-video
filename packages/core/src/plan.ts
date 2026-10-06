@@ -88,7 +88,8 @@ export interface PlanStyle {
   scaleX: number;
   scaleY: number;
   origin: string;
-  radius?: number;
+  /** One radius, or [top-left, top-right, bottom-right, bottom-left]. */
+  radius?: number | number[];
   fill?: string;
   stroke?: string;
   strokeWidth?: number;

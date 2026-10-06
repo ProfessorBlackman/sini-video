@@ -11,6 +11,10 @@ Images: `ghcr.io/professorblackman/sini:<version>` for linux/amd64 and linux/arm
 - **`follow` behavior**: moves an element's centre along a path, optionally turning with it (`rotate`).
 - **`style.dash`**: dashed and dotted strokes on shapes and paths, drawn dash by dash with `drawOutline`.
 - Reference: a recipe for illustrated scenes without photos.
+- **Per-corner `radius`**: `[top-left, top-right, bottom-right, bottom-left]` on shapes, containers, buttons and images.
+
+### Fixed
+- Non-numeric style values (e.g. `"opacity": "half"`) passed validation and were silently ignored.
 
 ## [0.1.2] - 2026-10-06
 

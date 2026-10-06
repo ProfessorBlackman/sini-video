@@ -132,3 +132,13 @@ describe("paths, dashes and follow", () => {
     expect(codes(spec(els, [{ behavior: "follow", target: "car", path: "box", at: 0 }]))).toEqual(["follow-path"]);
   });
 });
+
+describe("numeric style values", () => {
+  it("accept numbers and a per-corner radius, and reject anything else", () => {
+    const spec = (style: unknown) => ({ version: "0.4", video: { format: "1:1" }, scenes: [{ id: "s", duration: 1, elements: [{ id: "b", type: "shape", shape: "rect", style }] }] });
+    expect(errors(spec({ radius: 12, opacity: 0.5 }))).toEqual([]);
+    expect(errors(spec({ radius: [12, 12, 0, 0] }))).toEqual([]);
+    expect(errors(spec({ radius: [12, 0] }))[0]).toMatchObject({ code: "bad-style-value", path: "scenes[0].elements[0].style.radius" });
+    expect(errors(spec({ opacity: "half" }))[0]).toMatchObject({ code: "bad-style-value" });
+  });
+});

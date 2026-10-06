@@ -638,6 +638,14 @@ class Validator {
     const sid = sc?.id;
     const st = e.style ?? {};
     this.unknownKeys(st, STYLE_KEYS, `${p}.style`);
+    // Numbers only (or a {{param}} inside a component): anything else is silently ignored when drawn.
+    for (const key of ["opacity", "rotation", "scale", "scaleX", "scaleY", "radius", "strokeWidth", "blur", "size", "weight", "lineHeight", "letterSpacing"]) {
+      const v = st[key];
+      if (v === undefined || typeof v === "number" || (typeof v === "string" && /\{\{/.test(v))) continue;
+      // Per-corner radius: [top-left, top-right, bottom-right, bottom-left].
+      if (key === "radius" && Array.isArray(v) && v.length === 4 && v.every((x: J) => typeof x === "number" && x >= 0)) continue;
+      this.err(`${p}.style.${key}`, "bad-style-value", `'${key}' must be a number${key === "radius" ? " or [top-left, top-right, bottom-right, bottom-left]" : ""}, got ${JSON.stringify(v)}.`);
+    }
     if ("dash" in st) {
       const d = st.dash;
       const ok = d === false || (Array.isArray(d) && d.length >= 1 && d.length <= 2 && d.every((v: J) => typeof v === "number" && v >= 0) && d.some((v: J) => v > 0));

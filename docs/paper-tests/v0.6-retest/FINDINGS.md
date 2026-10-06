@@ -48,3 +48,15 @@ Each folder has the final `video.json`, the agent's `log.md` and `final-sheet.pn
 - **`zoom` transition** showed a ghosted hard-edged rectangle in U2; not reproduced yet.
 - **Dissolves between very different zoom levels** show a brief double exposure (U1): inherent to crossfades.
 - R1h's title text sat over the dashboard at the start and no lint flagged it (text over an image isn't checked for readability).
+
+---
+
+## 4. Follow-up: bakery brief with paths (U2b)
+
+Same brief and prompt as U2, run on a build with `path`, `follow` and `dash` ([u2b-bakery](u2b-bakery/)).
+
+- The agent found and used the new features unprompted: 12 paths (8 smooth curves, 4 closed shapes) and a `follow`. Rolls became cinnamon swirls, steam rises as wavy curves, the icing is a drizzle drawn in behind the piping bag, the oven has a glowing coil, and two arms carry a roll into the box.
+- **My rating: 3.5** (U2: 2.5). The agent's: 3 / 4. The hands are still the weakest drawing.
+- Found: a per-corner `radius` (`[0, 0, 22, 22]`) passed validation and was silently ignored. U1 had used the same thing. **Fixed:** per-corner radius is supported on shapes, containers, buttons and images, and other non-numeric style values are now rejected.
+- Found: text placed over the tray wasn't flagged by lint (text over objects isn't checked for readability). Still open.
+- `get_layout` filters were rejected only because the test session had cached the pre-0.1.2 tool definitions; not a Sini bug.

@@ -1,0 +1,1776 @@
+{
+  "version": "0.4",
+  "video": {
+    "format": "9:16",
+    "fps": 30,
+    "background": "cocoa",
+    "safeZone": "reels",
+    "end": "hold"
+  },
+  "theme": {
+    "palette": {
+      "cocoa": "#2A1710",
+      "oven": "#16100D",
+      "crust": "#C98A4B",
+      "gold": "#E7B45A",
+      "cinnamon": "#6E3417",
+      "cream": "#FFF1DC",
+      "icing": "#FFFBF4",
+      "ember": "#F07A2E",
+      "kraft": "#C9945B",
+      "kraftlt": "#E0B57E",
+      "kraftdk": "#A87543",
+      "green": "#1F6B4A",
+      "red": "#B8322A",
+      "skin": "#6B3F26"
+    },
+    "fonts": {
+      "display": "Fraunces",
+      "body": "Manrope"
+    },
+    "motion": "editorial",
+    "transition": {
+      "type": "wipe",
+      "angle": 12,
+      "bar": "gold",
+      "duration": 0.5
+    },
+    "texture": {
+      "grain": 0.06,
+      "vignette": 0.35
+    }
+  },
+  "components": {
+    "roll": {
+      "params": {},
+      "root": {
+        "id": "r",
+        "type": "group",
+        "layout": {
+          "aspect": "1:1"
+        },
+        "children": [
+          {
+            "id": "bun",
+            "type": "shape",
+            "shape": "circle",
+            "layout": {
+              "anchor": "center",
+              "width": "100%",
+              "height": "100%"
+            },
+            "style": {
+              "fill": {
+                "radial": [
+                  "#EDB872",
+                  "#B5682E"
+                ]
+              },
+              "shadow": "soft"
+            }
+          },
+          {
+            "id": "swirl",
+            "type": "path",
+            "d": "M100 100 A10 10 0 0 1 120 100 A20 20 0 0 1 80 100 A30 30 0 0 1 140 100 A40 40 0 0 1 60 100 A50 50 0 0 1 160 100 A60 60 0 0 1 40 100 A70 70 0 0 1 180 100",
+            "viewBox": [
+              0,
+              0,
+              200,
+              200
+            ],
+            "layout": {
+              "anchor": "center",
+              "width": "88%"
+            },
+            "style": {
+              "stroke": "cinnamon",
+              "strokeWidth": 9
+            }
+          }
+        ]
+      }
+    },
+    "stripe": {
+      "params": {},
+      "root": {
+        "id": "s",
+        "type": "stack",
+        "direction": "horizontal",
+        "gap": 0,
+        "children": [
+          {
+            "id": "a",
+            "type": "shape",
+            "shape": "rect",
+            "layout": {
+              "width": 44,
+              "height": 16
+            },
+            "style": {
+              "fill": "gold"
+            }
+          },
+          {
+            "id": "b",
+            "type": "shape",
+            "shape": "rect",
+            "layout": {
+              "width": 44,
+              "height": 16
+            },
+            "style": {
+              "fill": "green"
+            }
+          },
+          {
+            "id": "c",
+            "type": "shape",
+            "shape": "rect",
+            "layout": {
+              "width": 44,
+              "height": 16
+            },
+            "style": {
+              "fill": "red"
+            }
+          },
+          {
+            "id": "d",
+            "type": "shape",
+            "shape": "rect",
+            "layout": {
+              "width": 44,
+              "height": 16
+            },
+            "style": {
+              "fill": "gold"
+            }
+          },
+          {
+            "id": "e",
+            "type": "shape",
+            "shape": "rect",
+            "layout": {
+              "width": 44,
+              "height": 16
+            },
+            "style": {
+              "fill": "cocoa"
+            }
+          },
+          {
+            "id": "f",
+            "type": "shape",
+            "shape": "rect",
+            "layout": {
+              "width": 44,
+              "height": 16
+            },
+            "style": {
+              "fill": "gold"
+            }
+          },
+          {
+            "id": "g",
+            "type": "shape",
+            "shape": "rect",
+            "layout": {
+              "width": 44,
+              "height": 16
+            },
+            "style": {
+              "fill": "green"
+            }
+          },
+          {
+            "id": "h",
+            "type": "shape",
+            "shape": "rect",
+            "layout": {
+              "width": 44,
+              "height": 16
+            },
+            "style": {
+              "fill": "red"
+            }
+          },
+          {
+            "id": "i",
+            "type": "shape",
+            "shape": "rect",
+            "layout": {
+              "width": 44,
+              "height": 16
+            },
+            "style": {
+              "fill": "gold"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "scenes": [
+    {
+      "id": "oven",
+      "duration": 4,
+      "background": {
+        "radial": [
+          "#5A2A12",
+          "oven"
+        ]
+      },
+      "elements": [
+        {
+          "id": "oven-body",
+          "type": "shape",
+          "shape": "rect",
+          "layout": {
+            "anchor": "top",
+            "inset": [
+              -40,
+              0
+            ],
+            "width": 1160,
+            "height": 960
+          },
+          "style": {
+            "fill": {
+              "linear": [
+                "#2B201B",
+                "#120C0A"
+              ]
+            },
+            "radius": 40
+          }
+        },
+        {
+          "id": "oven-mouth",
+          "type": "shape",
+          "shape": "rect",
+          "layout": {
+            "anchor": "top",
+            "inset": [
+              230,
+              0
+            ],
+            "width": 940,
+            "height": 600
+          },
+          "style": {
+            "fill": {
+              "radial": [
+                "#FF9A3D",
+                "#9C3A10",
+                "#2A120A"
+              ]
+            },
+            "radius": 30
+          }
+        },
+        {
+          "id": "element-top",
+          "type": "path",
+          "points": [
+            [
+              0,
+              0
+            ],
+            [
+              60,
+              40
+            ],
+            [
+              120,
+              0
+            ],
+            [
+              180,
+              40
+            ],
+            [
+              240,
+              0
+            ],
+            [
+              300,
+              40
+            ],
+            [
+              360,
+              0
+            ],
+            [
+              420,
+              40
+            ],
+            [
+              480,
+              0
+            ],
+            [
+              540,
+              40
+            ],
+            [
+              600,
+              0
+            ],
+            [
+              660,
+              40
+            ],
+            [
+              720,
+              0
+            ],
+            [
+              780,
+              40
+            ]
+          ],
+          "smooth": true,
+          "layout": {
+            "anchor": "top",
+            "inset": [
+              280,
+              0
+            ],
+            "width": 780
+          },
+          "style": {
+            "stroke": "#FFC46B",
+            "strokeWidth": 10,
+            "blur": 2
+          }
+        },
+        {
+          "id": "oven-lip",
+          "type": "shape",
+          "shape": "rect",
+          "layout": {
+            "anchor": "top",
+            "inset": [
+              810,
+              0
+            ],
+            "width": 1000,
+            "height": 40
+          },
+          "style": {
+            "fill": "#3A2C25",
+            "radius": 12
+          }
+        },
+        {
+          "id": "tray",
+          "type": "group",
+          "layout": {
+            "anchor": "center",
+            "offset": [
+              0,
+              140
+            ],
+            "width": 880
+          },
+          "children": [
+            {
+              "id": "tray-grid",
+              "type": "grid",
+              "columns": 3,
+              "gap": 22,
+              "layout": {
+                "x": 0,
+                "y": 0,
+                "width": 880
+              },
+              "style": {
+                "fill": {
+                  "linear": [
+                    "#8E8A86",
+                    "#56524F"
+                  ]
+                },
+                "radius": 28,
+                "padding": 36,
+                "shadow": "deep"
+              },
+              "children": [
+                {
+                  "id": "t1",
+                  "use": "roll"
+                },
+                {
+                  "id": "t2",
+                  "use": "roll"
+                },
+                {
+                  "id": "t3",
+                  "use": "roll"
+                },
+                {
+                  "id": "t4",
+                  "use": "roll"
+                },
+                {
+                  "id": "t5",
+                  "use": "roll"
+                },
+                {
+                  "id": "t6",
+                  "use": "roll"
+                }
+              ]
+            },
+            {
+              "id": "mitt-l",
+              "type": "shape",
+              "shape": "pill",
+              "layout": {
+                "x": -70,
+                "y": 180,
+                "width": 120,
+                "height": 240
+              },
+              "style": {
+                "fill": "red",
+                "rotation": -8
+              }
+            },
+            {
+              "id": "mitt-r",
+              "type": "shape",
+              "shape": "pill",
+              "layout": {
+                "x": 830,
+                "y": 180,
+                "width": 120,
+                "height": 240
+              },
+              "style": {
+                "fill": "red",
+                "rotation": 8
+              }
+            }
+          ]
+        },
+        {
+          "id": "steam-1",
+          "type": "path",
+          "points": [
+            [
+              30,
+              300
+            ],
+            [
+              0,
+              220
+            ],
+            [
+              40,
+              150
+            ],
+            [
+              0,
+              70
+            ],
+            [
+              30,
+              0
+            ]
+          ],
+          "smooth": true,
+          "layout": {
+            "anchor": "top-left",
+            "inset": [
+              760,
+              190
+            ],
+            "height": 300
+          },
+          "style": {
+            "stroke": "cream/0.55",
+            "strokeWidth": 18,
+            "blur": 4
+          },
+          "z": 50
+        },
+        {
+          "id": "steam-2",
+          "type": "path",
+          "points": [
+            [
+              20,
+              360
+            ],
+            [
+              50,
+              270
+            ],
+            [
+              0,
+              180
+            ],
+            [
+              50,
+              90
+            ],
+            [
+              20,
+              0
+            ]
+          ],
+          "smooth": true,
+          "layout": {
+            "anchor": "top-left",
+            "inset": [
+              700,
+              455
+            ],
+            "height": 360
+          },
+          "style": {
+            "stroke": "cream/0.5",
+            "strokeWidth": 20,
+            "blur": 5
+          },
+          "z": 50
+        },
+        {
+          "id": "steam-3",
+          "type": "path",
+          "points": [
+            [
+              30,
+              300
+            ],
+            [
+              0,
+              220
+            ],
+            [
+              40,
+              150
+            ],
+            [
+              0,
+              70
+            ],
+            [
+              30,
+              0
+            ]
+          ],
+          "smooth": true,
+          "layout": {
+            "anchor": "top-left",
+            "inset": [
+              760,
+              735
+            ],
+            "height": 300
+          },
+          "style": {
+            "stroke": "cream/0.55",
+            "strokeWidth": 18,
+            "blur": 4
+          },
+          "z": 50
+        },
+        {
+          "id": "kicker-1",
+          "type": "text",
+          "role": "subtitle",
+          "content": "Fresh out of the oven",
+          "layout": {
+            "anchor": "bottom",
+            "inset": [
+              420,
+              0
+            ]
+          },
+          "style": {
+            "color": "cream",
+            "italic": true
+          },
+          "enter": {
+            "preset": "fadeUp",
+            "at": 1.1
+          }
+        }
+      ],
+      "timeline": [
+        {
+          "id": "pull",
+          "target": "tray",
+          "at": 0.1,
+          "duration": 1.5,
+          "ease": "cubic.out",
+          "animate": {
+            "y": [
+              -420,
+              0
+            ],
+            "scale": [
+              0.7,
+              1
+            ]
+          }
+        },
+        {
+          "target": "oven-mouth",
+          "preset": "pulse",
+          "scale": 1.01,
+          "every": 1.2,
+          "at": 0
+        },
+        {
+          "target": [
+            "steam-1",
+            "steam-2",
+            "steam-3"
+          ],
+          "preset": "drawOutline",
+          "at": 1.3,
+          "duration": 1.1,
+          "stagger": 0.2,
+          "ease": "sine.out"
+        },
+        {
+          "target": [
+            "steam-1",
+            "steam-2",
+            "steam-3"
+          ],
+          "at": 1.3,
+          "duration": 2.7,
+          "ease": "sine.in",
+          "animate": {
+            "y": [
+              0,
+              -160
+            ],
+            "opacity": [
+              1,
+              0.15
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "icing",
+      "duration": 3.5,
+      "background": {
+        "linear": [
+          "#F6E3C4",
+          "#E3BE8E"
+        ]
+      },
+      "elements": [
+        {
+          "id": "stage",
+          "type": "group",
+          "layout": {
+            "anchor": "center",
+            "width": 1080,
+            "height": 1920
+          },
+          "children": [
+            {
+              "id": "plate",
+              "type": "shape",
+              "shape": "circle",
+              "layout": {
+                "anchor": "center",
+                "width": 1040,
+                "height": 1040
+              },
+              "style": {
+                "fill": {
+                  "radial": [
+                    "#FFFFFF",
+                    "#EFE4D4"
+                  ]
+                },
+                "shadow": "deep"
+              }
+            },
+            {
+              "id": "big-bun",
+              "type": "shape",
+              "shape": "circle",
+              "layout": {
+                "anchor": "center",
+                "width": 860,
+                "height": 860
+              },
+              "style": {
+                "fill": {
+                  "radial": [
+                    "#F0BD78",
+                    "#C47A3A",
+                    "#9A5424"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "big-swirl",
+              "type": "path",
+              "d": "M100 100 A10 10 0 0 1 120 100 A20 20 0 0 1 80 100 A30 30 0 0 1 140 100 A40 40 0 0 1 60 100 A50 50 0 0 1 160 100 A60 60 0 0 1 40 100 A70 70 0 0 1 180 100",
+              "viewBox": [
+                0,
+                0,
+                200,
+                200
+              ],
+              "layout": {
+                "anchor": "center",
+                "width": 760
+              },
+              "style": {
+                "stroke": "cinnamon",
+                "strokeWidth": 34
+              }
+            },
+            {
+              "id": "drizzle",
+              "type": "path",
+              "points": [
+                [
+                  0,
+                  60
+                ],
+                [
+                  740,
+                  0
+                ],
+                [
+                  40,
+                  200
+                ],
+                [
+                  760,
+                  170
+                ],
+                [
+                  20,
+                  360
+                ],
+                [
+                  740,
+                  330
+                ],
+                [
+                  60,
+                  540
+                ],
+                [
+                  720,
+                  500
+                ]
+              ],
+              "smooth": true,
+              "layout": {
+                "anchor": "center",
+                "width": 740
+              },
+              "style": {
+                "stroke": "icing",
+                "strokeWidth": 24,
+                "shadow": "soft"
+              }
+            },
+            {
+              "id": "bag",
+              "type": "group",
+              "layout": {
+                "x": 0,
+                "y": 0,
+                "width": 10,
+                "height": 10
+              },
+              "children": [
+                {
+                  "id": "bag-cone",
+                  "type": "path",
+                  "points": [
+                    [
+                      0,
+                      320
+                    ],
+                    [
+                      150,
+                      20
+                    ],
+                    [
+                      250,
+                      100
+                    ]
+                  ],
+                  "closed": true,
+                  "layout": {
+                    "x": 5,
+                    "y": -305,
+                    "width": 250
+                  },
+                  "style": {
+                    "fill": {
+                      "linear": [
+                        "#FFFFFF",
+                        "#E9DCC8"
+                      ],
+                      "angle": 90
+                    },
+                    "stroke": "#CDB89A",
+                    "strokeWidth": 4,
+                    "shadow": "soft"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "id": "cam",
+          "behavior": "camera",
+          "target": "stage",
+          "ease": "sine.inOut",
+          "keys": [
+            {
+              "at": 0,
+              "focus": "center",
+              "zoom": 1
+            },
+            {
+              "at": 3.5,
+              "focus": "center",
+              "zoom": 1.12
+            }
+          ]
+        },
+        {
+          "target": "drizzle",
+          "preset": "drawOutline",
+          "at": 0.5,
+          "duration": 2.2,
+          "ease": "sine.inOut"
+        },
+        {
+          "id": "pipe",
+          "behavior": "follow",
+          "target": "bag",
+          "path": "drizzle",
+          "at": 0.5,
+          "duration": 2.2,
+          "ease": "sine.inOut"
+        },
+        {
+          "target": "bag",
+          "at": "pipe.end+0.05",
+          "duration": 0.6,
+          "ease": "cubic.in",
+          "animate": {
+            "x": [
+              0,
+              300
+            ],
+            "y": [
+              0,
+              -700
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "packing",
+      "duration": 4,
+      "background": {
+        "linear": [
+          "#F3DFC0",
+          "#E2C193"
+        ]
+      },
+      "elements": [
+        {
+          "id": "lid",
+          "type": "stack",
+          "align": "center",
+          "justify": "center",
+          "gap": 18,
+          "layout": {
+            "anchor": "top",
+            "inset": [
+              430,
+              0
+            ],
+            "width": 860,
+            "height": 300
+          },
+          "style": {
+            "fill": {
+              "linear": [
+                "kraftlt",
+                "kraft"
+              ]
+            },
+            "radius": 22,
+            "padding": 30,
+            "shadow": "soft"
+          },
+          "children": [
+            {
+              "id": "lid-icon",
+              "type": "icon",
+              "name": "croissant",
+              "style": {
+                "color": "cocoa",
+                "size": 64
+              }
+            },
+            {
+              "id": "lid-name",
+              "type": "text",
+              "role": "subtitle",
+              "content": "Your Bakery",
+              "style": {
+                "color": "cocoa",
+                "italic": true
+              }
+            },
+            {
+              "id": "lid-stripe",
+              "use": "stripe"
+            }
+          ]
+        },
+        {
+          "id": "box",
+          "type": "grid",
+          "columns": 3,
+          "gap": 22,
+          "layout": {
+            "below": "lid",
+            "gap": 6,
+            "align": "center",
+            "width": 860
+          },
+          "style": {
+            "fill": {
+              "linear": [
+                "kraftdk",
+                "#8C5E33"
+              ]
+            },
+            "radius": 22,
+            "padding": 36,
+            "shadow": "soft"
+          },
+          "children": [
+            {
+              "id": "p1",
+              "use": "roll"
+            },
+            {
+              "id": "p2",
+              "use": "roll"
+            },
+            {
+              "id": "p3",
+              "use": "roll"
+            },
+            {
+              "id": "p4",
+              "use": "roll"
+            },
+            {
+              "id": "p5",
+              "use": "roll"
+            },
+            {
+              "id": "p6",
+              "use": "roll"
+            }
+          ]
+        },
+        {
+          "id": "hands",
+          "type": "group",
+          "layout": {
+            "pin": {
+              "to": "p6",
+              "point": "center"
+            },
+            "offset": [
+              0,
+              380
+            ],
+            "width": 240,
+            "height": 1000
+          },
+          "children": [
+            {
+              "id": "cuff-l",
+              "type": "shape",
+              "shape": "rect",
+              "layout": {
+                "x": -35,
+                "y": 820,
+                "width": 160,
+                "height": 260
+              },
+              "style": {
+                "fill": "green",
+                "radius": 24,
+                "rotation": 5
+              }
+            },
+            {
+              "id": "cuff-r",
+              "type": "shape",
+              "shape": "rect",
+              "layout": {
+                "x": 115,
+                "y": 820,
+                "width": 160,
+                "height": 260
+              },
+              "style": {
+                "fill": "green",
+                "radius": 24,
+                "rotation": -5
+              }
+            },
+            {
+              "id": "arm-l",
+              "type": "shape",
+              "shape": "pill",
+              "layout": {
+                "x": -20,
+                "y": 150,
+                "width": 130,
+                "height": 760
+              },
+              "style": {
+                "fill": {
+                  "linear": [
+                    "#7E4A2C",
+                    "skin"
+                  ],
+                  "angle": 90
+                },
+                "rotation": 3
+              }
+            },
+            {
+              "id": "arm-r",
+              "type": "shape",
+              "shape": "pill",
+              "layout": {
+                "x": 130,
+                "y": 150,
+                "width": 130,
+                "height": 760
+              },
+              "style": {
+                "fill": {
+                  "linear": [
+                    "skin",
+                    "#7E4A2C"
+                  ],
+                  "angle": 90
+                },
+                "rotation": -3
+              }
+            },
+            {
+              "id": "carry",
+              "use": "roll",
+              "layout": {
+                "x": 0,
+                "y": 0,
+                "width": 240
+              }
+            },
+            {
+              "id": "palm-l",
+              "type": "shape",
+              "shape": "ellipse",
+              "layout": {
+                "x": -40,
+                "y": 110,
+                "width": 110,
+                "height": 180
+              },
+              "style": {
+                "fill": "#7A4729",
+                "rotation": -18,
+                "shadow": "soft"
+              }
+            },
+            {
+              "id": "palm-r",
+              "type": "shape",
+              "shape": "ellipse",
+              "layout": {
+                "x": 170,
+                "y": 110,
+                "width": 110,
+                "height": 180
+              },
+              "style": {
+                "fill": "#7A4729",
+                "rotation": 18,
+                "shadow": "soft"
+              }
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "target": [
+            "p1",
+            "p2",
+            "p3",
+            "p4",
+            "p5"
+          ],
+          "preset": "slideIn",
+          "from": "up",
+          "distance": 160,
+          "at": 0.5,
+          "duration": 0.5,
+          "stagger": 0.22,
+          "ease": "back.out"
+        },
+        {
+          "id": "bring",
+          "target": "hands",
+          "at": 1.7,
+          "duration": 0.9,
+          "ease": "expo.out",
+          "animate": {
+            "y": [
+              1300,
+              0
+            ]
+          }
+        },
+        {
+          "target": "p6",
+          "preset": "fadeIn",
+          "at": 2.65,
+          "duration": 0.05
+        },
+        {
+          "target": "carry",
+          "at": 2.65,
+          "duration": 0.05,
+          "animate": {
+            "opacity": [
+              1,
+              0
+            ]
+          }
+        },
+        {
+          "target": "hands",
+          "at": 2.75,
+          "duration": 0.6,
+          "ease": "cubic.in",
+          "animate": {
+            "y": [
+              0,
+              1300
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "final",
+      "duration": 3.5,
+      "background": {
+        "linear": [
+          "#2E1A10",
+          "#6A3D24"
+        ]
+      },
+      "elements": [
+        {
+          "id": "bokeh-1",
+          "type": "shape",
+          "shape": "circle",
+          "layout": {
+            "x": 90,
+            "y": 720,
+            "width": 160,
+            "height": 160
+          },
+          "style": {
+            "fill": "gold/0.22",
+            "blur": 18
+          }
+        },
+        {
+          "id": "bokeh-2",
+          "type": "shape",
+          "shape": "circle",
+          "layout": {
+            "x": 820,
+            "y": 800,
+            "width": 120,
+            "height": 120
+          },
+          "style": {
+            "fill": "ember/0.25",
+            "blur": 16
+          }
+        },
+        {
+          "id": "bokeh-3",
+          "type": "shape",
+          "shape": "circle",
+          "layout": {
+            "x": 620,
+            "y": 860,
+            "width": 90,
+            "height": 90
+          },
+          "style": {
+            "fill": "gold/0.2",
+            "blur": 14
+          }
+        },
+        {
+          "id": "bokeh-4",
+          "type": "shape",
+          "shape": "circle",
+          "layout": {
+            "x": 300,
+            "y": 880,
+            "width": 70,
+            "height": 70
+          },
+          "style": {
+            "fill": "cream/0.18",
+            "blur": 12
+          }
+        },
+        {
+          "id": "cord-l",
+          "type": "shape",
+          "shape": "line",
+          "layout": {
+            "x": 40,
+            "y": -60,
+            "width": 240
+          },
+          "style": {
+            "stroke": "#000000/0.5",
+            "strokeWidth": 3,
+            "rotation": 90
+          }
+        },
+        {
+          "id": "lamp-l",
+          "type": "path",
+          "points": [
+            [
+              0,
+              90
+            ],
+            [
+              30,
+              10
+            ],
+            [
+              90,
+              0
+            ],
+            [
+              150,
+              10
+            ],
+            [
+              180,
+              90
+            ]
+          ],
+          "smooth": true,
+          "closed": true,
+          "layout": {
+            "x": 70,
+            "y": 60,
+            "width": 180
+          },
+          "style": {
+            "fill": "#1E120B"
+          }
+        },
+        {
+          "id": "glow-l",
+          "type": "shape",
+          "shape": "circle",
+          "layout": {
+            "x": 100,
+            "y": 110,
+            "width": 120,
+            "height": 120
+          },
+          "style": {
+            "fill": "#FFD58A/0.7",
+            "blur": 24
+          }
+        },
+        {
+          "id": "cord-r",
+          "type": "shape",
+          "shape": "line",
+          "layout": {
+            "x": 740,
+            "y": -60,
+            "width": 240
+          },
+          "style": {
+            "stroke": "#000000/0.5",
+            "strokeWidth": 3,
+            "rotation": 90
+          }
+        },
+        {
+          "id": "lamp-r",
+          "type": "path",
+          "points": [
+            [
+              0,
+              90
+            ],
+            [
+              30,
+              10
+            ],
+            [
+              90,
+              0
+            ],
+            [
+              150,
+              10
+            ],
+            [
+              180,
+              90
+            ]
+          ],
+          "smooth": true,
+          "closed": true,
+          "layout": {
+            "x": 770,
+            "y": 60,
+            "width": 180
+          },
+          "style": {
+            "fill": "#1E120B"
+          }
+        },
+        {
+          "id": "glow-r",
+          "type": "shape",
+          "shape": "circle",
+          "layout": {
+            "x": 800,
+            "y": 110,
+            "width": 120,
+            "height": 120
+          },
+          "style": {
+            "fill": "#FFD58A/0.7",
+            "blur": 24
+          }
+        },
+        {
+          "id": "bokeh-6",
+          "type": "shape",
+          "shape": "circle",
+          "layout": {
+            "x": 470,
+            "y": 780,
+            "width": 140,
+            "height": 140
+          },
+          "style": {
+            "fill": "ember/0.15",
+            "blur": 22
+          }
+        },
+        {
+          "id": "bokeh-5",
+          "type": "shape",
+          "shape": "circle",
+          "layout": {
+            "x": 900,
+            "y": 640,
+            "width": 110,
+            "height": 110
+          },
+          "style": {
+            "fill": "gold/0.18",
+            "blur": 18
+          }
+        },
+        {
+          "id": "table",
+          "type": "shape",
+          "shape": "rect",
+          "layout": {
+            "x": 0,
+            "y": 1360,
+            "width": 1080,
+            "height": 560
+          },
+          "style": {
+            "fill": {
+              "linear": [
+                "#8A5530",
+                "#4E2B16"
+              ]
+            }
+          }
+        },
+        {
+          "id": "table-edge",
+          "type": "shape",
+          "shape": "rect",
+          "layout": {
+            "x": 0,
+            "y": 1360,
+            "width": 1080,
+            "height": 8
+          },
+          "style": {
+            "fill": "#B47A4A"
+          }
+        },
+        {
+          "id": "box-shadow",
+          "type": "shape",
+          "shape": "ellipse",
+          "layout": {
+            "x": 140,
+            "y": 1380,
+            "width": 660,
+            "height": 80
+          },
+          "style": {
+            "fill": "#000000/0.45",
+            "blur": 18
+          }
+        },
+        {
+          "id": "box-top",
+          "type": "path",
+          "points": [
+            [
+              0,
+              110
+            ],
+            [
+              620,
+              110
+            ],
+            [
+              540,
+              0
+            ],
+            [
+              80,
+              0
+            ]
+          ],
+          "closed": true,
+          "layout": {
+            "x": 160,
+            "y": 950,
+            "width": 620
+          },
+          "style": {
+            "fill": {
+              "linear": [
+                "kraftlt",
+                "kraft"
+              ]
+            }
+          }
+        },
+        {
+          "id": "box-front",
+          "type": "stack",
+          "align": "center",
+          "justify": "center",
+          "gap": 14,
+          "layout": {
+            "x": 160,
+            "y": 1060,
+            "width": 620,
+            "height": 360
+          },
+          "style": {
+            "fill": {
+              "linear": [
+                "kraft",
+                "kraftdk"
+              ]
+            },
+            "radius": 6
+          },
+          "children": [
+            {
+              "id": "front-icon",
+              "type": "icon",
+              "name": "croissant",
+              "style": {
+                "color": "cocoa",
+                "size": 56
+              }
+            },
+            {
+              "id": "front-name",
+              "type": "text",
+              "role": "subtitle",
+              "content": "Your Bakery",
+              "style": {
+                "color": "cocoa",
+                "italic": true,
+                "size": 56
+              }
+            },
+            {
+              "id": "front-stripe",
+              "use": "stripe"
+            }
+          ]
+        },
+        {
+          "id": "saucer",
+          "type": "shape",
+          "shape": "ellipse",
+          "layout": {
+            "x": 800,
+            "y": 1352,
+            "width": 200,
+            "height": 40
+          },
+          "style": {
+            "fill": "#E8D7BF"
+          }
+        },
+        {
+          "id": "handle",
+          "type": "shape",
+          "shape": "circle",
+          "layout": {
+            "x": 920,
+            "y": 1265,
+            "width": 60,
+            "height": 60
+          },
+          "style": {
+            "fill": "none",
+            "stroke": "#E8D7BF",
+            "strokeWidth": 14
+          }
+        },
+        {
+          "id": "cup",
+          "type": "shape",
+          "shape": "rect",
+          "layout": {
+            "x": 830,
+            "y": 1240,
+            "width": 120,
+            "height": 130
+          },
+          "style": {
+            "fill": {
+              "linear": [
+                "#FFF6E8",
+                "#E8D7BF"
+              ],
+              "angle": 90
+            },
+            "radius": 22
+          }
+        },
+        {
+          "id": "coffee",
+          "type": "shape",
+          "shape": "ellipse",
+          "layout": {
+            "x": 838,
+            "y": 1236,
+            "width": 104,
+            "height": 22
+          },
+          "style": {
+            "fill": "#3A1F10"
+          }
+        },
+        {
+          "id": "cup-steam",
+          "type": "path",
+          "points": [
+            [
+              20,
+              200
+            ],
+            [
+              0,
+              140
+            ],
+            [
+              30,
+              80
+            ],
+            [
+              0,
+              0
+            ]
+          ],
+          "smooth": true,
+          "layout": {
+            "x": 870,
+            "y": 1020,
+            "height": 200
+          },
+          "style": {
+            "stroke": "cream/0.35",
+            "strokeWidth": 12,
+            "blur": 4
+          }
+        },
+        {
+          "id": "title",
+          "type": "text",
+          "role": "display",
+          "content": "Cinnamon\nRoll Box",
+          "layout": {
+            "anchor": "top",
+            "inset": [
+              300,
+              0
+            ],
+            "offset": [
+              -30,
+              0
+            ]
+          },
+          "style": {
+            "color": "cream",
+            "align": "center"
+          },
+          "enter": {
+            "preset": "wordReveal",
+            "at": 0.4
+          }
+        },
+        {
+          "id": "when",
+          "type": "text",
+          "role": "subtitle",
+          "content": "— This *Weekend.*",
+          "layout": {
+            "below": "title",
+            "gap": 36,
+            "align": "center"
+          },
+          "style": {
+            "color": "gold",
+            "align": "center"
+          },
+          "enter": {
+            "preset": "fadeUp",
+            "at": "title.enter.end"
+          }
+        }
+      ],
+      "timeline": [
+        {
+          "target": [
+            "box-top",
+            "box-front"
+          ],
+          "preset": "fadeUp",
+          "distance": 60,
+          "at": 0.1,
+          "duration": 0.7
+        },
+        {
+          "target": [
+            "bokeh-1",
+            "bokeh-2",
+            "bokeh-3",
+            "bokeh-4"
+          ],
+          "preset": "float",
+          "amplitude": 14,
+          "period": 4,
+          "at": 0
+        },
+        {
+          "target": "glow-l",
+          "preset": "pulse",
+          "scale": 1.08,
+          "every": 1.5,
+          "at": 0
+        },
+        {
+          "target": "cup-steam",
+          "at": 0.3,
+          "duration": 3.2,
+          "ease": "sine.out",
+          "animate": {
+            "y": [
+              30,
+              -60
+            ],
+            "opacity": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        {
+          "target": [
+            "bokeh-5",
+            "bokeh-6"
+          ],
+          "preset": "float",
+          "amplitude": 12,
+          "period": 5,
+          "at": 0
+        },
+        {
+          "target": "glow-r",
+          "preset": "pulse",
+          "scale": 1.08,
+          "every": 1.7,
+          "at": 0
+        }
+      ]
+    }
+  ],
+  "notes": [
+    "Placeholder brand: 'Your Bakery' wordmark + croissant icon on the box. Replace with the client's real logo/name (svg asset).",
+    "Invented copy: 'Fresh out of the oven' kicker in scene 1.",
+    "Six rolls per box is an assumption ('several rolls' in the brief).",
+    "Everything is illustrated (no photos supplied); live-action footage would need a shoot or stock."
+  ]
+}

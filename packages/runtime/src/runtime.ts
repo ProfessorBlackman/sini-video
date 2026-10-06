@@ -406,7 +406,7 @@ function paintBox(e: HTMLElement, el: PlanElement) {
   const s = el.style;
   if (s.fill) e.style.background = s.fill;
   if (s.stroke) e.style.border = `${px(s.strokeWidth ?? 2)} solid ${s.stroke}`;
-  if (s.radius !== undefined) e.style.borderRadius = px(s.radius);
+  if (s.radius !== undefined) e.style.borderRadius = radiusCss(s.radius);
   if (s.shadow !== "none") e.style.boxShadow = SHADOWS[s.shadow];
   if (s.padding) e.style.padding = s.padding.map(px).join(" ");
   if (s.blend !== "normal") e.style.mixBlendMode = s.blend;
@@ -532,14 +532,17 @@ function build(el: PlanElement, flow: boolean, sceneId: string): HTMLElement {
       svg.setAttribute("width", "100%");
       svg.setAttribute("height", "100%");
       Object.assign(svg.style, { display: "block", overflow: "visible" });
-      const geo = document.createElementNS(SVGNS, shape === "line" ? "line" : shape === "circle" || shape === "ellipse" ? "ellipse" : "rect") as SVGGeometryElement;
+      // A rect with different corner radii is drawn as a path once its size is known (finishStrokes).
+      const corners = shape === "rect" && Array.isArray(el.style.radius) ? (el.style.radius as number[]) : undefined;
+      const geo = document.createElementNS(SVGNS, corners ? "path" : shape === "line" ? "line" : shape === "circle" || shape === "ellipse" ? "ellipse" : "rect") as SVGGeometryElement;
+      if (corners) cornerRects.push({ node, geo: geo as SVGPathElement, svg, corners, sw });
       geo.setAttribute("pathLength", "1");
       // Geometry with calc() must be set as CSS properties (SVG 2); Chrome rejects it in attributes.
       if (shape === "line") {
         for (const [a, v] of [["x1", "0"], ["x2", "100%"], ["y1", "50%"], ["y2", "50%"]]) geo.setAttribute(a!, v!);
       } else if (shape === "circle" || shape === "ellipse") {
         for (const [a, v] of [["cx", "50%"], ["cy", "50%"], ["rx", `calc(50% - ${sw / 2}px)`], ["ry", `calc(50% - ${sw / 2}px)`]]) geo.style.setProperty(a!, v!);
-      } else {
+      } else if (!corners) {
         for (const [a, v] of [["x", px(sw / 2)], ["y", px(sw / 2)], ["width", `calc(100% - ${sw}px)`], ["height", `calc(100% - ${sw}px)`]]) geo.style.setProperty(a!, v!);
       }
       geo.setAttribute("fill", svgPaint(svg, el.style.fill ?? "none"));
@@ -557,7 +560,7 @@ function build(el: PlanElement, flow: boolean, sceneId: string): HTMLElement {
       if (!outer.style.width) outer.style.width = flow ? "100%" : px(shape === "line" ? 360 * k : 120 * k);
       if (!outer.style.height) outer.style.height = shape === "line" ? px(Math.max(sw, 2)) : flow ? px(120 * k) : outer.style.width;
       if (shape === "pill") pills.push({ outer, geo, sw });
-      else if (el.style.radius !== undefined && shape === "rect") geo.style.setProperty("rx", px(el.style.radius));
+      else if (typeof el.style.radius === "number" && shape === "rect") geo.style.setProperty("rx", px(el.style.radius));
       break;
     }
     case "group":
@@ -1016,7 +1019,7 @@ function applyMatchCuts(fr: Frame) {
     const st = stage.getBoundingClientRect();
     const fr0 = visualRect(fromNode);
     const from = { x: (fr0.left - st.left) / scale, y: (fr0.top - st.top) / scale, w: fr0.width / scale, h: fr0.height / scale };
-    const radiusOf = (nd: Node, w: number) => (nd.el.style.radius ?? 0) * (w / Math.max(1, nd.outer.offsetWidth || w));
+    const radiusOf = (nd: Node, w: number) => radiusNum(nd.el.style.radius) * (w / Math.max(1, nd.outer.offsetWidth || w));
     const full = { x: 0, y: 0, w: W, h: H };
     const toNode = tr.matchTo && tr.matchTo !== "background" ? nodes.get(tr.matchTo) : undefined;
     const toBox = toNode ? staticBoxes.get(toNode.el.ref) : undefined;
@@ -1387,8 +1390,25 @@ function pathScale(svg: SVGSVGElement): { s: number; vb: DOMRect; ox: number; oy
   return { s, vb, ox: (w - vb.width * s) / 2, oy: (hgt - vb.height * s) / 2 };
 }
 
+const cornerRects: { node: Node; geo: SVGPathElement; svg: SVGSVGElement; corners: number[]; sw: number }[] = [];
+
+const radiusCss = (r: number | number[]) => (Array.isArray(r) ? r.map(px).join(" ") : px(r));
+const radiusNum = (r: number | number[] | undefined) => (Array.isArray(r) ? Math.max(...r) : r ?? 0);
+
+/** A rounded rectangle with its own radius per corner (top-left, top-right, bottom-right, bottom-left), inset by half the stroke. */
+function cornerRectPath(w: number, hgt: number, [tl, tr, br, bl]: number[], sw: number): string {
+  const x0 = sw / 2;
+  const y0 = sw / 2;
+  const x1 = w - sw / 2;
+  const y1 = hgt - sw / 2;
+  const lim = (r: number) => Math.max(0, Math.min(r, (x1 - x0) / 2, (y1 - y0) / 2));
+  const [a, b, c, d] = [lim(tl!), lim(tr!), lim(br!), lim(bl!)];
+  return `M${x0 + a} ${y0} H${x1 - b} A${b} ${b} 0 0 1 ${x1} ${y0 + b} V${y1 - c} A${c} ${c} 0 0 1 ${x1 - c} ${y1} H${x0 + d} A${d} ${d} 0 0 1 ${x0} ${y1 - d} V${y0 + a} A${a} ${a} 0 0 1 ${x0 + a} ${y0} Z`;
+}
+
 /** After layout: stroke widths stay in canvas px however a path is scaled, and dashes get their px length. */
 function finishStrokes() {
+  for (const r of cornerRects) r.geo.setAttribute("d", cornerRectPath(r.svg.clientWidth, r.svg.clientHeight, r.corners, r.sw));
   for (const { svg, geo, node } of paths) {
     const { s } = pathScale(svg);
     const sw = node.el.style.strokeWidth ?? 4 * k;
