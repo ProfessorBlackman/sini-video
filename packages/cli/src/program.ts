@@ -1,7 +1,7 @@
 import { createRequire } from "node:module";
 import { Command } from "commander";
 import { readFileSync } from "node:fs";
-import { contactSheet, describe, initProject, inspect, layoutAt, lint, listVersions, patchProject, renderFrame, renderMp4, restoreVersion, SiniError, snapshot, type PatchOp } from "@sini/api";
+import { contactSheet, describeWithLayout, initProject, inspect, layoutAt, lint, listVersions, patchProject, renderFrame, renderMp4, restoreVersion, SiniError, snapshot, type PatchOp } from "@sini/api";
 import { formatIssue, runValidate } from "./validate-command.js";
 
 const require = createRequire(import.meta.url);
@@ -147,13 +147,13 @@ export function createProgram(): Command {
     .argument("[project]", "project folder or spec file", ".")
     .option("--json", "machine-readable output")
     .action((time: string, project: string, opts: { json?: boolean }) =>
-      guard(() => {
-        const d = describe(project, Number(time));
+      guard(async () => {
+        const d = await describeWithLayout(project, Number(time));
         if (opts.json) return void console.log(JSON.stringify(d, null, 2));
         console.log(`t = ${d.time}s`);
         for (const s of d.scenes) console.log(`scene ${s.id} at ${s.local}s${s.transition ? `, ${s.transition}` : ""}`);
         for (const e of d.elements) {
-          const state = e.visible ? `${e.highlighted ? "highlighted" : "visible"}${e.opacity !== undefined ? ` (opacity ${e.opacity})` : ""}` : "hidden";
+          const state = e.visible ? `${e.highlighted ? "highlighted" : "visible"}${e.opacity !== undefined ? ` (opacity ${e.opacity})` : ""}${e.coveredBy ? `, covered by ${e.coveredBy}` : ""}` : "hidden";
           const anim = e.animating.length ? `  ⟳ ${e.animating.join(", ")}` : "";
           console.log(`  ${e.ref} [${e.type}] ${state}${e.text ? ` "${e.text}"` : ""}${anim}`);
         }

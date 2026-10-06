@@ -883,7 +883,7 @@ When a human asks for changes, send a **patch** instead of rewriting the whole s
 - `add` and `move` place the element `after` / `before` another element, or inside a container with `"parent": "<id>"`, or at the end of the scene.
 - A patch is all-or-nothing: if the result doesn't validate, nothing is saved.
 
-Every patch creates a new version. Use `describe_at(time)` to find which elements a human means when they refer to a timestamp ("at 0:07 the text is too fast").
+Every patch creates a new version. Use `describe_at(time)` to find which elements a human means when they refer to a timestamp ("at 0:07 the text is too fast"). It lists what's visible, what's animating and the text on screen, and marks elements mostly hidden behind something drawn on top (`coveredBy`).
 
 ---
 

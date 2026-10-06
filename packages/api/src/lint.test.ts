@@ -178,3 +178,21 @@ describe("lint over time", () => {
     expect(issues.map((i) => `${i.path}:${i.code}`).sort()).toEqual(["away:leaves-frame", "wide:too-wide-in-motion"]);
   });
 });
+
+describe("describe_at coverage", () => {
+  it("marks elements mostly hidden by an opaque element drawn above them", async () => {
+    const { coveredAt } = await import("./describe.js");
+    const plan = make([{ id: "s", duration: 2, background: "#000000", elements: [
+      { id: "caption", type: "text", content: "Pick", enter: "none" },
+      { id: "card", type: "shape", shape: "rect", style: { fill: "#ffffff" } },
+      { id: "above", type: "text", content: "On top", enter: "none" },
+    ] }]);
+    const b = (ref: string, type: string, x: number, y: number, w: number, h: number) =>
+      ({ ref, type, scene: "s", visible: true, inDevice: false, box: { x, y, width: w, height: h }, current: { x, y, width: w, height: h } });
+    const covered = coveredAt(plan, { time: 1, width: 1080, height: 1920, elements: [
+      b("caption", "text", 100, 100, 300, 80), b("card", "shape", 50, 50, 600, 400), b("above", "text", 100, 300, 300, 80),
+    ] });
+    expect(covered.get("caption")).toBe("card");
+    expect(covered.has("above")).toBe(false);
+  });
+});

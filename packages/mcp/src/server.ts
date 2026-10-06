@@ -144,11 +144,11 @@ export function createServer(root = process.env.SINI_ROOT ?? process.cwd()): Mcp
 
   server.registerTool("describe_at", {
     title: "What's on screen at a time",
-    description: "Lists visible elements and running animations at a time. Use it to map feedback like 'at 0:07 the text is too fast' to element ids.",
+    description: "Lists visible elements, running animations and the text on screen at a time; elements mostly hidden behind something drawn on top say `coveredBy`. Use it to map feedback like 'at 0:07 the text is too fast' to element ids.",
     inputSchema: { ...projectArg, time: z.number().min(0).describe("Seconds"), ...filterArgs },
     annotations: readOnly,
-  }, (a) => run(() => {
-    const d = api.describe(project(a.project), a.time);
+  }, (a) => run(async () => {
+    const d = await api.describeWithLayout(project(a.project), a.time);
     const { kept, omitted } = filterElements(d.elements, a.visibleOnly, a.elements);
     return json({ ...d, elements: kept, ...(omitted ? { omitted: `${omitted} elements not shown (hidden, or not in \`elements\`); visibleOnly: false shows hidden ones` } : {}) });
   })());

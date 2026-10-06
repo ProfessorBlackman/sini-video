@@ -10,6 +10,7 @@ Images: `ghcr.io/professorblackman/sini:<version>` for linux/amd64 and linux/arm
 - The `zoom` transition scaled whole scenes, so the incoming scene's edges showed as a hard rectangle; it now zooms the content while backgrounds crossfade full-frame.
 
 ### Added
+- `describe_at` marks elements mostly hidden behind something drawn on top (`coveredBy`).
 - **`connector` element**: a line between two elements (or screenshot regions) that follows them every frame, from edge to edge, with `curve`, arrowheads, dashes and `drawOutline`; hidden while an end is hidden.
 - **`particles` element**: a seeded field of glowing dots that drift, rise, fall or twinkle; deterministic.
 - **Lint over time**: text is sampled every 0.5s; `too-wide-in-motion` (e.g. trackIn spreading past the frame) and `leaves-frame` (outside enters, exits, scene transitions and camera zooms).
