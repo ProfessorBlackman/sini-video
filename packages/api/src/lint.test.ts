@@ -196,3 +196,25 @@ describe("describe_at coverage", () => {
     expect(covered.has("above")).toBe(false);
   });
 });
+
+describe("device flow rules", () => {
+  it("flag a new phone in each scene of an app flow, but not a repeated screenshot", async () => {
+    const { deviceRules } = await import("./lint.js");
+    const phone = (id: string) => ({ id, type: "phone", children: [{ id: `${id}-t`, type: "text", content: "Hi" }] });
+    const flow = make([{ id: "a", duration: 1, elements: [phone("p1")] }, { id: "b", duration: 1, elements: [phone("p2")] }]);
+    expect(deviceRules(flow).map((i) => `${i.path}:${i.code}`)).toEqual(["p2:device-per-scene"]);
+    const shot = (id: string) => ({ id, type: "browser", content: "dash" });
+    const shots = compile({ version: "0.4", video: { format: "16:9" }, assets: { dash: "dash.png" }, scenes: [{ id: "a", duration: 1, elements: [shot("b1")] }, { id: "b", duration: 1, elements: [shot("b2")] }] } as never);
+    expect(deviceRules(shots)).toEqual([]);
+  });
+  it("flag a mostly empty device screen", async () => {
+    const { motionRules } = await import("./lint.js");
+    const plan = make([{ id: "s", duration: 1, elements: [{ id: "ph", type: "phone", children: [{ id: "row", type: "text", content: "Only a title", enter: "none" }] }] }]);
+    const report = { time: 0, width: 1080, height: 1920, elements: [
+      { ref: "ph", type: "phone", scene: "s", visible: true, inDevice: false, box: { x: 200, y: 200, width: 680, height: 1400 }, current: { x: 200, y: 200, width: 680, height: 1400 } },
+      { ref: "row", type: "text", scene: "s", visible: true, inDevice: true, box: { x: 250, y: 300, width: 500, height: 60 }, current: { x: 250, y: 300, width: 500, height: 60 } },
+    ] };
+    const issues = await motionRules(plan, { layout: async () => report });
+    expect(issues.map((i) => i.code)).toContain("empty-screen");
+  });
+});

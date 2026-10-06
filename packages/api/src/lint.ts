@@ -38,6 +38,7 @@ export async function lint(target: string, opts: { layout?: boolean } = {}): Pro
   const { plan, validation, loaded } = loadPlan(target);
   const issues: Issue[] = [...validation.issues.filter((i) => i.level === "warning"), ...plan.report];
   issues.push(...timelineRules(plan));
+  issues.push(...deviceRules(plan));
   issues.push(...glyphRules(plan));
   if (opts.layout !== false) {
     const session = await RenderSession.open(plan);
@@ -165,6 +166,25 @@ function solid(paint: string | undefined): RGBA | null {
   return parseCss(paint);
 }
 
+/**
+ * A new phone (or browser) in each of several scenes in a row: an app flow reads better as one device whose
+ * screen changes (screens + navigate), with the device staying put.
+ */
+export function deviceRules(plan: CompiledPlan): Issue[] {
+  const issues: Issue[] = [];
+  // App screens built from elements (a screenshot repeated across scenes is a different matter).
+  const deviceIn = (s: CompiledPlan["scenes"][number]) => s.elements.find((e) => (e.type === "phone" || e.type === "browser") && !e.props.content);
+  plan.scenes.forEach((s, i) => {
+    const prev = i > 0 ? deviceIn(plan.scenes[i - 1]!) : undefined;
+    const cur = deviceIn(s);
+    if (prev && cur && prev.type === cur.type) {
+      issues.push(warn(cur.ref, "device-per-scene", `'${cur.ref}' is a new ${cur.type} in scene '${s.id}', right after '${prev.ref}' in '${plan.scenes[i - 1]!.id}'. Each cut swaps the device instead of the screen.`,
+        `Use one ${cur.type} with "screens" and switch them with navigate or interaction steps (reference §15 Recipes), so the device stays put while its screen changes.`));
+    }
+  });
+  return issues;
+}
+
 /** Enter and exit presets move things on and off screen on purpose. */
 const ON_OFF_PRESETS = new Set([...ENTER_PRESETS, ...EXIT_PRESETS]);
 
@@ -188,8 +208,38 @@ export async function motionRules(plan: CompiledPlan, session: { layout(t: numbe
   };
   const found = new Map<string, Issue>();
   const tol = 8 * (Math.min(W, H) / 1080);
+  // Devices whose screens are built from elements (not a screenshot), and which device each element is in.
+  // Page content only (not overlays), in devices showing elements rather than a screenshot.
+  const pageContent = new Map<string, string>();
+  const collect = (els: PlanElement[], device: string) => {
+    for (const e of els) {
+      pageContent.set(e.ref, device);
+      collect(e.children, device);
+    }
+  };
+  for (const e of entries.values()) {
+    if ((e.el.type === "phone" || e.el.type === "browser") && !e.el.props.content) for (const pg of e.el.pages ?? []) collect(pg.children, e.el.ref);
+  }
+  const deviceOf = (ref: string) => pageContent.get(ref);
+  const emptyFound = new Set<string>();
   for (let t = 0.25; t < plan.duration; t += 0.5) {
     const r = await session.layout(t);
+    // Mostly empty device screens: content reaching less than 40% of the way down.
+    const lowest = new Map<string, number>();
+    for (const b of r.elements) {
+      const d = b.visible ? deviceOf(b.ref) : undefined;
+      if (d) lowest.set(d, Math.max(lowest.get(d) ?? -Infinity, b.current.y + b.current.height));
+    }
+    for (const [d, bottom] of lowest) {
+      const dev = r.elements.find((x) => x.ref === d);
+      if (!dev?.visible || emptyFound.has(d) || inTransition(entries.get(d)!.el.sceneId, t)) continue;
+      const share = (bottom - dev.current.y) / Math.max(1, dev.current.height);
+      if (share < 0.4) {
+        emptyFound.add(d);
+        found.set(`${d}#empty`, warn(d, "empty-screen", `'${d}' is mostly empty at ${r1(t)}s: its content stops ${Math.round(share * 100)}% of the way down the screen.`,
+          "Fill the screen: larger text and cards (in-device sizes are small), more rows, a map or image, or a smaller device."));
+      }
+    }
     for (const b of r.elements) {
       const e = entries.get(b.ref);
       if (!e || e.el.type !== "text" || b.inDevice || !b.visible || found.has(b.ref)) continue;
