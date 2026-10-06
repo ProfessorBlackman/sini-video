@@ -6,6 +6,10 @@ Images: `ghcr.io/professorblackman/sini:<version>` for linux/amd64 and linux/arm
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-10-06
+
+Freeform drawing, after the bakery brief showed illustrated scenes needed curves.
+
 ### Added
 - **`path` element**: any line or outline, from `points` (straight, or `smooth` curves through every point, `closed` for blobs) or SVG path data `d`. Scales to a given width or height keeping its proportions; stroke width stays in px; gradient fills; draws itself with `drawOutline`.
 - **`follow` behavior**: moves an element's centre along a path, optionally turning with it (`rotate`).
@@ -87,7 +91,8 @@ The first release: an AI writes a JSON spec, and Sini renders it to MP4 determin
 - Docker image only (about 940 MB): Node 24, Chromium headless shell, a minimal FFmpeg build with libx264 (GPL; run as a separate program), bundled fonts and icons.
 - Writes files as the owner of the mounted folder.
 
-[Unreleased]: https://github.com/ProfessorBlackman/sini-video/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/ProfessorBlackman/sini-video/compare/v0.1.3...HEAD
+[0.1.3]: https://github.com/ProfessorBlackman/sini-video/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/ProfessorBlackman/sini-video/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/ProfessorBlackman/sini-video/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/ProfessorBlackman/sini-video/releases/tag/v0.1.0
