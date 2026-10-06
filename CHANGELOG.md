@@ -6,6 +6,9 @@ Images: `ghcr.io/professorblackman/sini:<version>` for linux/amd64 and linux/arm
 
 ## [Unreleased]
 
+### Added
+- **Clips and cutouts**: `style.clip` cuts an element to `"circle"`, `"ellipse"` or a path's outline (an image in a blob); `style.cutout` punches other elements' shapes out of it (ticket notches, keyholes, an opening iris), following them as they move. Built as synchronous clip-paths, so renders stay deterministic.
+
 ### Changed
 - **Lint is much faster on big videos** (a 229-element, 15s video: 24.5s → 2.8s): the mid-animation samples are measured in one page call, measuring sessions skip painting, and layouts come back as JSON instead of through Playwright's slower object serialisation. `get_layout` and `describe_at` benefit too.
 

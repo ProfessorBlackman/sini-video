@@ -665,6 +665,24 @@ class Validator {
       if (key === "radius" && Array.isArray(v) && v.length === 4 && v.every((x: J) => typeof x === "number" && x >= 0)) continue;
       this.err(`${p}.style.${key}`, "bad-style-value", `'${key}' must be a number${key === "radius" ? " or [top-left, top-right, bottom-right, bottom-left]" : ""}, got ${JSON.stringify(v)}.`);
     }
+    if ("clip" in st || "cutout" in st) {
+      const elems = this.sceneElems.get(sid) ?? new Map<string, J>();
+      const local = (x: J) => (prefix && typeof x === "string" ? prefix + x : x);
+      if ("clip" in st && !["circle", "ellipse"].includes(st.clip)) {
+        if (this.etype(elems.get(local(st.clip))) !== "path") {
+          this.err(`${p}.style.clip`, "bad-clip", `'${st.clip}' isn't "circle", "ellipse" or a path element in this scene.`, didYouMean(String(st.clip), ["circle", "ellipse", ...[...elems.entries()].filter(([, v]) => this.etype(v) === "path").map(([k]) => k)]));
+        }
+      }
+      if ("cutout" in st) {
+        if (!Array.isArray(st.cutout)) this.err(`${p}.style.cutout`, "bad-cutout", "Must be a list of element ids.");
+        else for (const x of st.cutout) {
+          const t = this.etype(elems.get(local(x)));
+          if (!t || !["shape", "path", "badge", "button", "image"].includes(t)) {
+            this.err(`${p}.style.cutout`, "bad-cutout", `'${x}' isn't a shape, path, badge, button or image in this scene.`, didYouMean(String(x), [...elems.keys()]));
+          }
+        }
+      }
+    }
     if ("dash" in st) {
       const d = st.dash;
       const ok = d === false || (Array.isArray(d) && d.length >= 1 && d.length <= 2 && d.every((v: J) => typeof v === "number" && v >= 0) && d.some((v: J) => v > 0));

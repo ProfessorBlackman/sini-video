@@ -99,6 +99,10 @@ export interface PlanStyle {
   padding?: [number, number, number, number];
   /** Dashed strokes: [dash, gap] in px. */
   dash?: number[];
+  /** Outline the element is cut to: "circle", "ellipse" or a path element's id. */
+  clip?: string;
+  /** Elements whose shapes are punched out of this one. */
+  cutout?: string[];
 }
 
 export interface PlanText {

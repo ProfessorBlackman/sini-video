@@ -454,6 +454,7 @@ function build(el: PlanElement, flow: boolean, sceneId: string): HTMLElement {
   const grows = typeof (el.layout as Record<string, unknown>).grow === "number";
   if (grows) anim.style.height = "100%";
   nodes.set(el.ref, node);
+  if (el.style.clip || el.style.cutout?.length) masked.push(node);
   if (fillsBox) Object.assign(anim.style, { width: "100%", height: "100%" });
 
   switch (el.type) {
@@ -1651,6 +1652,111 @@ function applyParticles(n: Node, t: number) {
   });
 }
 
+// ---------------------------------------------------------------- clips and cutouts
+
+type Pt = [number, number];
+
+/** Points around an ellipse in box (x, y, w, h). */
+function ellipsePts(x: number, y: number, w: number, h: number, n = 72): Pt[] {
+  const out: Pt[] = [];
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * Math.PI * 2;
+    out.push([x + w / 2 + (Math.cos(a) * w) / 2, y + h / 2 + (Math.sin(a) * h) / 2]);
+  }
+  return out;
+}
+
+/** Points around a rounded rectangle (one radius, or [tl, tr, br, bl]). */
+function roundRectPts(x: number, y: number, w: number, h: number, radius: number | number[] = 0): Pt[] {
+  const rs = (Array.isArray(radius) ? radius : [radius, radius, radius, radius]).map((r) => Math.max(0, Math.min(r, w / 2, h / 2)));
+  const corners: [number, number, number, number][] = [
+    [x + w - rs[1]!, y + rs[1]!, rs[1]!, -90], [x + w - rs[2]!, y + h - rs[2]!, rs[2]!, 0],
+    [x + rs[3]!, y + h - rs[3]!, rs[3]!, 90], [x + rs[0]!, y + rs[0]!, rs[0]!, 180],
+  ];
+  const out: Pt[] = [];
+  for (const [cx, cy, r, start] of corners) {
+    for (let i = 0; i <= 8; i++) {
+      const a = ((start + (i / 8) * 90) * Math.PI) / 180;
+      out.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r]);
+    }
+  }
+  return out;
+}
+
+/** A path element's outline as viewport points (sampled along its length). */
+function pathClientPts(pn: { svg: SVGSVGElement; geo: SVGPathElement }, n = 160): Pt[] {
+  const L = pn.geo.getTotalLength();
+  const rect = pn.svg.getBoundingClientRect();
+  const css = rect.width / (pn.svg.clientWidth || 1);
+  const { s, vb, ox, oy } = pathScale(pn.svg);
+  const out: Pt[] = [];
+  for (let i = 0; i < n; i++) {
+    const p = pn.geo.getPointAtLength((i / n) * L);
+    out.push([rect.left + (ox + (p.x - vb.x) * s) * css, rect.top + (oy + (p.y - vb.y) * s) * css]);
+  }
+  return out;
+}
+
+/** Hidden (not yet entered, or its scene hidden): a cutter that isn't there yet cuts nothing. */
+function isHidden(n: Node): boolean {
+  for (let e: HTMLElement | null = n.anim; e && e !== stage; e = e.parentElement) if (e.style.visibility === "hidden") return true;
+  return false;
+}
+
+const masked: Node[] = [];
+/**
+ * `style.clip` and `style.cutout` as one clip-path in the element's own coordinates: the outline (box,
+ * circle, ellipse or a path stretched to the box) with the cutters' current shapes as holes (even-odd).
+ * Synchronous geometry, so frames stay deterministic. Rebuilt every frame: cutters can move.
+ */
+function applyMasks() {
+  for (const n of masked) {
+    const host = n.anim;
+    const W = host.offsetWidth;
+    const H = host.offsetHeight;
+    if (!W || !H) continue;
+    const clip = n.el.style.clip;
+    let base: Pt[];
+    if (clip === "circle") {
+      const d = Math.min(W, H);
+      base = ellipsePts((W - d) / 2, (H - d) / 2, d, d);
+    } else if (clip === "ellipse") base = ellipsePts(0, 0, W, H);
+    else if (clip) {
+      const ref = resolveRef(clip, n.el.ref);
+      const pn = paths.find((x) => x.node.el.ref === ref);
+      if (!pn) continue;
+      // The path's own drawing area stretched to this element's box.
+      const vb = pn.svg.viewBox.baseVal;
+      const L = pn.geo.getTotalLength();
+      base = [];
+      for (let i = 0; i < 160; i++) {
+        const p = pn.geo.getPointAtLength((i / 160) * L);
+        base.push([((p.x - vb.x) / (vb.width || 1)) * W, ((p.y - vb.y) / (vb.height || 1)) * H]);
+      }
+    } else base = [[0, 0], [W, 0], [W, H], [0, H]];
+    const rings: Pt[][] = [base];
+    for (const id of n.el.style.cutout ?? []) {
+      const ref = resolveRef(id, n.el.ref);
+      const cn = ref ? nodes.get(ref) : undefined;
+      if (!cn || isHidden(cn)) continue;
+      const toLocal = (pts: Pt[]) => pts.map(([x, y]): Pt => { const b = localBox(new DOMRect(x, y, 0, 0), host); return [b.x, b.y]; });
+      const pn = paths.find((x) => x.node === cn);
+      if (pn) {
+        rings.push(toLocal(pathClientPts(pn)));
+        continue;
+      }
+      const r = visualRect(cn);
+      const b = localBox(r, host);
+      const shape = String(cn.el.props.shape ?? "rect");
+      if (shape === "circle" || shape === "ellipse") rings.push(ellipsePts(b.x, b.y, b.w, b.h));
+      else if (shape === "pill") rings.push(roundRectPts(b.x, b.y, b.w, b.h, Math.min(b.w, b.h) / 2));
+      else rings.push(roundRectPts(b.x, b.y, b.w, b.h, (cn.el.style.radius ?? 0) as number | number[]));
+    }
+    const d = rings.map((ring) => `M${ring.map(([x, y]) => `${Math.round(x * 100) / 100} ${Math.round(y * 100) / 100}`).join(" L")} Z`).join(" ");
+    host.style.clipPath = `path(evenodd, "${d}")`;
+  }
+}
+
 const following = new Set<Node>();
 /** `follow`: the element's centre rides along a path element, optionally turned to its direction. */
 function applyFollow(fr: Frame) {
@@ -2305,6 +2411,7 @@ function render(t: number) {
   for (const n of nodes.values()) applySpot(n, fr.elements[n.el.ref]?.spot);
   updateConnectors();
   for (const n of nodes.values()) if (n.particles) applyParticles(n, t);
+  applyMasks();
   applyMatchCuts(fr);
   applyCursors(fr.cursors);
   for (const [id, layer] of bgLayers) {

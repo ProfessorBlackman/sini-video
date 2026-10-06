@@ -192,6 +192,8 @@ class Compiler {
     if (stroke) out.stroke = stroke;
     if (s.strokeWidth !== undefined) out.strokeWidth = s.strokeWidth;
     if (Array.isArray(s.dash)) out.dash = s.dash.length === 1 ? [s.dash[0], s.dash[0]] : s.dash;
+    if (typeof s.clip === "string") out.clip = s.clip;
+    if (Array.isArray(s.cutout)) out.cutout = s.cutout.map(String);
     if (padding) out.padding = padding;
     return out;
   }

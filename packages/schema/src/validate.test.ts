@@ -166,3 +166,19 @@ describe("safe zones", () => {
     expect(validate(spec("9:16")).issues.map((i) => i.code)).not.toContain("safe-zone-format");
   });
 });
+
+describe("clips and cutouts", () => {
+  const spec = (style: unknown) => ({ version: "0.4", video: { format: "1:1" }, scenes: [{ id: "s", duration: 1, elements: [
+    { id: "card", type: "shape", shape: "rect", style },
+    { id: "hole", type: "shape", shape: "circle" },
+    { id: "blob", type: "path", points: [[0, 0], [10, 0], [5, 8]], closed: true },
+    { id: "label", type: "text", content: "Hi" },
+  ] }] });
+  const codes = (style: unknown) => errors(spec(style)).map((i) => i.code);
+  it("accept circle, ellipse or a path as a clip, and shapes or paths as cutouts", () => {
+    expect(codes({ clip: "circle" })).toEqual([]);
+    expect(codes({ clip: "blob", cutout: ["hole"] })).toEqual([]);
+    expect(codes({ clip: "label" })).toEqual(["bad-clip"]);
+    expect(codes({ cutout: ["label"] })).toEqual(["bad-cutout"]);
+  });
+});

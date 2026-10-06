@@ -101,7 +101,7 @@ export const STACK_JUSTIFY = ["start", "center", "end", "space-between"] as cons
 
 export const STYLE_KEYS = [
   "opacity", "rotation", "scale", "scaleX", "scaleY", "origin", "radius", "fill", "stroke",
-  "strokeWidth", "dash", "shadow", "blur", "blend", "padding",
+  "strokeWidth", "dash", "shadow", "blur", "blend", "padding", "clip", "cutout",
   // text and label overrides
   "color", "align", "size", "weight", "lineHeight", "letterSpacing", "uppercase", "italic",
 ] as const;

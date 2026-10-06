@@ -414,6 +414,30 @@ describe("zoom transition", () => {
   }, 60_000);
 });
 
+describe("clips and cutouts", () => {
+  it("cut an element to an outline with holes that follow their cutters", async () => {
+    const p = compile({ version: "0.4", video: { format: "1:1" }, scenes: [{ id: "s", duration: 3, elements: [
+      { id: "cover", type: "shape", shape: "rect", style: { fill: "#111111", cutout: ["hole"] }, layout: { x: 100, y: 100, width: 400, height: 400 } },
+      { id: "hole", type: "shape", shape: "circle", style: { fill: "none" }, layout: { x: 200, y: 200, width: 100, height: 100 }, enter: "none" },
+      { id: "round", type: "shape", shape: "rect", style: { fill: "#ff0000", clip: "circle" }, layout: { x: 600, y: 100, width: 300, height: 200 } },
+    ], timeline: [{ target: "hole", animate: { x: 200 }, at: 1, duration: 1, ease: "linear" }] }] } as never);
+    const s = await RenderSession.open(p, { browser });
+    try {
+      const clips = async (t: number) => {
+        await s.render(t);
+        return s.page.evaluate(() => [...document.querySelectorAll<HTMLElement>(".anim, [class]")].map((e) => e.style.clipPath).filter((c) => c.startsWith("path(")));
+      };
+      const before = await clips(0.5);
+      expect(before).toHaveLength(2);
+      expect(before.some((c) => c.startsWith('path(evenodd, "M 0 0 L 400 0 L 400 400 L 0 400 Z M 200 150'))).toBe(true);
+      const after = await clips(2.5);
+      expect(after).not.toEqual(before); // the hole moved with its cutter
+    } finally {
+      await s.close();
+    }
+  }, 60_000);
+});
+
 describe("connectors", () => {
   it("run between the edges of their ends, follow them, and hide while an end is hidden", async () => {
     const p = compile({ version: "0.4", video: { format: "1:1" }, scenes: [{ id: "s", duration: 3, elements: [

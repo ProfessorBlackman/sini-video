@@ -256,6 +256,8 @@ Every element accepts:
 | `radius` | px. A value of half the height or more makes a pill or circle. `[top-left, top-right, bottom-right, bottom-left]` rounds corners separately (tabs, speech bubbles) |
 | `fill`, `stroke` | colours (gradients work for `fill`) |
 | `strokeWidth` | px |
+| `clip` | Cut the element (and everything inside it) to an outline: `"circle"`, `"ellipse"`, or a `path` element's id, whose drawing is stretched to the element's box (an image in a blob). The clipping path can be hidden with `"opacity": 0` |
+| `cutout` | Element ids whose shapes are punched out of this element: ticket notches, a keyhole, an iris that opens. Cutters can be shapes, paths, badges, buttons or images (use `"fill": "none"` to keep them invisible); holes follow their cutters every frame, and a cutter that hasn't entered yet cuts nothing |
 | `dash` | Shapes and paths: `[dash, gap]` in px for a dashed stroke (`[2, 10]` with round ends = dotted), `[n]` for equal dash and gap |
 | `shadow` | `"none" \| "soft" \| "deep"` |
 | `blur` | px |
