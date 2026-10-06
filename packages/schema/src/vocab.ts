@@ -41,7 +41,7 @@ export type Side = (typeof SIDES)[number];
 export const SAFE_ZONES = ["reels", "tiktok", "shorts", "none"] as const;
 
 export const ELEMENT_TYPES = [
-  "text", "image", "shape", "path", "svg", "button", "badge", "icon", "toast", "progress", "chart",
+  "text", "image", "shape", "path", "connector", "particles", "svg", "button", "badge", "icon", "toast", "progress", "chart",
   "browser", "phone", "group", "stack", "grid", "template",
 ] as const;
 export type ElementType = (typeof ELEMENT_TYPES)[number];
@@ -54,6 +54,8 @@ export const TYPE_KEYS: Record<ElementType, readonly string[]> = {
   image: ["asset", "fit", "focus"],
   shape: ["shape"],
   path: ["d", "points", "smooth", "closed", "viewBox"],
+  connector: ["from", "to", "curve", "arrow"],
+  particles: ["count", "motion", "size", "speed", "seed"],
   svg: ["asset"],
   button: ["label", "variant"],
   badge: ["label", "shape"],
@@ -69,7 +71,11 @@ export const TYPE_KEYS: Record<ElementType, readonly string[]> = {
   template: ["html", "css", "params", "vars"],
 };
 
+export const PARTICLE_MOTIONS = ["drift", "rise", "fall", "twinkle"] as const;
+export const ARROWS = ["none", "end", "start", "both"] as const;
+
 export const REQUIRED_KEYS: Partial<Record<ElementType, readonly string[]>> = {
+  connector: ["from", "to"],
   text: ["content"],
   image: ["asset"],
   shape: ["shape"],

@@ -376,6 +376,36 @@ describe("paths", () => {
   }, 60_000);
 });
 
+describe("connectors", () => {
+  it("run between the edges of their ends, follow them, and hide while an end is hidden", async () => {
+    const p = compile({ version: "0.4", video: { format: "1:1" }, scenes: [{ id: "s", duration: 3, elements: [
+      { id: "a", type: "shape", shape: "rect", layout: { x: 100, y: 500, width: 100, height: 80 }, enter: "none" },
+      { id: "b", type: "shape", shape: "rect", layout: { x: 800, y: 500, width: 100, height: 80 }, enter: { preset: "fadeUp", at: 1, duration: 1, distance: 200, ease: "linear" } },
+      { id: "ab", type: "connector", from: "a", to: "b" },
+    ] }] } as never);
+    const s = await RenderSession.open(p, { browser });
+    try {
+      const line = async (t: number) => {
+        await s.render(t);
+        return s.page.evaluate(() => {
+          const g = document.querySelectorAll("path")[0]!;
+          return { d: g.getAttribute("d")!, opacity: Number((g.ownerSVGElement as SVGSVGElement).style.opacity) };
+        });
+      };
+      expect((await line(0.5)).opacity).toBe(0);
+      const done = await line(2.5);
+      expect(done.opacity).toBe(1);
+      const [x0, y0, x1, y1] = done.d.match(/-?[\d.]+/g)!.map(Number) as [number, number, number, number];
+      expect(x0).toBeCloseTo(208, 0); // a's right edge + 8px gap
+      expect(x1).toBeCloseTo(792, 0); // b's left edge − 8px gap
+      expect(y0).toBeCloseTo(540, 0);
+      expect(y1).toBeCloseTo(540, 0);
+    } finally {
+      await s.close();
+    }
+  }, 60_000);
+});
+
 describe("svg and template", () => {
   it("sanitises SVG files", async () => {
     const { sanitizeSvg } = await import("./index.js");

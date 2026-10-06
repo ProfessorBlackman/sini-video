@@ -374,6 +374,30 @@ Any line or outline: curves, waves, squiggles, blobs, routes, hand-drawn marks.
 - `style.stroke`, `strokeWidth` (px, default 4, stays the same when the path is scaled), `dash`, and `fill` (a colour or gradient; use it with `closed` for blobs). With neither fill nor stroke, it's stroked in the text colour. Ends and corners are round.
 - `drawOutline` draws it from start to end; a dashed path draws dash by dash. A path can also be a route for `follow` (§9.4).
 
+#### `connector`
+
+A line between two elements that follows them as they move: flow charts, networks, "this leads to that".
+
+```json
+{ "id": "a-to-b", "type": "connector", "from": "commit", "to": "build", "curve": 0.3, "arrow": "end",
+  "style": { "stroke": "cyan", "strokeWidth": 3 }, "enter": "drawOutline" }
+```
+
+- `from`, `to`: elements, component paths or screenshot regions (`"app#export"`). The line runs between their edges (not centres), recalculated every frame, so it follows enters, camera moves and `follow`.
+- `curve`: −1 to 1, how far it bows to one side (0 = straight). `arrow`: `none` (default), `end`, `start`, `both`.
+- `style.stroke`, `strokeWidth` (default 3), `dash`. It shows only while both ends are visible. Put it at scene level or in the same `group` as its ends; no `layout` needed.
+
+#### `particles`
+
+A field of small glowing dots inside its box (the whole parent by default): embers, snow, stars, data.
+
+```json
+{ "id": "sparks", "type": "particles", "count": 60, "motion": "rise", "size": [2, 6], "style": { "fill": "cyan/0.8" } }
+```
+
+- `motion`: `drift` (wander in place, default), `rise`, `fall`, `twinkle` (fixed, flickering). `count` 1–400 (default 40), `size` px or `[min, max]` (default `[3, 7]`), `speed` (1 = normal), `seed` for a different arrangement.
+- `style.fill` colours them (default: the text colour). Every frame is computed from time and the seed, so renders repeat exactly.
+
 #### `svg`
 
 `{ "type": "svg", "asset": "logo" }`. Stroke-based SVGs work with `drawOutline`.
@@ -1144,6 +1168,9 @@ Start from the pattern that matches the brief, then adapt it. Use the real featu
 
 **Photo or product reel**
 - `image` elements (placeholders until the client sends files) in a `grid` or `stack`; `matchCut` from one photo to the next scene's `background`; `kenBurns` for slow movement.
+
+**Diagrams and networks**
+- Boxes or badges as nodes, `connector` elements between them (`arrow`, `curve`, `drawOutline` to draw the links in); `particles` for an ambient field of light.
 
 **Illustrated scenes (no photos)**
 - Organic shapes are `path` elements: `smooth` points for icing, steam, waves and hair; `closed` smooth points with a gradient `fill` for blobs, food and leaves. Draw them in with `drawOutline`.

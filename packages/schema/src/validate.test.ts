@@ -142,3 +142,19 @@ describe("numeric style values", () => {
     expect(errors(spec({ opacity: "half" }))[0]).toMatchObject({ code: "bad-style-value" });
   });
 });
+
+describe("connectors and particles", () => {
+  const spec = (els: unknown[]) => ({ version: "0.4", video: { format: "1:1" }, scenes: [{ id: "s", duration: 2, elements: els }] });
+  const codes = (x: unknown) => errors(x).map((i) => i.code);
+  const nodes = [{ id: "a", type: "badge", label: "A" }, { id: "b", type: "badge", label: "B" }];
+  it("check connector ends and options", () => {
+    expect(codes(spec([...nodes, { id: "ab", type: "connector", from: "a", to: "b", curve: 0.3, arrow: "end" }]))).toEqual([]);
+    expect(codes(spec([...nodes, { id: "ab", type: "connector", from: "a", to: "zz" }]))).toEqual(["unknown-ref"]);
+    expect(codes(spec([...nodes, { id: "ab", type: "connector", from: "a", to: "b", curve: 3 }]))).toEqual(["bad-connector"]);
+  });
+  it("check particle options", () => {
+    expect(codes(spec([{ id: "p", type: "particles", count: 50, motion: "rise", size: [2, 6] }]))).toEqual([]);
+    expect(codes(spec([{ id: "p", type: "particles", motion: "explode" }]))).toEqual(["unknown-particle motion"]);
+    expect(codes(spec([{ id: "p", type: "particles", count: 5000 }]))).toEqual(["bad-particles"]);
+  });
+});

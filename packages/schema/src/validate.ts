@@ -10,7 +10,7 @@ import {
   ANCHORS, ANIM_PROPS, BADGE_SHAPES, BEHAVIORS, BUNDLED_FONTS, BUTTON_VARIANTS, CHART_KINDS, CHROMES,
   COMMON_KEYS, DSL_VERSION, ELEMENT_TYPES, ENTER_PRESETS, EXIT_PRESETS, FORMATS, FPS, INSTANCE_KEYS,
   LAYOUT_KEYS, PERSONALITIES, PRESETS, PRESET_COMMON, PRESET_PARAMS, PRESET_TARGETS, REQUIRED_KEYS,
-  ROLES, SAFE_ZONES, SHAPES, SIDES, SIDE_PRESETS, STACK_ALIGN, STACK_JUSTIFY, STYLE_KEYS, TRANSITIONS,
+  ROLES, SAFE_ZONES, SHAPES, ARROWS, PARTICLE_MOTIONS, SIDES, SIDE_PRESETS, STACK_ALIGN, STACK_JUSTIFY, STYLE_KEYS, TRANSITIONS,
   TYPE_KEYS, type ElementType,
 } from "./vocab.js";
 
@@ -584,6 +584,20 @@ class Validator {
     }
     if (ty === "shape") this.oneOf(e.shape, SHAPES, `${p}.shape`, "shape");
     if (ty === "path") this.pathDecl(e, p);
+    if (ty === "connector") {
+      for (const end of ["from", "to"]) {
+        const x = e[end];
+        if (end in e) this.targetRef(prefix && typeof x === "string" && !x.includes("#") ? prefix + x : x, sc?.id, `${p}.${end}`, { hotspot: true });
+      }
+      if ("curve" in e && !(typeof e.curve === "number" && e.curve >= -1 && e.curve <= 1)) this.err(`${p}.curve`, "bad-connector", "Must be a number from -1 to 1 (0 = straight).");
+      if ("arrow" in e) this.oneOf(e.arrow, ARROWS, `${p}.arrow`, "arrow");
+    }
+    if (ty === "particles") {
+      if ("motion" in e) this.oneOf(e.motion, PARTICLE_MOTIONS, `${p}.motion`, "particle motion");
+      if ("count" in e && !(Number.isInteger(e.count) && e.count >= 1 && e.count <= 400)) this.err(`${p}.count`, "bad-particles", "Must be a whole number from 1 to 400.");
+      if ("size" in e && !(typeof e.size === "number" || (Array.isArray(e.size) && e.size.length === 2 && e.size.every((v: J) => typeof v === "number" && v > 0)))) this.err(`${p}.size`, "bad-particles", "Must be px, or [min, max] px.");
+      if ("speed" in e && !(typeof e.speed === "number" && e.speed >= 0)) this.err(`${p}.speed`, "bad-particles", "Must be a number (1 = normal).");
+    }
     if (ty === "badge" && "shape" in e) this.oneOf(e.shape, BADGE_SHAPES, `${p}.shape`, "badge shape");
     if (ty === "button" && "variant" in e && !/\{\{/.test(e.variant)) this.oneOf(e.variant, BUTTON_VARIANTS, `${p}.variant`, "variant");
     if ((ty === "image" || ty === "svg") && !this.assets.has(e.asset) && !/\{\{/.test(String(e.asset))) {

@@ -79,6 +79,9 @@ interface Node {
   ring?: HTMLElement;
   /** focusCycle spotlight on a screenshot region. */
   spot?: HTMLElement;
+  /** drawOutline progress last applied (connectors re-dash after their geometry changes). */
+  drawn?: number;
+  particles?: { dots: HTMLElement[]; seeds: number[][] };
   /** Device screen element (scaled logical-pixel space). */
   screen?: HTMLElement;
   /** Device pages by screen name. */
@@ -500,6 +503,65 @@ function build(el: PlanElement, flow: boolean, sceneId: string): HTMLElement {
       if (!outer.style.width) outer.style.width = flow ? "100%" : px(400 * k);
       if (!outer.style.height && !outer.style.aspectRatio) outer.style.height = flow ? "auto" : px(400 * k);
       if (flow && !outer.style.height && !outer.style.aspectRatio) outer.style.aspectRatio = "4 / 3";
+      break;
+    }
+    case "connector": {
+      // Covers its parent (the scene, or a group); the line is drawn between its ends every frame.
+      if (!outer.style.width) outer.style.width = "100%";
+      if (!outer.style.height) outer.style.height = "100%";
+      Object.assign(anim.style, { width: "100%", height: "100%" });
+      outer.style.pointerEvents = "none";
+      const svg = document.createElementNS(SVGNS, "svg");
+      svg.setAttribute("width", "100%");
+      svg.setAttribute("height", "100%");
+      Object.assign(svg.style, { display: "block", overflow: "visible" });
+      const geo = document.createElementNS(SVGNS, "path");
+      geo.setAttribute("pathLength", "1");
+      geo.setAttribute("fill", "none");
+      geo.setAttribute("stroke", el.style.stroke ?? "#ffffff");
+      geo.setAttribute("stroke-width", String(el.style.strokeWidth ?? 3 * k));
+      geo.setAttribute("stroke-linecap", "round");
+      const arrow = String(el.props.arrow);
+      let markerId = "";
+      if (arrow !== "none") {
+        const id = `sini-arrow-${++gradientId}`;
+        const defs = document.createElementNS(SVGNS, "defs");
+        const m = document.createElementNS(SVGNS, "marker");
+        for (const [a, v] of [["id", id], ["viewBox", "0 0 10 10"], ["refX", "8"], ["refY", "5"], ["markerWidth", "4"], ["markerHeight", "4"], ["orient", "auto-start-reverse"]]) m.setAttribute(a!, v!);
+        const tip = document.createElementNS(SVGNS, "path");
+        tip.setAttribute("d", "M0 0L10 5L0 10z");
+        tip.setAttribute("fill", el.style.stroke ?? "#ffffff");
+        m.appendChild(tip);
+        defs.appendChild(m);
+        svg.appendChild(defs);
+        markerId = id;
+      }
+      svg.appendChild(geo);
+      anim.appendChild(svg);
+      node.box = geo;
+      node.outline = geo;
+      connectors.push({ node, geo, svg, arrow, marker: markerId });
+      break;
+    }
+    case "particles": {
+      if (!outer.style.width) outer.style.width = "100%";
+      if (!outer.style.height) outer.style.height = "100%";
+      Object.assign(anim.style, { width: "100%", height: "100%", position: "relative", overflow: "hidden" });
+      outer.style.pointerEvents = "none";
+      const count = Number(el.props.count);
+      const [s0, s1] = el.props.size as [number, number];
+      const rand = mulberry32(Number(el.props.seed) * 7907 + plan.seed * 31 + count);
+      const dots: HTMLElement[] = [];
+      const seeds: number[][] = [];
+      for (let i = 0; i < count; i++) {
+        // x, y, size, phase, phase 2, speed factor
+        const sd = [rand(), rand(), s0 + (s1 - s0) * rand(), rand() * Math.PI * 2, rand() * Math.PI * 2, 0.6 + rand() * 0.8];
+        const d = h("div", "particle", { position: "absolute", left: "0", top: "0", width: px(sd[2]!), height: px(sd[2]!), borderRadius: "50%", background: el.style.fill ?? "#fff", boxShadow: `0 0 ${px(sd[2]! * 1.5)} ${el.style.fill ?? "#fff"}` });
+        anim.appendChild(d);
+        dots.push(d);
+        seeds.push(sd);
+      }
+      node.particles = { dots, seeds };
       break;
     }
     case "path": {
@@ -1485,6 +1547,100 @@ function applySpot(n: Node, s: ElementFrame["spot"]) {
   });
 }
 
+const connectors: { node: Node; geo: SVGPathElement; svg: SVGSVGElement; arrow: string; marker: string }[] = [];
+
+/** How visible an element is right now: hidden if it or a container is hidden, else its opacity chain. */
+function shownOpacity(n: Node): number {
+  let o = 1;
+  for (let e: HTMLElement | null = n.anim; e && e !== stage; e = e.parentElement) {
+    if (e.style.visibility === "hidden") return 0;
+    const v = parseFloat(e.style.opacity);
+    if (!Number.isNaN(v)) o *= v;
+  }
+  return o;
+}
+
+/** The point where the segment from the centre of `r` towards (tx, ty) leaves `r`, pushed out by `gap`. */
+function edgePoint(r: { x: number; y: number; w: number; h: number }, tx: number, ty: number, gap: number): [number, number] {
+  const cx = r.x + r.w / 2;
+  const cy = r.y + r.h / 2;
+  const dx = tx - cx;
+  const dy = ty - cy;
+  const len = Math.hypot(dx, dy) || 1;
+  const sx = dx ? r.w / 2 / Math.abs(dx) : Infinity;
+  const sy = dy ? r.h / 2 / Math.abs(dy) : Infinity;
+  const s = Math.min(sx, sy);
+  return [cx + dx * s + (dx / len) * gap, cy + dy * s + (dy / len) * gap];
+}
+
+/** Connectors: a line between two elements (or screenshot regions) as they are drawn right now. */
+function updateConnectors() {
+  for (const { node, geo, svg, arrow, marker } of connectors) {
+    const ends: Node[] = [];
+    const end = (name: string): DOMRect | undefined => {
+      const [base, hs] = String(name).split("#") as [string, string | undefined];
+      const ref = resolveRef(base, node.el.ref);
+      const target = ref ? nodes.get(ref) : undefined;
+      if (!target) return undefined;
+      ends.push(target);
+      return (hs ? spotRect(target, hs) : undefined) ?? visualRect(target);
+    };
+    const ra = end(String(node.el.props.from));
+    const rb = end(String(node.el.props.to));
+    if (!ra || !rb) continue;
+    // Only while both ends are on screen, fading with them.
+    svg.style.opacity = String(Math.min(...ends.map(shownOpacity)));
+    // Arrowheads appear once the line has been drawn to them.
+    const done = (node.drawn ?? 1) >= 0.98;
+    if (marker) {
+      if (done && (arrow === "end" || arrow === "both")) geo.setAttribute("marker-end", `url(#${marker})`);
+      else geo.removeAttribute("marker-end");
+      if ((node.drawn ?? 1) > 0.02 && (arrow === "start" || arrow === "both")) geo.setAttribute("marker-start", `url(#${marker})`);
+      else geo.removeAttribute("marker-start");
+    }
+    const a = localBox(ra, node.anim);
+    const b = localBox(rb, node.anim);
+    const gap = 8 * k;
+    const [x0, y0] = edgePoint(a, b.x + b.w / 2, b.y + b.h / 2, gap);
+    const [x1, y1] = edgePoint(b, a.x + a.w / 2, a.y + a.h / 2, gap);
+    const bend = Number(node.el.props.curve) || 0;
+    const mx = (x0 + x1) / 2 - ((y1 - y0) / 2) * bend;
+    const my = (y0 + y1) / 2 + ((x1 - x0) / 2) * bend;
+    geo.setAttribute("d", bend ? `M${x0} ${y0} Q${mx} ${my} ${x1} ${y1}` : `M${x0} ${y0} L${x1} ${y1}`);
+    strokeLen.set(node, geo.getTotalLength());
+    if (node.el.style.dash) setDash(node, node.drawn ?? 1);
+  }
+}
+
+/** Particles: positions are functions of time and a seed, so every frame is reproducible. */
+function applyParticles(n: Node, t: number) {
+  const { dots, seeds } = n.particles!;
+  const W0 = n.anim.offsetWidth;
+  const H0 = n.anim.offsetHeight;
+  const motion = String(n.el.props.motion);
+  const speed = Number(n.el.props.speed);
+  const frac = (v: number) => v - Math.floor(v);
+  dots.forEach((d, i) => {
+    const [bx, by, size, ph, ph2, sp] = seeds[i]! as [number, number, number, number, number, number];
+    const v = speed * sp;
+    let x = bx;
+    let y = by;
+    let o = 0.55 + 0.45 * Math.sin(ph);
+    if (motion === "drift") {
+      x = bx + Math.sin(t * 0.35 * v + ph) * 0.03;
+      y = by + Math.cos(t * 0.3 * v + ph2) * 0.03;
+    } else if (motion === "rise" || motion === "fall") {
+      y = frac(by + (motion === "rise" ? -1 : 1) * t * 0.09 * v);
+      x = bx + Math.sin(t * 0.9 * v + ph) * 0.02;
+      o *= Math.sin(Math.PI * y);
+    } else if (motion === "twinkle") {
+      o = 0.15 + 0.85 * (0.5 + 0.5 * Math.sin(t * 3 * v + ph));
+    }
+    d.style.transform = `translate(${px(x * W0 - size / 2)}, ${px(y * H0 - size / 2)})`;
+    d.style.opacity = String(Math.max(0, o));
+  });
+}
+
 const following = new Set<Node>();
 /** `follow`: the element's centre rides along a path element, optionally turned to its direction. */
 function applyFollow(fr: Frame) {
@@ -1766,6 +1922,7 @@ function applyElement(n: Node, f: ElementFrame | undefined) {
       n.outline.style.opacity = d >= 1 ? "1" : String(Math.min(1, line * 4));
       if (n.body) n.body.style.opacity = String(clamp01((d - 0.55) / 0.45));
     } else if (p.draw !== undefined) {
+      n.drawn = clamp01(d);
       if (el.style.dash) setDash(n, clamp01(d));
       else {
         n.outline.style.strokeDasharray = "1";
@@ -2101,6 +2258,8 @@ function render(t: number) {
   applyFollow(fr);
   followPins();
   for (const n of nodes.values()) applySpot(n, fr.elements[n.el.ref]?.spot);
+  updateConnectors();
+  for (const n of nodes.values()) if (n.particles) applyParticles(n, t);
   applyMatchCuts(fr);
   applyCursors(fr.cursors);
   for (const [id, layer] of bgLayers) {

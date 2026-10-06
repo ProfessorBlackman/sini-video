@@ -349,6 +349,13 @@ class Compiler {
       el.props = { shape: src.shape };
       if (src.shape !== "line" && !style.fill && !style.stroke) style.fill = ctx.textColour;
       if (src.shape === "line" && !style.stroke) style.stroke = ctx.textColour;
+    } else if (type === "connector") {
+      el.props = { from: src.from, to: src.to, curve: src.curve ?? 0, arrow: src.arrow ?? "none" };
+      if (!style.stroke) style.stroke = ctx.textColour;
+    } else if (type === "particles") {
+      const size = src.size ?? [3, 7];
+      el.props = { count: src.count ?? 40, motion: src.motion ?? "drift", size: typeof size === "number" ? [size, size] : size, speed: src.speed ?? 1, seed: src.seed ?? 1 };
+      if (!style.fill) style.fill = ctx.textColour;
     } else if (type === "path") {
       const d = typeof src.d === "string" ? src.d : pointsToPath(src.points ?? [], !!src.smooth, !!src.closed);
       const vb = src.viewBox as number[] | undefined;
