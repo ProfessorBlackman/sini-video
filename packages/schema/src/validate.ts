@@ -462,13 +462,15 @@ class Validator {
         this.err(p, "bad-asset", "Asset must be a path or an object.");
         continue;
       }
-      this.unknownKeys(v, ["type", "src", "family", "hint", "color", "fallback", "hotspots"], p);
+      this.unknownKeys(v, ["type", "src", "family", "hint", "color", "fallback", "hotspots", ...(v.type === "font" ? ["google", "url", "weight", "style"] : [])], p);
       this.oneOf(v.type, ["image", "svg", "font", "placeholder"], `${p}.type`, "asset type");
-      if (typeof v.src === "string" && /^https?:/.test(v.src)) this.err(`${p}.src`, "remote-asset", "Remote URLs aren't allowed.");
-      if ((v.type === "image" || v.type === "svg" || v.type === "font") && typeof v.src !== "string") {
+      if (typeof v.src === "string" && /^https?:/.test(v.src)) {
+        this.err(`${p}.src`, "remote-asset", "Remote URLs aren't allowed.", v.type === "font" ? `Use "url": "${v.src}" (downloaded once into fonts/), or "google": "<family>" for a Google Fonts family.` : undefined);
+      }
+      if (v.type === "font") this.fontDecl(v, p);
+      else if ((v.type === "image" || v.type === "svg") && typeof v.src !== "string") {
         this.err(p, "missing-src", `A ${v.type} asset needs 'src'.`);
       }
-      if (v.type === "font" && v.family) this.fontFamilies.add(v.family);
       if ("color" in v) this.colour(v.color, `${p}.color`);
       for (const [hn, hv] of Object.entries(isObj(v.hotspots) ? v.hotspots : {})) {
         const ok = (Array.isArray(hv) && hv.length === 4 && hv.every((n: J) => typeof n === "number")) ||
@@ -481,6 +483,23 @@ class Validator {
         this.err(`theme.fonts.${slot}`, "unknown-font", `Font '${fam}' isn't bundled and isn't declared as a font asset.`, didYouMean(fam, this.fontFamilies));
       }
     }
+  }
+
+  /** A font from a file in the project (src), from Google Fonts (google), or downloaded from a URL (url). */
+  fontDecl(v: J, p: string) {
+    const sources = ["src", "google", "url"].filter((k) => k in v);
+    if (sources.length !== 1) {
+      this.err(p, sources.length ? "font-source" : "missing-src", sources.length ? `A font asset takes one of 'src', 'google' or 'url', not ${sources.map((k) => `'${k}'`).join(" and ")}.` : 'A font asset needs \'src\' (a file in the project), \'google\' (a Google Fonts family) or \'url\'.');
+    }
+    if ("google" in v && (typeof v.google !== "string" || !/^[A-Za-z0-9][A-Za-z0-9 ]*$/.test(v.google))) this.err(`${p}.google`, "bad-font", 'Use the family name as on fonts.google.com, e.g. "Plus Jakarta Sans".');
+    if ("url" in v && (typeof v.url !== "string" || !/^https:\/\/[^\s]+$/.test(v.url))) this.err(`${p}.url`, "bad-font", "A font URL must start with https://.");
+    if (("url" in v || "src" in v) && typeof v.family !== "string") this.err(p, "missing-family", "A font from 'src' or 'url' needs 'family': the name to use in theme.fonts and style.font.");
+    if ("weight" in v && !((typeof v.weight === "number" && v.weight >= 1 && v.weight <= 1000) || (typeof v.weight === "string" && /^\d{1,4}( \d{1,4})?$/.test(v.weight)))) {
+      this.err(`${p}.weight`, "bad-font", 'Weight is a number (700) or a range for a variable font ("200 800").');
+    }
+    if ("style" in v) this.oneOf(v.style, ["normal", "italic"], `${p}.style`, "font style");
+    const family = typeof v.family === "string" ? v.family : typeof v.google === "string" ? v.google : undefined;
+    if (family) this.fontFamilies.add(family);
   }
 
   componentsDecl(comps: Record<string, J>) {

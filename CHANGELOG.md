@@ -6,7 +6,11 @@ Images: `ghcr.io/professorblackman/sini:<version>` for linux/amd64 and linux/arm
 
 ## [Unreleased]
 
-Fixes from the real-assets round ([findings](docs/paper-tests/v0.7-real-assets/FINDINGS.md)).
+Any font, and fixes from the real-assets round ([findings](docs/paper-tests/v0.7-real-assets/FINDINGS.md)).
+
+### Added
+- **Downloaded fonts**: `{ "type": "font", "google": "Plus Jakarta Sans" }` fetches a Google Fonts family (every weight and italic), and `{ "type": "font", "url": "https://…", "family": "…" }` fetches one font file. Each is downloaded once, when the video is created or changed or at the next render, into the project's `fonts/` folder with a `fonts.lock.json` (and the licence); renders then never use the network, so they stay identical. Font files are checked to be TTF, OTF, WOFF or WOFF2.
+- Font assets take `weight` (a number, or a range for variable fonts) and `style`.
 
 ### Fixed
 - Text hotspots missed labels on coloured buttons (e.g. "Scan Now" on a bright green button): a fine-tile OCR pass runs when the others miss.

@@ -3,6 +3,7 @@ import { dirname, join, resolve, sep } from "node:path";
 import { compile, type CompiledPlan } from "@sini/core";
 import { didYouMean, expandComponent, validate, type Issue, type Spec, type ValidationResult } from "@sini/schema";
 import { iconNames } from "@sini/render";
+import { cachedFontFaces } from "./fonts.js";
 import { cachedTextHotspots } from "./ocr.js";
 
 export class SiniError extends Error {
@@ -45,7 +46,7 @@ export function check(target = "."): ValidationResult & { file: string } {
 }
 
 export function compileSpec(spec: Spec, dir: string): CompiledPlan {
-  return compile(spec, { projectDir: dir, exists: (p) => existsSync(p), resolvePath: (d, rel) => resolve(d, rel), textHotspots: cachedTextHotspots(spec, dir) });
+  return compile(spec, { projectDir: dir, exists: (p) => existsSync(p), resolvePath: (d, rel) => resolve(d, rel), textHotspots: cachedTextHotspots(spec, dir), fontFaces: cachedFontFaces(spec, dir) });
 }
 
 /** Asset files must live inside the project folder (no ../ escapes, no absolute paths elsewhere). */

@@ -73,6 +73,16 @@ export function createServer(root = process.env.SINI_ROOT ?? process.cwd()): Mcp
     const kept = els.filter((e) => (!visibleOnly || e.visible) && (!ids?.length || ids.some((id) => e.ref === id || e.ref.startsWith(`${id}/`) || e.ref.startsWith(`${id}#`))));
     return { kept, omitted: els.length - kept.length };
   };
+  // Fonts named by `google` or `url` are fetched as soon as they're declared, so a typo or a missing network shows up now.
+  const fetchFonts = async (dir: string, issues: Issue[]): Promise<{ note: string; issues: Issue[] }> => {
+    try {
+      const { downloaded } = await api.resolveFonts(dir);
+      const note = downloaded.map((d) => `\nDownloaded ${d.family} (${d.files} file${d.files === 1 ? "" : "s"}, ${d.source}) into fonts/.`).join("");
+      return { note, issues: issues.filter((i) => i.code !== "font-not-downloaded") };
+    } catch (e) {
+      return { note: `\n! ${(e as Error).message}`, issues: issues.filter((i) => i.code !== "font-not-downloaded") };
+    }
+  };
   const projectArg = { project: z.string().default(".").describe("Project folder (relative to the server root) containing video.json") };
   const readOnly = { readOnlyHint: true, openWorldHint: false };
 
@@ -100,9 +110,10 @@ export function createServer(root = process.env.SINI_ROOT ?? process.cwd()): Mcp
     title: "Create a video project",
     description: "Create a project folder with video.json. Pass `spec` to start from your own video, or omit it for a starter.",
     inputSchema: { ...projectArg, spec: z.record(z.string(), z.unknown()).optional().describe("A complete Sini video spec"), force: z.boolean().optional() },
-  }, (a) => run(() => {
+  }, (a) => run(async () => {
     const r = api.initProject(project(a.project), { ...(a.spec ? { spec: a.spec as never } : {}), ...(a.force ? { force: true } : {}) });
-    return text(`Created ${r.dir}/video.json as version ${r.version.version}.${r.issues.length ? `\n${formatIssues(r.issues)}` : ""}`);
+    const f = await fetchFonts(r.dir, r.issues);
+    return text(`Created ${r.dir}/video.json as version ${r.version.version}.${f.note}${f.issues.length ? `\n${formatIssues(f.issues)}` : ""}`);
   })());
 
   server.registerTool("get_video", { title: "Read the current spec", description: "Returns the project's video.json, scene-by-scene timing, and the version history.", inputSchema: projectArg, annotations: readOnly },
@@ -137,10 +148,11 @@ export function createServer(root = process.env.SINI_ROOT ?? process.cwd()): Mcp
       spec: z.record(z.string(), z.unknown()).optional().describe("A complete replacement spec"),
       message: z.string().optional().describe("What changed, for the version history"),
     },
-  }, (a) => run(() => {
+  }, (a) => run(async () => {
     if (!a.patch && !a.spec) throw new api.SiniError("Pass `patch` (preferred) or `spec`.");
     const r = a.patch ? api.patchProject(project(a.project), a.patch as never, a.message) : api.replaceSpec(project(a.project), a.spec as never, a.message);
-    return text(`✓ Saved version ${r.version.version}: ${r.version.message}${r.issues.length ? `\n${formatIssues(r.issues)}` : ""}`);
+    const f = await fetchFonts(project(a.project), r.issues);
+    return text(`✓ Saved version ${r.version.version}: ${r.version.message}${f.note}${f.issues.length ? `\n${formatIssues(f.issues)}` : ""}`);
   })());
 
   server.registerTool("lint_video", {

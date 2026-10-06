@@ -39,13 +39,13 @@ export function fontFile(family: string, style: "normal" | "italic" = "normal"):
 
 const url = (path: string) => `file://${encodeURI(path)}`;
 
-export function fontFaceCss(extra: { family: string; src: string }[] = []): string {
+export function fontFaceCss(extra: { family: string; src: string; weight?: string; style?: string }[] = []): string {
   const rules: string[] = [];
   for (const [family, faces] of Object.entries(BUNDLED)) {
     for (const f of faces) {
       rules.push(`@font-face{font-family:"${family}";src:url("${url(FONT_DIR + f.file)}");font-weight:${f.weight};font-style:${f.style};font-display:block}`);
     }
   }
-  for (const f of extra) rules.push(`@font-face{font-family:"${f.family}";src:url("${url(f.src)}");font-display:block}`);
+  for (const f of extra) rules.push(`@font-face{font-family:"${f.family}";src:url("${url(f.src)}");${f.weight ? `font-weight:${f.weight};` : ""}${f.style ? `font-style:${f.style};` : ""}font-display:block}`);
   return rules.join("\n");
 }

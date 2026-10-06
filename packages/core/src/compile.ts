@@ -26,6 +26,8 @@ export interface CompileOptions {
   resolvePath?: (projectDir: string, rel: string) => string;
   /** Text hotspots already located (by OCR), per asset: { name: [x, y, w, h] }. */
   textHotspots?: Record<string, Record<string, number[]>>;
+  /** Downloaded font files per font asset id (google / url), absolute paths. */
+  fontFaces?: Record<string, { src: string; weight: string; style: "normal" | "italic" }[]>;
 }
 
 export interface ReadingWindow {
@@ -489,9 +491,19 @@ class Compiler {
     // Reading windows can't extend under the end fade.
     if (endPlan.type === "fade") for (const r of this.reading) r.end = Math.min(r.end, endPlan.start);
 
-    const fontAssets = Object.values<J>(this.assets)
-      .filter((a) => a && typeof a === "object" && a.type === "font" && a.src && a.family)
-      .map((a) => ({ family: a.family, src: (this.opts.resolvePath ?? posixJoin)(this.opts.projectDir ?? ".", a.src) }));
+    const fontAssets: Plan["fontAssets"] = [];
+    for (const [id, a] of Object.entries<J>(this.assets)) {
+      if (!a || typeof a !== "object" || a.type !== "font") continue;
+      const family: string | undefined = a.family ?? a.google;
+      if (!family) continue;
+      if (a.src) {
+        fontAssets.push({ family, src: (this.opts.resolvePath ?? posixJoin)(this.opts.projectDir ?? ".", a.src), ...(a.weight !== undefined ? { weight: String(a.weight) } : {}), ...(a.style ? { style: a.style } : {}) });
+      } else if (this.opts.fontFaces?.[id]) {
+        for (const f of this.opts.fontFaces[id]!) fontAssets.push({ family, ...f });
+      } else {
+        this.warn(`assets.${id}`, "font-not-downloaded", `Font '${family}' hasn't been downloaded yet; text falls back to Inter Tight until it is.`);
+      }
+    }
 
     return {
       width: this.W,

@@ -18,7 +18,7 @@ export interface Plan {
   safeZone: "reels" | "tiktok" | "shorts" | "none";
   end: { type: "hold" | "cut" | "fade"; start: number; duration: number; color: string };
   fonts: { display: string; body: string; mono: string };
-  fontAssets: { family: string; src: string }[];
+  fontAssets: { family: string; src: string; weight?: string; style?: "normal" | "italic" }[];
   scenes: PlanScene[];
   tracks: Track[];
   /** Notes from compilation (e.g. targetDuration not reachable, unsupported features). */

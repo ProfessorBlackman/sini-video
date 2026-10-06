@@ -114,6 +114,15 @@ Bundled fonts (all SIL Open Font License, with Latin Extended coverage). Any gly
 
 The bundled families: Inter Tight, Instrument Serif, Bricolage Grotesque, Fraunces, DM Serif Display, Space Grotesk, Manrope, JetBrains Mono.
 
+**Any other font: download it.** When the brand names a font that isn't bundled, declare it as a font asset and use its family name; don't substitute a bundled one:
+
+```json
+"assets": { "brand": { "type": "font", "google": "Plus Jakarta Sans" } },
+"theme":  { "fonts": { "display": "Plus Jakarta Sans", "body": "Plus Jakarta Sans" } }
+```
+
+`google` takes any family on fonts.google.com, with every weight and italic it has. For a font elsewhere, give an https link to one file and its family: `{ "type": "font", "url": "https://…/Brand-Bold.woff2", "family": "Brand", "weight": 700 }` (one asset per weight or style; `"weight": "100 900"` for a variable file). Sini downloads each font once, when the video is created or changed (or at the next render), into the project's `fonts/` folder with a `fonts.lock.json`; after that it never uses the network for it, so renders stay identical. A wrong name or a missing network is reported then. A font file the human gave you goes in the project with `src` (§5).
+
 Text elements pick a **role**, which sets font, size, weight and line height.
 
 | Role | Font slot | Canvas size | In-device size | Line height | Notes |
@@ -161,6 +170,7 @@ Assets are declared once and referenced by ID.
   "hero":   "assets/hero.jpg",
   "logo":   { "type": "svg", "src": "assets/logo.svg" },
   "serif":  { "type": "font", "src": "fonts/MySerif.ttf", "family": "My Serif" },
+  "brand":  { "type": "font", "google": "Plus Jakarta Sans" },
   "dress":  { "type": "placeholder", "hint": "satin dress, flat lay", "color": "wine" },
   "dash":   { "type": "image", "src": "assets/dashboard.png",
               "hotspots": { "export": [1520, 96, 180, 52], "invoices": { "text": "Invoices" } },
@@ -171,12 +181,14 @@ Assets are declared once and referenced by ID.
 | Form | Meaning |
 |---|---|
 | `"path"` | Shorthand for an image; type inferred from extension |
-| `{ "type": "image" \| "svg" \| "font", "src": ... }` | Explicit asset |
+| `{ "type": "image" \| "svg" \| "font", "src": ... }` | Explicit asset. Fonts need `family`, and take `weight` (`700`, or `"200 800"` for a variable file) and `style` (`"italic"`) |
+| `{ "type": "font", "google": "Family Name" }` | A Google Fonts family, downloaded once into `fonts/` (§4.2) |
+| `{ "type": "font", "url": "https://…", "family": ... }` | One font file downloaded once into `fonts/` |
 | `{ "type": "placeholder", "hint": ..., "color": ... }` | Procedural stand-in (textured gradient). `hint` is kept so a human can swap in a real asset later |
 | `fallback` | Used automatically if `src` is missing |
 | `hotspots` | Named regions inside an image (see below) |
 
-Paths are relative to the project folder. Remote URLs are not allowed (they break determinism).
+Paths are relative to the project folder. Remote URLs are not allowed for images and SVGs (they break determinism): download the file into the project. Fonts are the exception, through `google` and `url`, because Sini keeps the downloaded copy.
 
 ### Hotspots
 

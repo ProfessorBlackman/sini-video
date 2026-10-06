@@ -7,3 +7,4 @@ export {
   type PatchOp, type VersionInfo,
 } from "./versions.js";
 export { resolveTextHotspots, cachedTextHotspots, findText } from "./ocr.js";
+export { resolveFonts, cachedFontFaces, parseMetadata, fontKind } from "./fonts.js";

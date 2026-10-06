@@ -63,6 +63,11 @@ export type AssetDecl =
       type: "image" | "svg" | "font" | "placeholder";
       src?: string;
       family?: string;
+      /** Font assets: a Google Fonts family, or an https URL of one font file (downloaded once into fonts/). */
+      google?: string;
+      url?: string;
+      weight?: number | string;
+      style?: "normal" | "italic";
       hint?: string;
       color?: Colour;
       fallback?: AssetDecl;
