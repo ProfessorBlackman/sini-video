@@ -1,0 +1,340 @@
+{
+  "version": "0.4",
+  "video": {
+    "format": "16:9",
+    "fps": 30,
+    "background": "#0f172a",
+    "safeZone": "reels"
+  },
+  "theme": {
+    "palette": {
+      "navy": "#0f172a",
+      "slate": "#475569",
+      "white": "#ffffff",
+      "accent": "#3b82f6"
+    },
+    "fonts": {
+      "display": "Inter Tight",
+      "body": "Inter Tight"
+    },
+    "motion": "editorial",
+    "transition": {
+      "type": "crossfade",
+      "duration": 0.5
+    }
+  },
+  "assets": {
+    "dashboard": {
+      "type": "image",
+      "src": "assets/dashboard.png",
+      "hotspots": {
+        "export": [
+          1390,
+          60,
+          120,
+          48
+        ],
+        "outstanding": [
+          193,
+          254,
+          272,
+          160
+        ],
+        "paid": [
+          482,
+          254,
+          272,
+          160
+        ],
+        "overdue": [
+          770,
+          254,
+          272,
+          160
+        ]
+      }
+    }
+  },
+  "scenes": [
+    {
+      "id": "dashboard-intro",
+      "duration": "auto",
+      "background": "#0f172a",
+      "elements": [
+        {
+          "id": "browser",
+          "type": "browser",
+          "content": "dashboard",
+          "chrome": "dark",
+          "url": "ledgerly.app",
+          "layout": {
+            "anchor": "center",
+            "width": "90%"
+          }
+        },
+        {
+          "id": "title",
+          "type": "text",
+          "role": "display",
+          "content": "Meet Ledgerly",
+          "style": {
+            "color": "white",
+            "align": "center"
+          },
+          "layout": {
+            "anchor": "top",
+            "inset": [
+              200,
+              0
+            ]
+          },
+          "enter": "fadeUp"
+        }
+      ]
+    },
+    {
+      "id": "pdf-export",
+      "duration": "auto",
+      "background": "#0f172a",
+      "elements": [
+        {
+          "id": "browser-zoom",
+          "type": "group",
+          "layout": {
+            "anchor": "center",
+            "width": "90%"
+          },
+          "children": [
+            {
+              "id": "app",
+              "type": "browser",
+              "content": "dashboard",
+              "chrome": "dark",
+              "url": "ledgerly.app",
+              "layout": {
+                "anchor": "top-left",
+                "width": "100%"
+              }
+            }
+          ]
+        },
+        {
+          "id": "export-toast",
+          "type": "toast",
+          "icon": "file-down",
+          "title": "PDF Exported",
+          "body": "invoices.pdf ready",
+          "style": {
+            "fill": "#1f2937",
+            "color": "#ffffff"
+          },
+          "layout": {
+            "pin": {
+              "to": "app#export",
+              "point": "center"
+            },
+            "offset": [
+              100,
+              -50
+            ]
+          },
+          "enter": "none"
+        }
+      ],
+      "timeline": [
+        {
+          "id": "zoom-to-export",
+          "behavior": "camera",
+          "target": "browser-zoom",
+          "ease": "expo.inOut",
+          "keys": [
+            {
+              "at": 0.3,
+              "focus": "app#export",
+              "zoom": 2.8
+            },
+            {
+              "at": 2.8,
+              "focus": "app#export",
+              "zoom": 2.8
+            }
+          ]
+        },
+        {
+          "id": "click-export",
+          "behavior": "interaction",
+          "cursor": "pointer",
+          "from": "top-right",
+          "at": "zoom-to-export.end-0.2",
+          "steps": [
+            {
+              "click": "app#export"
+            }
+          ]
+        },
+        {
+          "target": "export-toast",
+          "preset": "slideIn",
+          "from": "right",
+          "at": "click-export.end+0.2"
+        }
+      ]
+    },
+    {
+      "id": "highlight-stats",
+      "duration": "auto",
+      "background": "#0f172a",
+      "elements": [
+        {
+          "id": "browser-stats",
+          "type": "group",
+          "layout": {
+            "anchor": "center",
+            "width": "90%"
+          },
+          "children": [
+            {
+              "id": "app-stats",
+              "type": "browser",
+              "content": "dashboard",
+              "chrome": "dark",
+              "url": "ledgerly.app",
+              "layout": {
+                "anchor": "top-left",
+                "width": "100%"
+              }
+            }
+          ]
+        },
+        {
+          "id": "outstanding-highlight",
+          "type": "shape",
+          "shape": "rect",
+          "layout": {
+            "pin": {
+              "to": "app-stats#outstanding",
+              "point": "center"
+            }
+          },
+          "style": {
+            "fill": "none",
+            "stroke": "#3b82f6",
+            "strokeWidth": 3,
+            "radius": 12
+          },
+          "enter": "none"
+        },
+        {
+          "id": "paid-highlight",
+          "type": "shape",
+          "shape": "rect",
+          "layout": {
+            "pin": {
+              "to": "app-stats#paid",
+              "point": "center"
+            }
+          },
+          "style": {
+            "fill": "none",
+            "stroke": "#3b82f6",
+            "strokeWidth": 3,
+            "radius": 12
+          },
+          "enter": "none"
+        },
+        {
+          "id": "overdue-highlight",
+          "type": "shape",
+          "shape": "rect",
+          "layout": {
+            "pin": {
+              "to": "app-stats#overdue",
+              "point": "center"
+            }
+          },
+          "style": {
+            "fill": "none",
+            "stroke": "#3b82f6",
+            "strokeWidth": 3,
+            "radius": 12
+          },
+          "enter": "none"
+        }
+      ],
+      "timeline": [
+        {
+          "id": "zoom-out",
+          "behavior": "camera",
+          "target": "browser-stats",
+          "ease": "cubic.inOut",
+          "keys": [
+            {
+              "at": 0.3,
+              "focus": "center",
+              "zoom": 1
+            }
+          ]
+        },
+        {
+          "id": "cycle-stats",
+          "behavior": "focusCycle",
+          "targets": [
+            "outstanding-highlight",
+            "paid-highlight",
+            "overdue-highlight"
+          ],
+          "at": 0.8,
+          "interval": 1,
+          "dim": 0.3,
+          "scale": 1.08
+        }
+      ]
+    },
+    {
+      "id": "cta",
+      "duration": "auto",
+      "background": "#0f172a",
+      "elements": [
+        {
+          "id": "cta-text",
+          "type": "text",
+          "role": "display",
+          "content": "Try Ledgerly Free",
+          "style": {
+            "color": "white",
+            "align": "center"
+          },
+          "layout": {
+            "anchor": "center",
+            "inset": [
+              0,
+              0
+            ]
+          },
+          "enter": "fadeUp"
+        },
+        {
+          "id": "url-text",
+          "type": "text",
+          "role": "body",
+          "content": "ledgerly.app",
+          "style": {
+            "color": "accent",
+            "align": "center"
+          },
+          "layout": {
+            "below": "cta-text",
+            "gap": 40,
+            "align": "center"
+          },
+          "enter": "fadeUp"
+        }
+      ]
+    }
+  ],
+  "notes": [
+    "Dashboard screenshot should show invoicing interface with Export PDF button and stat cards",
+    "Three stat cards: Outstanding $18,420, Paid this month $42,980, Overdue 3 invoices",
+    "Video should be professional and smooth, targeting business users"
+  ]
+}

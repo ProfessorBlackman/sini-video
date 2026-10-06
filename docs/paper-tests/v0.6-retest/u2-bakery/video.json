@@ -1,0 +1,1517 @@
+{
+  "version": "0.4",
+  "video": {
+    "format": "9:16",
+    "fps": 30,
+    "background": "night",
+    "safeZone": "reels",
+    "end": {
+      "type": "fade",
+      "duration": 0.5,
+      "color": "#120B08"
+    }
+  },
+  "theme": {
+    "palette": {
+      "night": "#160E0A",
+      "cocoa": "#3A2218",
+      "steel": "#2B2422",
+      "steel2": "#3D3431",
+      "amber": "#F2A541",
+      "ember": "#E0762F",
+      "dough": "#D99A57",
+      "crust": "#A85A26",
+      "swirl": "#6E3514",
+      "icing": "#FFF6EA",
+      "cream": "#F4E3C8",
+      "kraft": "#C7955F",
+      "kraft2": "#A9773F",
+      "gold": "#E8B33A",
+      "kgreen": "#1F7A4A",
+      "kred": "#B8322A",
+      "wood": "#6B3F24",
+      "wood2": "#4A2A17",
+      "char": "#2A1208"
+    },
+    "fonts": {
+      "display": "Fraunces",
+      "body": "Inter Tight"
+    },
+    "motion": "calm",
+    "transition": {
+      "type": "crossfade",
+      "duration": 0.35
+    },
+    "texture": {
+      "grain": 0.06,
+      "vignette": 0.35
+    }
+  },
+  "components": {
+    "roll": {
+      "params": {},
+      "root": {
+        "id": "r",
+        "type": "group",
+        "layout": {
+          "width": 200,
+          "height": 200
+        },
+        "children": [
+          {
+            "id": "base",
+            "type": "shape",
+            "shape": "circle",
+            "layout": {
+              "anchor": "center",
+              "width": "100%",
+              "height": "100%"
+            },
+            "style": {
+              "fill": "crust",
+              "stroke": "swirl",
+              "strokeWidth": 5,
+              "shadow": "soft"
+            }
+          },
+          {
+            "id": "s1",
+            "type": "shape",
+            "shape": "circle",
+            "layout": {
+              "anchor": "center",
+              "width": "74%",
+              "height": "74%"
+            },
+            "style": {
+              "fill": "dough",
+              "stroke": "swirl/0.85",
+              "strokeWidth": 7
+            }
+          },
+          {
+            "id": "s2",
+            "type": "shape",
+            "shape": "circle",
+            "layout": {
+              "anchor": "center",
+              "width": "48%",
+              "height": "48%"
+            },
+            "style": {
+              "fill": "none",
+              "stroke": "swirl/0.85",
+              "strokeWidth": 7
+            }
+          },
+          {
+            "id": "s3",
+            "type": "shape",
+            "shape": "circle",
+            "layout": {
+              "anchor": "center",
+              "width": "20%",
+              "height": "20%"
+            },
+            "style": {
+              "fill": "swirl/0.9"
+            }
+          }
+        ]
+      }
+    },
+    "steam": {
+      "params": {},
+      "root": {
+        "id": "puff",
+        "type": "shape",
+        "shape": "pill",
+        "layout": {
+          "width": 80,
+          "height": 240
+        },
+        "style": {
+          "fill": "icing/0.35",
+          "blur": 28
+        }
+      }
+    },
+    "carried": {
+      "params": {},
+      "root": {
+        "id": "c",
+        "type": "group",
+        "layout": {
+          "width": 200,
+          "height": 200
+        },
+        "children": [
+          {
+            "id": "bun",
+            "use": "roll",
+            "layout": {
+              "anchor": "center",
+              "width": 200,
+              "height": 200
+            }
+          },
+          {
+            "id": "hand",
+            "type": "icon",
+            "name": "hand-grab",
+            "layout": {
+              "anchor": "center",
+              "offset": [
+                20,
+                40
+              ]
+            },
+            "style": {
+              "color": "char",
+              "size": 170,
+              "strokeWidth": 2.2
+            }
+          }
+        ]
+      }
+    }
+  },
+  "scenes": [
+    {
+      "id": "oven",
+      "duration": 4,
+      "background": {
+        "radial": [
+          "#3A2418",
+          "night"
+        ]
+      },
+      "elements": [
+        {
+          "id": "oven-body",
+          "type": "shape",
+          "shape": "rect",
+          "layout": {
+            "anchor": "top",
+            "inset": [
+              330,
+              0
+            ],
+            "width": 920,
+            "height": 760
+          },
+          "style": {
+            "fill": "steel2",
+            "radius": 36,
+            "shadow": "deep"
+          }
+        },
+        {
+          "id": "oven-mouth",
+          "type": "shape",
+          "shape": "rect",
+          "layout": {
+            "anchor": "top",
+            "inset": [
+              420,
+              0
+            ],
+            "width": 780,
+            "height": 560
+          },
+          "style": {
+            "fill": "#7A2E10",
+            "radius": 22
+          }
+        },
+        {
+          "id": "oven-glow",
+          "type": "shape",
+          "shape": "ellipse",
+          "layout": {
+            "anchor": "top",
+            "inset": [
+              470,
+              0
+            ],
+            "width": 700,
+            "height": 460
+          },
+          "style": {
+            "fill": "amber/0.85",
+            "blur": 70
+          }
+        },
+        {
+          "id": "oven-rack",
+          "type": "shape",
+          "shape": "line",
+          "layout": {
+            "anchor": "top",
+            "inset": [
+              790,
+              0
+            ],
+            "width": 740
+          },
+          "style": {
+            "stroke": "char/0.6",
+            "strokeWidth": 6
+          }
+        },
+        {
+          "id": "tray",
+          "type": "group",
+          "layout": {
+            "anchor": "top",
+            "inset": [
+              950,
+              0
+            ],
+            "width": 860,
+            "height": 620
+          },
+          "children": [
+            {
+              "id": "tray-plate",
+              "type": "shape",
+              "shape": "rect",
+              "layout": {
+                "anchor": "center",
+                "width": "100%",
+                "height": "100%"
+              },
+              "style": {
+                "fill": "#77706B",
+                "radius": 26,
+                "stroke": "#B8B0AA",
+                "strokeWidth": 6,
+                "shadow": "deep"
+              }
+            },
+            {
+              "id": "tray-grid",
+              "type": "grid",
+              "columns": 3,
+              "gap": 36,
+              "layout": {
+                "anchor": "center",
+                "width": 684
+              },
+              "children": [
+                {
+                  "id": "r1",
+                  "use": "roll"
+                },
+                {
+                  "id": "r2",
+                  "use": "roll"
+                },
+                {
+                  "id": "r3",
+                  "use": "roll"
+                },
+                {
+                  "id": "r4",
+                  "use": "roll"
+                },
+                {
+                  "id": "r5",
+                  "use": "roll"
+                },
+                {
+                  "id": "r6",
+                  "use": "roll"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "st1",
+          "use": "steam",
+          "layout": {
+            "anchor": "top-left",
+            "inset": [
+              910,
+              250
+            ]
+          }
+        },
+        {
+          "id": "st2",
+          "use": "steam",
+          "layout": {
+            "anchor": "top-left",
+            "inset": [
+              850,
+              420
+            ]
+          }
+        },
+        {
+          "id": "st3",
+          "use": "steam",
+          "layout": {
+            "anchor": "top-left",
+            "inset": [
+              890,
+              600
+            ]
+          }
+        },
+        {
+          "id": "st4",
+          "use": "steam",
+          "layout": {
+            "anchor": "top-left",
+            "inset": [
+              930,
+              760
+            ]
+          }
+        },
+        {
+          "id": "st5",
+          "use": "steam",
+          "layout": {
+            "anchor": "top-left",
+            "inset": [
+              1090,
+              340
+            ]
+          }
+        },
+        {
+          "id": "st6",
+          "use": "steam",
+          "layout": {
+            "anchor": "top-left",
+            "inset": [
+              1090,
+              680
+            ]
+          }
+        }
+      ],
+      "timeline": [
+        {
+          "id": "pull",
+          "target": "tray",
+          "at": 0,
+          "duration": 1.6,
+          "ease": "cubic.out",
+          "animate": {
+            "y": [
+              -420,
+              0
+            ],
+            "scale": [
+              0.72,
+              1
+            ]
+          }
+        },
+        {
+          "target": [
+            "st1",
+            "st2",
+            "st3",
+            "st4",
+            "st5",
+            "st6"
+          ],
+          "preset": "fadeIn",
+          "at": 1.2,
+          "duration": 0.8,
+          "stagger": 0.15
+        },
+        {
+          "target": [
+            "st1",
+            "st3",
+            "st5"
+          ],
+          "at": 1.2,
+          "duration": 2.8,
+          "ease": "sine.out",
+          "animate": {
+            "y": [
+              0,
+              -520
+            ],
+            "scaleY": [
+              0.8,
+              1.4
+            ],
+            "x": [
+              0,
+              30,
+              -20
+            ]
+          }
+        },
+        {
+          "target": [
+            "st2",
+            "st4",
+            "st6"
+          ],
+          "at": 1.4,
+          "duration": 2.6,
+          "ease": "sine.out",
+          "animate": {
+            "y": [
+              0,
+              -480
+            ],
+            "scaleY": [
+              0.8,
+              1.4
+            ],
+            "x": [
+              0,
+              -30,
+              20
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "icing",
+      "duration": 3,
+      "background": {
+        "radial": [
+          "#4A2B1C",
+          "night"
+        ]
+      },
+      "transition": {
+        "type": "crossfade",
+        "duration": 0.3
+      },
+      "elements": [
+        {
+          "id": "big-roll",
+          "use": "roll",
+          "layout": {
+            "anchor": "center",
+            "width": 860,
+            "height": 860,
+            "offset": [
+              0,
+              80
+            ]
+          }
+        },
+        {
+          "id": "drizzle",
+          "type": "group",
+          "layout": {
+            "anchor": "center",
+            "width": 860,
+            "height": 860,
+            "offset": [
+              0,
+              80
+            ]
+          },
+          "children": [
+            {
+              "id": "d1",
+              "type": "shape",
+              "shape": "pill",
+              "layout": {
+                "anchor": "center",
+                "width": 680,
+                "height": 24,
+                "offset": [
+                  0,
+                  -210
+                ]
+              },
+              "style": {
+                "fill": "icing",
+                "rotation": -6,
+                "shadow": "soft"
+              }
+            },
+            {
+              "id": "d2",
+              "type": "shape",
+              "shape": "pill",
+              "layout": {
+                "anchor": "center",
+                "width": 680,
+                "height": 24,
+                "offset": [
+                  0,
+                  -70
+                ]
+              },
+              "style": {
+                "fill": "icing",
+                "rotation": 6,
+                "shadow": "soft"
+              }
+            },
+            {
+              "id": "d3",
+              "type": "shape",
+              "shape": "pill",
+              "layout": {
+                "anchor": "center",
+                "width": 680,
+                "height": 24,
+                "offset": [
+                  0,
+                  70
+                ]
+              },
+              "style": {
+                "fill": "icing",
+                "rotation": -6,
+                "shadow": "soft"
+              }
+            },
+            {
+              "id": "d4",
+              "type": "shape",
+              "shape": "pill",
+              "layout": {
+                "anchor": "center",
+                "width": 680,
+                "height": 24,
+                "offset": [
+                  0,
+                  210
+                ]
+              },
+              "style": {
+                "fill": "icing",
+                "rotation": 6,
+                "shadow": "soft"
+              }
+            }
+          ]
+        },
+        {
+          "id": "piping-bag",
+          "type": "group",
+          "layout": {
+            "anchor": "top",
+            "inset": [
+              230,
+              0
+            ],
+            "width": 200,
+            "height": 360,
+            "offset": [
+              -340,
+              215
+            ]
+          },
+          "children": [
+            {
+              "id": "bag",
+              "type": "shape",
+              "shape": "rect",
+              "layout": {
+                "anchor": "top",
+                "width": 170,
+                "height": 280
+              },
+              "style": {
+                "fill": "#F7F1E8",
+                "radius": 40
+              }
+            },
+            {
+              "id": "bag-tip",
+              "type": "shape",
+              "shape": "rect",
+              "layout": {
+                "anchor": "bottom",
+                "width": 40,
+                "height": 90
+              },
+              "style": {
+                "fill": "#BFC3C7",
+                "radius": 10
+              }
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "target": "big-roll",
+          "at": 0,
+          "duration": 3,
+          "ease": "linear",
+          "animate": {
+            "scale": [
+              1,
+              1.08
+            ]
+          }
+        },
+        {
+          "target": "d1",
+          "preset": "wipeIn",
+          "from": "left",
+          "at": 0.3,
+          "duration": 0.45,
+          "ease": "linear"
+        },
+        {
+          "target": "d2",
+          "preset": "wipeIn",
+          "from": "right",
+          "at": 0.9,
+          "duration": 0.45,
+          "ease": "linear"
+        },
+        {
+          "target": "d3",
+          "preset": "wipeIn",
+          "from": "left",
+          "at": 1.5,
+          "duration": 0.45,
+          "ease": "linear"
+        },
+        {
+          "target": "d4",
+          "preset": "wipeIn",
+          "from": "right",
+          "at": 2.1,
+          "duration": 0.45,
+          "ease": "linear"
+        },
+        {
+          "target": "piping-bag",
+          "at": 0.3,
+          "duration": 0.45,
+          "ease": "linear",
+          "animate": {
+            "x": [
+              0,
+              680
+            ],
+            "y": [
+              0,
+              -70
+            ]
+          }
+        },
+        {
+          "target": "piping-bag",
+          "at": 0.75,
+          "duration": 0.15,
+          "ease": "sine.inOut",
+          "animate": {
+            "y": [
+              0,
+              210
+            ]
+          }
+        },
+        {
+          "target": "piping-bag",
+          "at": 0.9,
+          "duration": 0.45,
+          "ease": "linear",
+          "animate": {
+            "x": [
+              0,
+              -680
+            ],
+            "y": [
+              0,
+              -70
+            ]
+          }
+        },
+        {
+          "target": "piping-bag",
+          "at": 1.35,
+          "duration": 0.15,
+          "ease": "sine.inOut",
+          "animate": {
+            "y": [
+              0,
+              210
+            ]
+          }
+        },
+        {
+          "target": "piping-bag",
+          "at": 1.5,
+          "duration": 0.45,
+          "ease": "linear",
+          "animate": {
+            "x": [
+              0,
+              680
+            ],
+            "y": [
+              0,
+              -70
+            ]
+          }
+        },
+        {
+          "target": "piping-bag",
+          "at": 1.95,
+          "duration": 0.15,
+          "ease": "sine.inOut",
+          "animate": {
+            "y": [
+              0,
+              210
+            ]
+          }
+        },
+        {
+          "target": "piping-bag",
+          "at": 2.1,
+          "duration": 0.45,
+          "ease": "linear",
+          "animate": {
+            "x": [
+              0,
+              -680
+            ],
+            "y": [
+              0,
+              -70
+            ]
+          }
+        },
+        {
+          "target": "piping-bag",
+          "at": 2.6,
+          "duration": 0.4,
+          "ease": "cubic.in",
+          "animate": {
+            "y": [
+              0,
+              -900
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "pack",
+      "duration": 4,
+      "background": {
+        "linear": [
+          "#5A3622",
+          "#2E1A10"
+        ]
+      },
+      "transition": "cut",
+      "elements": [
+        {
+          "id": "box-open",
+          "type": "group",
+          "layout": {
+            "anchor": "center",
+            "width": 900,
+            "height": 700,
+            "offset": [
+              0,
+              180
+            ]
+          },
+          "children": [
+            {
+              "id": "box-lid",
+              "type": "shape",
+              "shape": "rect",
+              "layout": {
+                "anchor": "top",
+                "width": 900,
+                "height": 300,
+                "offset": [
+                  0,
+                  -310
+                ]
+              },
+              "style": {
+                "fill": "kraft2",
+                "radius": 18
+              }
+            },
+            {
+              "id": "lid-stripe",
+              "type": "stack",
+              "direction": "horizontal",
+              "layout": {
+                "anchor": "top",
+                "width": 900,
+                "height": 24,
+                "offset": [
+                  0,
+                  -150
+                ]
+              },
+              "children": [
+                {
+                  "id": "ls1",
+                  "type": "shape",
+                  "shape": "rect",
+                  "layout": {
+                    "grow": 1,
+                    "height": 24
+                  },
+                  "style": {
+                    "fill": "kred"
+                  }
+                },
+                {
+                  "id": "ls2",
+                  "type": "shape",
+                  "shape": "rect",
+                  "layout": {
+                    "grow": 1,
+                    "height": 24
+                  },
+                  "style": {
+                    "fill": "gold"
+                  }
+                },
+                {
+                  "id": "ls3",
+                  "type": "shape",
+                  "shape": "rect",
+                  "layout": {
+                    "grow": 1,
+                    "height": 24
+                  },
+                  "style": {
+                    "fill": "kgreen"
+                  }
+                },
+                {
+                  "id": "ls4",
+                  "type": "shape",
+                  "shape": "rect",
+                  "layout": {
+                    "grow": 1,
+                    "height": 24
+                  },
+                  "style": {
+                    "fill": "gold"
+                  }
+                },
+                {
+                  "id": "ls5",
+                  "type": "shape",
+                  "shape": "rect",
+                  "layout": {
+                    "grow": 1,
+                    "height": 24
+                  },
+                  "style": {
+                    "fill": "kred"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "lid-brand",
+              "type": "text",
+              "role": "subtitle",
+              "content": "The Bakery",
+              "layout": {
+                "anchor": "top",
+                "offset": [
+                  0,
+                  -260
+                ]
+              },
+              "style": {
+                "color": "cocoa",
+                "align": "center"
+              }
+            },
+            {
+              "id": "box-base",
+              "type": "shape",
+              "shape": "rect",
+              "layout": {
+                "anchor": "center",
+                "width": "100%",
+                "height": "100%"
+              },
+              "style": {
+                "fill": "kraft",
+                "radius": 18,
+                "shadow": "deep"
+              }
+            },
+            {
+              "id": "box-inner",
+              "type": "shape",
+              "shape": "rect",
+              "layout": {
+                "anchor": "center",
+                "width": 820,
+                "height": 620
+              },
+              "style": {
+                "fill": "#F3E6D3",
+                "radius": 10
+              }
+            },
+            {
+              "id": "pack-grid",
+              "type": "grid",
+              "columns": 3,
+              "gap": 40,
+              "layout": {
+                "anchor": "center",
+                "width": 700
+              },
+              "children": [
+                {
+                  "id": "p1",
+                  "use": "carried"
+                },
+                {
+                  "id": "p2",
+                  "use": "carried"
+                },
+                {
+                  "id": "p3",
+                  "use": "carried"
+                },
+                {
+                  "id": "p4",
+                  "use": "carried"
+                },
+                {
+                  "id": "p5",
+                  "use": "carried"
+                },
+                {
+                  "id": "p6",
+                  "use": "carried"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "target": [
+            "p1",
+            "p2",
+            "p3",
+            "p4",
+            "p5",
+            "p6"
+          ],
+          "preset": "slideIn",
+          "from": "down",
+          "distance": 900,
+          "at": 0.2,
+          "duration": 0.55,
+          "stagger": 0.42,
+          "ease": "cubic.out"
+        },
+        {
+          "target": [
+            "p1/hand",
+            "p2/hand",
+            "p3/hand",
+            "p4/hand",
+            "p5/hand",
+            "p6/hand"
+          ],
+          "preset": "slideOut",
+          "to": "down",
+          "at": 0.85,
+          "duration": 0.4,
+          "stagger": 0.42,
+          "ease": "cubic.in"
+        },
+        {
+          "target": "box-open",
+          "at": 2.6,
+          "duration": 1.4,
+          "ease": "cubic.inOut",
+          "animate": {
+            "scale": [
+              1,
+              1.06
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "final",
+      "duration": 4,
+      "background": {
+        "linear": [
+          "#5C3824",
+          "#2A170D"
+        ]
+      },
+      "elements": [
+        {
+          "id": "bokeh1",
+          "type": "shape",
+          "shape": "circle",
+          "layout": {
+            "anchor": "top-left",
+            "inset": [
+              300,
+              120
+            ],
+            "width": 160,
+            "height": 160
+          },
+          "style": {
+            "fill": "amber/0.35",
+            "blur": 30
+          }
+        },
+        {
+          "id": "bokeh2",
+          "type": "shape",
+          "shape": "circle",
+          "layout": {
+            "anchor": "top-right",
+            "inset": [
+              420,
+              140
+            ],
+            "width": 220,
+            "height": 220
+          },
+          "style": {
+            "fill": "amber/0.25",
+            "blur": 40
+          }
+        },
+        {
+          "id": "bokeh3",
+          "type": "shape",
+          "shape": "circle",
+          "layout": {
+            "anchor": "top-left",
+            "inset": [
+              760,
+              520
+            ],
+            "width": 120,
+            "height": 120
+          },
+          "style": {
+            "fill": "amber/0.18",
+            "blur": 26
+          }
+        },
+        {
+          "id": "table",
+          "type": "shape",
+          "shape": "rect",
+          "layout": {
+            "anchor": "bottom",
+            "width": "100%",
+            "height": 720
+          },
+          "style": {
+            "fill": "wood"
+          }
+        },
+        {
+          "id": "table-edge",
+          "type": "shape",
+          "shape": "rect",
+          "layout": {
+            "anchor": "bottom",
+            "inset": [
+              700,
+              0
+            ],
+            "width": "100%",
+            "height": 20
+          },
+          "style": {
+            "fill": "#8A5532"
+          }
+        },
+        {
+          "id": "box-closed",
+          "type": "group",
+          "layout": {
+            "anchor": "bottom",
+            "inset": [
+              470,
+              0
+            ],
+            "width": 700,
+            "height": 470,
+            "offset": [
+              -90,
+              0
+            ]
+          },
+          "children": [
+            {
+              "id": "bc-body",
+              "type": "shape",
+              "shape": "rect",
+              "layout": {
+                "anchor": "center",
+                "width": "100%",
+                "height": "100%"
+              },
+              "style": {
+                "fill": "kraft",
+                "radius": 14,
+                "shadow": "deep"
+              }
+            },
+            {
+              "id": "bc-lid",
+              "type": "shape",
+              "shape": "rect",
+              "layout": {
+                "anchor": "top",
+                "width": "104%",
+                "height": 80
+              },
+              "style": {
+                "fill": "kraft",
+                "radius": 12
+              }
+            },
+            {
+              "id": "bc-stripe",
+              "type": "stack",
+              "direction": "horizontal",
+              "layout": {
+                "anchor": "top",
+                "inset": [
+                  80,
+                  0
+                ],
+                "width": "100%",
+                "height": 26
+              },
+              "children": [
+                {
+                  "id": "bs1",
+                  "type": "shape",
+                  "shape": "rect",
+                  "layout": {
+                    "grow": 1,
+                    "height": 26
+                  },
+                  "style": {
+                    "fill": "kred"
+                  }
+                },
+                {
+                  "id": "bs2",
+                  "type": "shape",
+                  "shape": "rect",
+                  "layout": {
+                    "grow": 1,
+                    "height": 26
+                  },
+                  "style": {
+                    "fill": "gold"
+                  }
+                },
+                {
+                  "id": "bs3",
+                  "type": "shape",
+                  "shape": "rect",
+                  "layout": {
+                    "grow": 1,
+                    "height": 26
+                  },
+                  "style": {
+                    "fill": "kgreen"
+                  }
+                },
+                {
+                  "id": "bs4",
+                  "type": "shape",
+                  "shape": "rect",
+                  "layout": {
+                    "grow": 1,
+                    "height": 26
+                  },
+                  "style": {
+                    "fill": "gold"
+                  }
+                },
+                {
+                  "id": "bs5",
+                  "type": "shape",
+                  "shape": "rect",
+                  "layout": {
+                    "grow": 1,
+                    "height": 26
+                  },
+                  "style": {
+                    "fill": "kred"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "bc-brand",
+              "type": "text",
+              "role": "title",
+              "content": "The Bakery",
+              "layout": {
+                "anchor": "center",
+                "offset": [
+                  0,
+                  40
+                ]
+              },
+              "style": {
+                "color": "cocoa",
+                "align": "center",
+                "size": 84
+              }
+            },
+            {
+              "id": "bc-sub",
+              "type": "text",
+              "role": "label",
+              "content": "Cinnamon rolls · 6 pack",
+              "layout": {
+                "anchor": "center",
+                "offset": [
+                  0,
+                  120
+                ]
+              },
+              "style": {
+                "color": "cocoa",
+                "align": "center",
+                "size": 24
+              }
+            }
+          ]
+        },
+        {
+          "id": "cup",
+          "type": "group",
+          "layout": {
+            "anchor": "bottom-right",
+            "inset": [
+              470,
+              70
+            ],
+            "width": 190,
+            "height": 200
+          },
+          "children": [
+            {
+              "id": "cup-handle",
+              "type": "shape",
+              "shape": "circle",
+              "layout": {
+                "anchor": "right",
+                "width": 80,
+                "height": 80,
+                "offset": [
+                  10,
+                  -10
+                ]
+              },
+              "style": {
+                "fill": "none",
+                "stroke": "cream",
+                "strokeWidth": 14
+              }
+            },
+            {
+              "id": "cup-body",
+              "type": "shape",
+              "shape": "rect",
+              "layout": {
+                "anchor": "top-left",
+                "width": 150,
+                "height": 180
+              },
+              "style": {
+                "fill": "cream",
+                "radius": 26
+              }
+            },
+            {
+              "id": "saucer",
+              "type": "shape",
+              "shape": "ellipse",
+              "layout": {
+                "anchor": "bottom",
+                "width": 230,
+                "height": 34,
+                "offset": [
+                  -20,
+                  10
+                ]
+              },
+              "style": {
+                "fill": "#E6D2B2"
+              }
+            }
+          ]
+        },
+        {
+          "id": "cup-steam",
+          "use": "steam",
+          "layout": {
+            "anchor": "bottom-right",
+            "inset": [
+              690,
+              150
+            ]
+          }
+        },
+        {
+          "id": "headline",
+          "type": "text",
+          "role": "title",
+          "content": "Cinnamon\nRoll Box",
+          "layout": {
+            "anchor": "top",
+            "inset": [
+              300,
+              0
+            ]
+          },
+          "style": {
+            "color": "cream",
+            "align": "center",
+            "size": 132
+          },
+          "enter": {
+            "preset": "lineReveal",
+            "at": 0.5
+          }
+        },
+        {
+          "id": "dash-rule",
+          "type": "shape",
+          "shape": "line",
+          "layout": {
+            "below": "headline",
+            "gap": 40,
+            "align": "center",
+            "width": 160
+          },
+          "style": {
+            "stroke": "gold",
+            "strokeWidth": 4
+          }
+        },
+        {
+          "id": "when",
+          "type": "text",
+          "role": "subtitle",
+          "content": "*This Weekend.*",
+          "layout": {
+            "below": "dash-rule",
+            "gap": 36,
+            "align": "center"
+          },
+          "style": {
+            "color": "gold",
+            "align": "center"
+          },
+          "enter": {
+            "preset": "fadeUp",
+            "at": "headline.enter.end-0.4"
+          }
+        }
+      ],
+      "timeline": [
+        {
+          "target": "box-closed",
+          "preset": "fadeUp",
+          "distance": 80,
+          "at": 0.1,
+          "duration": 0.9
+        },
+        {
+          "target": "dash-rule",
+          "at": "headline.enter.end-0.2",
+          "duration": 0.5,
+          "animate": {
+            "scaleX": [
+              0,
+              1
+            ]
+          }
+        },
+        {
+          "target": [
+            "bokeh1",
+            "bokeh2",
+            "bokeh3"
+          ],
+          "preset": "float",
+          "amplitude": 14,
+          "period": 4
+        },
+        {
+          "target": "box-closed",
+          "preset": "kenBurns",
+          "zoom": 1.04,
+          "at": 1
+        },
+        {
+          "target": "cup",
+          "preset": "fadeUp",
+          "distance": 60,
+          "at": 0.35,
+          "duration": 0.8
+        },
+        {
+          "target": "cup-steam",
+          "at": 0.6,
+          "duration": 3.4,
+          "ease": "sine.out",
+          "animate": {
+            "y": [
+              0,
+              -260
+            ],
+            "x": [
+              0,
+              20,
+              -15
+            ],
+            "opacity": [
+              0,
+              0.9,
+              0
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "notes": [
+    "No photos or footage were supplied and Sini renders vector motion graphics, not live action: oven, rolls, icing, hands and box are stylised illustrations.",
+    "Hands are represented by a single line-icon hand (Lucide 'hand-grab'); real hands need footage.",
+    "'The Bakery' is a placeholder brand name, and 'Cinnamon rolls · 6 pack' is invented copy (box count assumed) - replace with the client's logo/name and real pack size.",
+    "Kente-inspired red/gold/green stripe on the box is a design choice, not client branding."
+  ]
+}

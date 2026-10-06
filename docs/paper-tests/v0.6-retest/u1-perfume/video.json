@@ -1,0 +1,1020 @@
+{
+  "version": "0.4",
+  "video": {
+    "format": "16:9",
+    "fps": 30,
+    "background": "char",
+    "end": {
+      "type": "fade",
+      "duration": 0.6,
+      "color": "#000000"
+    }
+  },
+  "theme": {
+    "palette": {
+      "char": "#121214",
+      "char2": "#2C2C31",
+      "floor": "#060607",
+      "white": "#FFFFFF",
+      "glass": "#F4EDE2",
+      "amber": "#D99A3D",
+      "ember": "#7A3E0E",
+      "honey": "#F2C77A",
+      "gold": "#C9A96A",
+      "golddk": "#4A3A22",
+      "bone": "#EFE8DC",
+      "ink": "#141210",
+      "warm": "#D08A3A",
+      "warmdk": "#4A2408"
+    },
+    "fonts": {
+      "display": "Instrument Serif",
+      "body": "Inter Tight"
+    },
+    "motion": "calm",
+    "transition": {
+      "type": "crossfade",
+      "duration": 0.45
+    },
+    "texture": {
+      "grain": 0.05,
+      "vignette": 0.5
+    }
+  },
+  "components": {
+    "bottle": {
+      "params": {},
+      "root": {
+        "id": "g",
+        "type": "group",
+        "layout": {
+          "width": 360,
+          "height": 640
+        },
+        "children": [
+          {
+            "id": "cap",
+            "type": "group",
+            "children": [],
+            "layout": {
+              "x": 105,
+              "y": 0,
+              "width": 150,
+              "height": 130
+            },
+            "style": {
+              "radius": 8,
+              "fill": {
+                "linear": [
+                  "golddk",
+                  "gold",
+                  "#8C7346",
+                  "honey",
+                  "golddk"
+                ],
+                "angle": 90
+              }
+            }
+          },
+          {
+            "id": "cap-shine",
+            "type": "shape",
+            "shape": "rect",
+            "layout": {
+              "x": 128,
+              "y": 10,
+              "width": 10,
+              "height": 110
+            },
+            "style": {
+              "radius": 5,
+              "fill": "white/0.45",
+              "blur": 2
+            }
+          },
+          {
+            "id": "collar",
+            "type": "group",
+            "children": [],
+            "layout": {
+              "x": 138,
+              "y": 130,
+              "width": 84,
+              "height": 28
+            },
+            "style": {
+              "fill": {
+                "linear": [
+                  "golddk",
+                  "gold",
+                  "golddk"
+                ],
+                "angle": 90
+              }
+            }
+          },
+          {
+            "id": "body",
+            "type": "group",
+            "children": [],
+            "layout": {
+              "x": 0,
+              "y": 158,
+              "width": 360,
+              "height": 482
+            },
+            "style": {
+              "radius": 36,
+              "fill": {
+                "linear": [
+                  "glass/0.22",
+                  "glass/0.07",
+                  "glass/0.04",
+                  "glass/0.16"
+                ],
+                "angle": 90
+              },
+              "stroke": "glass/0.4",
+              "strokeWidth": 2
+            }
+          },
+          {
+            "id": "liquid",
+            "type": "group",
+            "children": [],
+            "layout": {
+              "x": 16,
+              "y": 300,
+              "width": 328,
+              "height": 324
+            },
+            "style": {
+              "radius": 24,
+              "fill": {
+                "linear": [
+                  "honey/0.92",
+                  "amber/0.9",
+                  "ember/0.95"
+                ],
+                "angle": 180
+              }
+            }
+          },
+          {
+            "id": "liquid-core",
+            "type": "group",
+            "children": [],
+            "layout": {
+              "x": 60,
+              "y": 340,
+              "width": 240,
+              "height": 250
+            },
+            "style": {
+              "radius": 120,
+              "fill": {
+                "radial": [
+                  "honey/0.55",
+                  "amber/0"
+                ]
+              },
+              "blur": 20
+            }
+          },
+          {
+            "id": "meniscus",
+            "type": "shape",
+            "shape": "rect",
+            "layout": {
+              "x": 20,
+              "y": 297,
+              "width": 320,
+              "height": 6
+            },
+            "style": {
+              "radius": 3,
+              "fill": "honey",
+              "blur": 1
+            }
+          },
+          {
+            "id": "base",
+            "type": "group",
+            "children": [],
+            "layout": {
+              "x": 16,
+              "y": 596,
+              "width": 328,
+              "height": 28
+            },
+            "style": {
+              "radius": [
+                0,
+                0,
+                22,
+                22
+              ],
+              "fill": {
+                "linear": [
+                  "glass/0.05",
+                  "glass/0.3"
+                ],
+                "angle": 180
+              }
+            }
+          },
+          {
+            "id": "shine-l",
+            "type": "group",
+            "children": [],
+            "layout": {
+              "x": 22,
+              "y": 180,
+              "width": 18,
+              "height": 430
+            },
+            "style": {
+              "radius": 9,
+              "fill": {
+                "linear": [
+                  "white/0",
+                  "white/0.7",
+                  "white/0.1"
+                ],
+                "angle": 180
+              },
+              "blur": 3
+            }
+          },
+          {
+            "id": "shine-r",
+            "type": "shape",
+            "shape": "rect",
+            "layout": {
+              "x": 322,
+              "y": 190,
+              "width": 8,
+              "height": 400
+            },
+            "style": {
+              "radius": 4,
+              "fill": "white/0.25",
+              "blur": 2
+            }
+          },
+          {
+            "id": "label",
+            "type": "stack",
+            "align": "center",
+            "gap": 6,
+            "layout": {
+              "x": 90,
+              "y": 352,
+              "width": 180
+            },
+            "style": {
+              "fill": "bone/0.94",
+              "padding": [
+                22,
+                16
+              ]
+            },
+            "children": [
+              {
+                "id": "name",
+                "type": "text",
+                "role": "title",
+                "content": "NOIR",
+                "style": {
+                  "color": "ink",
+                  "size": 54,
+                  "letterSpacing": 0.12,
+                  "align": "center"
+                }
+              },
+              {
+                "id": "kind",
+                "type": "text",
+                "role": "label",
+                "content": "Eau de Parfum",
+                "style": {
+                  "color": "ink/0.7",
+                  "size": 12,
+                  "align": "center"
+                }
+              }
+            ]
+          },
+          {
+            "id": "glint",
+            "type": "group",
+            "children": [],
+            "layout": {
+              "x": 20,
+              "y": 170,
+              "width": 70,
+              "height": 460
+            },
+            "style": {
+              "opacity": 0,
+              "radius": 30,
+              "fill": {
+                "linear": [
+                  "white/0",
+                  "white/0.5",
+                  "white/0"
+                ],
+                "angle": 90
+              },
+              "blur": 8
+            }
+          }
+        ]
+      }
+    },
+    "studio": {
+      "params": {},
+      "root": {
+        "id": "set",
+        "type": "group",
+        "layout": {
+          "x": 0,
+          "y": 0,
+          "width": 1920,
+          "height": 1080
+        },
+        "children": [
+          {
+            "id": "wall",
+            "type": "group",
+            "children": [],
+            "layout": {
+              "x": 0,
+              "y": 0,
+              "width": 1920,
+              "height": 1080
+            },
+            "style": {
+              "fill": {
+                "radial": [
+                  "char2",
+                  "char",
+                  "#08080A"
+                ]
+              }
+            }
+          },
+          {
+            "id": "wall-warm",
+            "type": "group",
+            "children": [],
+            "layout": {
+              "x": 0,
+              "y": 0,
+              "width": 1920,
+              "height": 1080
+            },
+            "style": {
+              "opacity": 0,
+              "fill": {
+                "radial": [
+                  "#C8813A",
+                  "#7A3D10",
+                  "warmdk"
+                ]
+              }
+            }
+          },
+          {
+            "id": "sweep",
+            "type": "group",
+            "children": [],
+            "layout": {
+              "x": 560,
+              "y": 100,
+              "width": 800,
+              "height": 800
+            },
+            "style": {
+              "radius": 400,
+              "fill": {
+                "radial": [
+                  "white/0.17",
+                  "white/0.05",
+                  "white/0"
+                ]
+              },
+              "blur": 90
+            }
+          },
+          {
+            "id": "floor",
+            "type": "shape",
+            "shape": "rect",
+            "layout": {
+              "x": 0,
+              "y": 860,
+              "width": 1920,
+              "height": 220
+            },
+            "style": {
+              "fill": "floor"
+            }
+          },
+          {
+            "id": "refl",
+            "use": "bottle",
+            "layout": {
+              "x": 780,
+              "y": 862
+            },
+            "style": {
+              "scaleY": -1,
+              "opacity": 0.45,
+              "blur": 3
+            }
+          },
+          {
+            "id": "refl-fade",
+            "type": "group",
+            "children": [],
+            "layout": {
+              "x": 0,
+              "y": 860,
+              "width": 1920,
+              "height": 220
+            },
+            "style": {
+              "fill": {
+                "linear": [
+                  "floor/0",
+                  "floor/0.7",
+                  "floor/1"
+                ],
+                "angle": 180
+              }
+            }
+          },
+          {
+            "id": "horizon",
+            "type": "shape",
+            "shape": "line",
+            "layout": {
+              "x": 0,
+              "y": 860,
+              "width": 1920
+            },
+            "style": {
+              "stroke": "white/0.07",
+              "strokeWidth": 2
+            }
+          },
+          {
+            "id": "b",
+            "use": "bottle",
+            "layout": {
+              "x": 780,
+              "y": 220
+            }
+          }
+        ]
+      }
+    }
+  },
+  "scenes": [
+    {
+      "id": "reveal",
+      "duration": 3.7,
+      "background": "char",
+      "elements": [
+        {
+          "id": "stage1",
+          "type": "group",
+          "layout": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 1080
+          },
+          "children": [
+            {
+              "id": "s1",
+              "use": "studio"
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "id": "cam1",
+          "behavior": "camera",
+          "target": "stage1",
+          "ease": "sine.inOut",
+          "keys": [
+            {
+              "at": 0,
+              "focus": "center",
+              "zoom": 1
+            },
+            {
+              "at": 3.7,
+              "focus": "center",
+              "zoom": 1.22
+            }
+          ]
+        },
+        {
+          "target": "stage1",
+          "preset": "fadeIn",
+          "at": 0,
+          "duration": 1.2
+        },
+        {
+          "target": "s1/sweep",
+          "at": 0,
+          "duration": 3.7,
+          "ease": "sine.inOut",
+          "animate": {
+            "x": [
+              -900,
+              900
+            ]
+          }
+        },
+        {
+          "target": "s1/b/glint",
+          "at": 1,
+          "duration": 2.2,
+          "ease": "sine.inOut",
+          "animate": {
+            "x": [
+              0,
+              260
+            ],
+            "opacity": [
+              0,
+              1,
+              0
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "macro-cap",
+      "duration": 1.8,
+      "background": "char",
+      "elements": [
+        {
+          "id": "stage2",
+          "type": "group",
+          "layout": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 1080
+          },
+          "children": [
+            {
+              "id": "s2",
+              "use": "studio"
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "id": "cam2",
+          "behavior": "camera",
+          "target": "stage2",
+          "ease": "linear",
+          "keys": [
+            {
+              "at": 0,
+              "focus": "s2/b/collar",
+              "zoom": 2.6
+            },
+            {
+              "at": 1.8,
+              "focus": "s2/b/collar",
+              "zoom": 2.85
+            }
+          ]
+        },
+        {
+          "target": "s2/sweep",
+          "at": 0,
+          "duration": 1.8,
+          "animate": {
+            "x": [
+              -200,
+              300
+            ]
+          }
+        },
+        {
+          "target": "s2/b/cap-shine",
+          "at": 0,
+          "duration": 1.8,
+          "ease": "sine.inOut",
+          "animate": {
+            "x": [
+              0,
+              100
+            ],
+            "opacity": [
+              0.3,
+              1,
+              0.3
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "macro-label",
+      "duration": 1.8,
+      "background": "char",
+      "elements": [
+        {
+          "id": "stage3",
+          "type": "group",
+          "layout": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 1080
+          },
+          "children": [
+            {
+              "id": "s3",
+              "use": "studio"
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "id": "cam3",
+          "behavior": "camera",
+          "target": "stage3",
+          "ease": "linear",
+          "keys": [
+            {
+              "at": 0,
+              "focus": "s3/b/label",
+              "zoom": 2.9
+            },
+            {
+              "at": 1.8,
+              "focus": "s3/b/label",
+              "zoom": 3.15
+            }
+          ]
+        },
+        {
+          "target": "s3/b/glint",
+          "at": 0,
+          "duration": 1.8,
+          "ease": "sine.inOut",
+          "animate": {
+            "x": [
+              40,
+              240
+            ],
+            "opacity": [
+              0,
+              0.9,
+              0
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "macro-liquid",
+      "duration": 1.8,
+      "background": "char",
+      "elements": [
+        {
+          "id": "stage4",
+          "type": "group",
+          "layout": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 1080
+          },
+          "children": [
+            {
+              "id": "s4",
+              "use": "studio"
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "id": "cam4",
+          "behavior": "camera",
+          "target": "stage4",
+          "ease": "linear",
+          "keys": [
+            {
+              "at": 0,
+              "focus": "s4/b/base",
+              "zoom": 3
+            },
+            {
+              "at": 1.8,
+              "focus": "s4/b/base",
+              "zoom": 3.3
+            }
+          ]
+        },
+        {
+          "target": "s4/b/meniscus",
+          "at": 0,
+          "duration": 1.8,
+          "ease": "sine.inOut",
+          "animate": {
+            "y": [
+              0,
+              -3,
+              0
+            ]
+          }
+        },
+        {
+          "target": "s4/b/liquid-core",
+          "at": 0,
+          "duration": 1.8,
+          "ease": "sine.inOut",
+          "animate": {
+            "x": [
+              -40,
+              40
+            ],
+            "scale": [
+              1,
+              1.15
+            ]
+          }
+        },
+        {
+          "target": "s4/b/glint",
+          "at": 0,
+          "duration": 1.8,
+          "ease": "sine.inOut",
+          "animate": {
+            "x": [
+              220,
+              20
+            ],
+            "opacity": [
+              0,
+              0.8,
+              0
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "turn",
+      "duration": 2.4,
+      "background": "char",
+      "elements": [
+        {
+          "id": "stage5",
+          "type": "group",
+          "layout": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 1080
+          },
+          "children": [
+            {
+              "id": "s5",
+              "use": "studio"
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "id": "cam5",
+          "behavior": "camera",
+          "target": "stage5",
+          "ease": "sine.inOut",
+          "keys": [
+            {
+              "at": 0,
+              "focus": "s5/b",
+              "zoom": 1.35
+            },
+            {
+              "at": 2.4,
+              "focus": "s5/b",
+              "zoom": 1.2
+            }
+          ]
+        },
+        {
+          "target": "s5/wall-warm",
+          "at": 0.1,
+          "duration": 2.2,
+          "ease": "sine.inOut",
+          "animate": {
+            "opacity": [
+              0,
+              1
+            ]
+          }
+        },
+        {
+          "target": [
+            "s5/b",
+            "s5/refl"
+          ],
+          "at": 0,
+          "duration": 2.4,
+          "ease": "sine.inOut",
+          "animate": {
+            "scaleX": [
+              1,
+              0.84,
+              0.95
+            ]
+          }
+        },
+        {
+          "target": [
+            "s5/b/label",
+            "s5/refl/label"
+          ],
+          "at": 0,
+          "duration": 2.4,
+          "ease": "sine.inOut",
+          "animate": {
+            "x": [
+              0,
+              -55,
+              -20
+            ],
+            "scaleX": [
+              1,
+              0.72,
+              0.9
+            ]
+          }
+        },
+        {
+          "target": [
+            "s5/b/shine-l",
+            "s5/refl/shine-l"
+          ],
+          "at": 0,
+          "duration": 2.4,
+          "ease": "sine.inOut",
+          "animate": {
+            "x": [
+              0,
+              70,
+              30
+            ]
+          }
+        },
+        {
+          "target": [
+            "s5/b/shine-r",
+            "s5/refl/shine-r"
+          ],
+          "at": 0,
+          "duration": 2.4,
+          "ease": "sine.inOut",
+          "animate": {
+            "x": [
+              0,
+              -60,
+              -20
+            ]
+          }
+        },
+        {
+          "target": "s5/sweep",
+          "at": 0,
+          "duration": 2.4,
+          "animate": {
+            "x": [
+              300,
+              0
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "hero",
+      "duration": 3.5,
+      "background": "warmdk",
+      "elements": [
+        {
+          "id": "stage6",
+          "type": "group",
+          "layout": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 1080
+          },
+          "children": [
+            {
+              "id": "s6",
+              "use": "studio"
+            }
+          ]
+        },
+        {
+          "id": "signature",
+          "type": "text",
+          "role": "label",
+          "content": "NOIR  ·  EAU DE PARFUM",
+          "style": {
+            "color": "bone/0.85",
+            "size": 28,
+            "letterSpacing": 0.4,
+            "align": "center"
+          },
+          "layout": {
+            "anchor": "bottom",
+            "inset": [
+              90,
+              0
+            ]
+          },
+          "enter": {
+            "preset": "trackIn",
+            "at": 0.2,
+            "duration": 0.9
+          }
+        }
+      ],
+      "timeline": [
+        {
+          "target": "s6/wall-warm",
+          "at": 0,
+          "duration": 0.1,
+          "animate": {
+            "opacity": [
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "id": "cam6",
+          "behavior": "camera",
+          "target": "stage6",
+          "ease": "sine.inOut",
+          "keys": [
+            {
+              "at": 0,
+              "focus": "center",
+              "zoom": 1.12
+            },
+            {
+              "at": 3.5,
+              "focus": "center",
+              "zoom": 1.04
+            }
+          ]
+        },
+        {
+          "target": "s6/b/glint",
+          "at": 0.4,
+          "duration": 1.8,
+          "ease": "sine.inOut",
+          "animate": {
+            "x": [
+              0,
+              260
+            ],
+            "opacity": [
+              0,
+              0.9,
+              0
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "notes": [
+    "Brand name 'NOIR' and 'Eau de Parfum' on the label are placeholders: the brief gave no product name.",
+    "The bottle is drawn from vector shapes (no product photography or 3D model was supplied); 'rotation' is simulated with a 2.5D squash and highlight shift, not true 3D.",
+    "Format chosen: 16:9 cinematic. Ask client whether 9:16 / 4:5 cutdowns are needed.",
+    "Lint warnings about small/clipped text refer to the printed bottle label and its reflection; they are product details, not copy meant to be read."
+  ]
+}

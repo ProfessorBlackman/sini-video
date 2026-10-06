@@ -1,0 +1,363 @@
+{
+  "version": "0.4",
+  "video": {
+    "format": "9:16",
+    "targetDuration": 15,
+    "safeZone": "reels",
+    "end": "hold"
+  },
+  "theme": {
+    "palette": {
+      "ink": "#1A1A1A",
+      "sun": "#FF6B35",
+      "accent": "#F7931E",
+      "mist": "#F8F9FA",
+      "mute": "#999999",
+      "success": "#4CAF50",
+      "mist-text": "#FFFFFF"
+    },
+    "fonts": {
+      "display": "Inter Tight",
+      "body": "Inter Tight"
+    },
+    "motion": "snappy"
+  },
+  "components": {
+    "ride-option": {
+      "params": {
+        "name": "",
+        "price": "",
+        "time": ""
+      },
+      "root": {
+        "id": "row",
+        "type": "stack",
+        "direction": "horizontal",
+        "justify": "space-between",
+        "align": "center",
+        "style": {
+          "fill": "mist",
+          "radius": 16,
+          "padding": [
+            18,
+            20
+          ]
+        },
+        "children": [
+          {
+            "id": "info",
+            "type": "stack",
+            "direction": "vertical",
+            "gap": 4,
+            "children": [
+              {
+                "id": "name",
+                "type": "text",
+                "role": "body",
+                "content": "{{name}}",
+                "style": {
+                  "color": "ink",
+                  "weight": 600
+                }
+              },
+              {
+                "id": "time",
+                "type": "text",
+                "role": "caption",
+                "content": "{{time}}",
+                "style": {
+                  "color": "mute"
+                }
+              }
+            ]
+          },
+          {
+            "id": "price",
+            "type": "text",
+            "role": "body",
+            "content": "{{price}}",
+            "style": {
+              "color": "ink",
+              "weight": 700
+            }
+          }
+        ]
+      }
+    }
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "duration": "auto",
+      "background": "sun",
+      "elements": [
+        {
+          "id": "header",
+          "type": "text",
+          "role": "display",
+          "content": "Tro",
+          "style": {
+            "color": "ink",
+            "align": "center"
+          },
+          "layout": {
+            "anchor": "top",
+            "inset": [
+              240,
+              0
+            ]
+          }
+        },
+        {
+          "id": "tagline",
+          "type": "text",
+          "role": "subtitle",
+          "content": "Get around Accra",
+          "style": {
+            "color": "ink",
+            "align": "center"
+          },
+          "layout": {
+            "anchor": "top",
+            "inset": [
+              380,
+              0
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "app-demo",
+      "duration": "auto",
+      "background": "mist",
+      "transition": {
+        "type": "crossfade",
+        "duration": 0.5
+      },
+      "elements": [
+        {
+          "id": "phone",
+          "type": "phone",
+          "layout": {
+            "anchor": "center",
+            "width": 720
+          },
+          "padding": [
+            24,
+            20
+          ],
+          "gap": 16,
+          "screen": "home",
+          "screens": {
+            "home": [
+              {
+                "id": "where",
+                "type": "text",
+                "role": "title",
+                "content": "Where to?",
+                "style": {
+                  "color": "ink"
+                }
+              },
+              {
+                "id": "dest-btn",
+                "type": "button",
+                "label": "Osu, Accra",
+                "variant": "outline"
+              }
+            ],
+            "rides": [
+              {
+                "id": "choose",
+                "type": "text",
+                "role": "title",
+                "content": "Choose a ride",
+                "style": {
+                  "color": "ink"
+                }
+              },
+              {
+                "id": "ride-1",
+                "use": "ride-option",
+                "with": {
+                  "name": "Comfort",
+                  "time": "2 min",
+                  "price": "GH₵ 46"
+                }
+              },
+              {
+                "id": "ride-2",
+                "use": "ride-option",
+                "with": {
+                  "name": "XL",
+                  "time": "3 min",
+                  "price": "GH₵ 62"
+                }
+              },
+              {
+                "id": "ride-3",
+                "use": "ride-option",
+                "with": {
+                  "name": "Pool",
+                  "time": "4 min",
+                  "price": "GH₵ 19"
+                },
+                "states": {
+                  "selected": {
+                    "style": {
+                      "fill": "sun"
+                    }
+                  }
+                },
+                "style": {}
+              },
+              {
+                "id": "cheapest-tag",
+                "type": "text",
+                "role": "label",
+                "content": "• CHEAPEST",
+                "style": {
+                  "color": "success",
+                  "size": 13
+                },
+                "layout": {
+                  "below": "ride-3",
+                  "gap": 8
+                }
+              },
+              {
+                "id": "confirm",
+                "type": "button",
+                "label": "Confirm",
+                "variant": "solid",
+                "style": {
+                  "fill": "sun"
+                }
+              }
+            ],
+            "track": [
+              {
+                "id": "status",
+                "type": "text",
+                "role": "title",
+                "content": "Driver on the way",
+                "style": {
+                  "color": "ink"
+                }
+              },
+              {
+                "id": "progress",
+                "type": "progress",
+                "steps": [
+                  "Assigned",
+                  "Heading over",
+                  "Arriving soon"
+                ],
+                "value": 0,
+                "style": {
+                  "fill": "sun",
+                  "color": "ink"
+                }
+              },
+              {
+                "id": "driver-info",
+                "type": "stack",
+                "direction": "horizontal",
+                "align": "center",
+                "gap": 12,
+                "style": {
+                  "fill": "mist",
+                  "radius": 12,
+                  "padding": [
+                    16,
+                    16
+                  ]
+                },
+                "children": [
+                  {
+                    "id": "avatar",
+                    "type": "shape",
+                    "shape": "circle",
+                    "layout": {
+                      "width": 48,
+                      "height": 48
+                    },
+                    "style": {
+                      "fill": "accent"
+                    }
+                  },
+                  {
+                    "id": "name",
+                    "type": "text",
+                    "role": "body",
+                    "content": "Kwame",
+                    "style": {
+                      "color": "ink",
+                      "weight": 600
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "timeline": [
+        {
+          "id": "pick-dest",
+          "behavior": "interaction",
+          "cursor": "touch",
+          "from": "bottom-right",
+          "at": 1,
+          "steps": [
+            {
+              "click": "dest-btn",
+              "navigate": {
+                "phone": "rides"
+              }
+            }
+          ]
+        },
+        {
+          "id": "select-ride",
+          "behavior": "interaction",
+          "cursor": "touch",
+          "from": "bottom-right",
+          "at": "pick-dest.end+0.5",
+          "steps": [
+            {
+              "click": "ride-3",
+              "set": {
+                "ride-3": "selected"
+              }
+            },
+            {
+              "wait": 0.3
+            },
+            {
+              "click": "confirm",
+              "navigate": {
+                "phone": "track"
+              }
+            }
+          ]
+        },
+        {
+          "target": "progress",
+          "animate": {
+            "value": 2
+          },
+          "at": "select-ride.end+0.4",
+          "duration": 2
+        }
+      ]
+    }
+  ],
+  "notes": [
+    "Tro is a ride-share app in Accra, Ghana",
+    "GH₵ is the Ghanaian cedi currency symbol",
+    "Colors chosen for bright, friendly appearance: warm orange (sun, accent) on light background",
+    "Phone screen content shows realistic app flow: destination pick, ride selection with pricing, driver tracking"
+  ]
+}

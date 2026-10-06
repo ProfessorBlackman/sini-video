@@ -6,6 +6,20 @@ Images: `ghcr.io/professorblackman/sini:<version>` for linux/amd64 and linux/arm
 
 ## [Unreleased]
 
+Fixes from the re-test round ([findings](docs/paper-tests/v0.6-retest/FINDINGS.md)).
+
+### Added
+- **`lint.accept`**: accept a lint warning by code (and element) with a reason; accepted warnings leave lint and render results.
+- `get_layout` and `describe_at` show only visible elements by default, with an `elements` filter.
+- Patches warn when an index path reaches an item that has an id.
+
+### Fixed
+- Text hotspots now find small labels such as buttons (tiled OCR fallback).
+- Shapes with gradient fills rendered black.
+- Leading and repeated spaces in text were stripped (code indentation).
+- Hex colours with an opacity suffix (`#2A1208/0.6`) were rejected.
+- `describe_at` reported original text instead of what's on screen after state changes.
+
 ## [0.1.1] - 2026-10-05
 
 Fixes from the first MCP test round ([findings](docs/paper-tests/v0.5-mcp/FINDINGS.md)): 7 agents made videos through the published image using only the MCP tools.

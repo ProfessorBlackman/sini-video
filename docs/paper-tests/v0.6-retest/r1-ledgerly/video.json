@@ -1,0 +1,448 @@
+{
+  "version": "0.4",
+  "video": {
+    "format": "16:9",
+    "fps": 30,
+    "background": "night",
+    "end": {
+      "type": "fade",
+      "duration": 0.6,
+      "color": "night"
+    }
+  },
+  "theme": {
+    "palette": {
+      "night": "#0E1424",
+      "bone": "#F4F6FA",
+      "blue": "#2459E8",
+      "sky": "#8FB0FF",
+      "mute": "#8A93A6",
+      "ink": "#111827"
+    },
+    "fonts": {
+      "display": "Manrope",
+      "body": "Inter Tight"
+    },
+    "motion": "editorial",
+    "transition": {
+      "type": "crossfade",
+      "duration": 0.6
+    }
+  },
+  "assets": {
+    "dash": {
+      "type": "image",
+      "src": "assets/dashboard.png",
+      "hotspots": {
+        "export": [
+          1116,
+          32,
+          132,
+          40
+        ],
+        "outstanding": [
+          260,
+          96,
+          367,
+          127
+        ],
+        "paid": [
+          647,
+          96,
+          366,
+          127
+        ],
+        "overdue": [
+          1033,
+          96,
+          367,
+          127
+        ]
+      },
+      "fallback": {
+        "type": "placeholder",
+        "hint": "invoicing dashboard",
+        "color": "bone"
+      }
+    }
+  },
+  "scenes": [
+    {
+      "id": "demo",
+      "duration": "auto",
+      "background": {
+        "radial": [
+          "#1A2440",
+          "night"
+        ]
+      },
+      "elements": [
+        {
+          "id": "stage",
+          "type": "group",
+          "layout": {
+            "anchor": "center",
+            "width": "100%",
+            "height": "100%"
+          },
+          "children": [
+            {
+              "id": "dashboard",
+              "type": "browser",
+              "url": "ledgerly.app/invoices",
+              "content": "dash",
+              "chrome": "dark",
+              "layout": {
+                "anchor": "bottom",
+                "inset": [
+                  40,
+                  0
+                ],
+                "width": 1240
+              },
+              "style": {
+                "shadow": "deep"
+              },
+              "enter": {
+                "preset": "fadeUp",
+                "at": 0.1,
+                "duration": 0.9
+              },
+              "overlay": [
+                {
+                  "id": "export-toast",
+                  "type": "toast",
+                  "icon": "loader",
+                  "title": "Generating PDF…",
+                  "states": {
+                    "done": {
+                      "icon": "check-circle",
+                      "title": "Your PDF is ready",
+                      "body": "Invoices-October.pdf"
+                    }
+                  },
+                  "style": {
+                    "fill": "ink",
+                    "color": "bone"
+                  },
+                  "layout": {
+                    "pin": {
+                      "to": "dashboard#export",
+                      "point": "left"
+                    },
+                    "offset": [
+                      -150,
+                      0
+                    ]
+                  }
+                },
+                {
+                  "id": "hl-outstanding",
+                  "type": "shape",
+                  "shape": "rect",
+                  "layout": {
+                    "pin": {
+                      "to": "dashboard#outstanding",
+                      "point": "center"
+                    },
+                    "width": 340,
+                    "height": 126
+                  },
+                  "style": {
+                    "fill": "blue/0.06",
+                    "stroke": "blue",
+                    "strokeWidth": 4,
+                    "radius": 14
+                  }
+                },
+                {
+                  "id": "hl-paid",
+                  "type": "shape",
+                  "shape": "rect",
+                  "layout": {
+                    "pin": {
+                      "to": "dashboard#paid",
+                      "point": "center"
+                    },
+                    "width": 340,
+                    "height": 126
+                  },
+                  "style": {
+                    "fill": "blue/0.06",
+                    "stroke": "blue",
+                    "strokeWidth": 4,
+                    "radius": 14
+                  }
+                },
+                {
+                  "id": "hl-overdue",
+                  "type": "shape",
+                  "shape": "rect",
+                  "layout": {
+                    "pin": {
+                      "to": "dashboard#overdue",
+                      "point": "center"
+                    },
+                    "width": 340,
+                    "height": 126
+                  },
+                  "style": {
+                    "fill": "blue/0.06",
+                    "stroke": "blue",
+                    "strokeWidth": 4,
+                    "radius": 14
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "caption",
+          "type": "text",
+          "role": "subtitle",
+          "content": "Export every invoice in one click",
+          "style": {
+            "color": "bone",
+            "align": "center",
+            "size": 52,
+            "weight": 600
+          },
+          "layout": {
+            "anchor": "top",
+            "inset": [
+              80,
+              0
+            ]
+          },
+          "states": {
+            "stats": {
+              "content": "Your numbers, at a glance"
+            }
+          },
+          "enter": {
+            "preset": "wordReveal",
+            "at": 0.4
+          }
+        }
+      ],
+      "timeline": [
+        {
+          "id": "cam",
+          "behavior": "camera",
+          "target": "stage",
+          "ease": "cubic.inOut",
+          "keys": [
+            {
+              "at": 1.2,
+              "focus": "center",
+              "zoom": 1
+            },
+            {
+              "at": 3.3,
+              "focus": "dashboard#export",
+              "zoom": 1.9
+            },
+            {
+              "at": "done.start+1.4",
+              "focus": "dashboard#export",
+              "zoom": 1.9
+            },
+            {
+              "at": "done.start+3.0",
+              "focus": "dashboard#paid",
+              "zoom": 1.7
+            },
+            {
+              "at": "hl3.start+1.8",
+              "focus": "dashboard#paid",
+              "zoom": 1.7
+            },
+            {
+              "at": "hl3.start+3.4",
+              "focus": "center",
+              "zoom": 1
+            }
+          ]
+        },
+        {
+          "id": "click",
+          "behavior": "interaction",
+          "cursor": "pointer",
+          "from": "bottom-right",
+          "at": 3.1,
+          "steps": [
+            {
+              "click": "dashboard#export"
+            }
+          ]
+        },
+        {
+          "id": "toast-in",
+          "target": "export-toast",
+          "preset": "slideIn",
+          "from": "right",
+          "distance": 40,
+          "at": "click.end+0.1",
+          "duration": 0.5
+        },
+        {
+          "id": "done",
+          "target": "export-toast",
+          "state": "done",
+          "at": "toast-in.end+0.9"
+        },
+        {
+          "target": "export-toast",
+          "preset": "fadeOut",
+          "at": "done.start+1.6",
+          "duration": 0.4
+        },
+        {
+          "target": "caption",
+          "state": "stats",
+          "at": "done.start+2.0"
+        },
+        {
+          "id": "hl1",
+          "target": "hl-outstanding",
+          "preset": "scaleIn",
+          "from": 0.92,
+          "at": "done.start+2.6",
+          "duration": 0.45
+        },
+        {
+          "target": "hl-outstanding",
+          "preset": "fadeOut",
+          "at": "hl1.start+1.7",
+          "duration": 0.3
+        },
+        {
+          "id": "hl2",
+          "target": "hl-paid",
+          "preset": "scaleIn",
+          "from": 0.92,
+          "at": "hl1.start+1.8",
+          "duration": 0.45
+        },
+        {
+          "target": "hl-paid",
+          "preset": "fadeOut",
+          "at": "hl2.start+1.7",
+          "duration": 0.3
+        },
+        {
+          "id": "hl3",
+          "target": "hl-overdue",
+          "preset": "scaleIn",
+          "from": 0.92,
+          "at": "hl2.start+1.8",
+          "duration": 0.45
+        },
+        {
+          "target": "hl-overdue",
+          "preset": "fadeOut",
+          "at": "hl3.start+1.6",
+          "duration": 0.3
+        }
+      ]
+    },
+    {
+      "id": "outro",
+      "duration": 5,
+      "background": {
+        "radial": [
+          "#1A2440",
+          "night"
+        ]
+      },
+      "elements": [
+        {
+          "id": "outro-block",
+          "type": "stack",
+          "align": "center",
+          "gap": 40,
+          "layout": {
+            "anchor": "center"
+          },
+          "children": [
+            {
+              "id": "wordmark",
+              "type": "text",
+              "role": "label",
+              "content": "Ledgerly",
+              "style": {
+                "color": "sky",
+                "size": 34
+              },
+              "enter": {
+                "preset": "fadeUp",
+                "at": 0.3
+              }
+            },
+            {
+              "id": "cta-title",
+              "type": "text",
+              "role": "display",
+              "content": "Try Ledgerly free",
+              "style": {
+                "color": "bone",
+                "align": "center",
+                "size": 130,
+                "weight": 700,
+                "letterSpacing": -0.03,
+                "lineHeight": 1.1
+              },
+              "enter": {
+                "preset": "wordReveal",
+                "at": 0.5
+              }
+            },
+            {
+              "id": "cta-btn",
+              "type": "button",
+              "label": "Start free",
+              "style": {
+                "fill": "blue",
+                "color": "bone"
+              },
+              "enter": {
+                "preset": "popIn",
+                "at": "cta-title.enter.end+0.1"
+              }
+            },
+            {
+              "id": "cta-url",
+              "type": "text",
+              "role": "body",
+              "content": "ledgerly.app",
+              "style": {
+                "color": "sky",
+                "weight": 600,
+                "size": 38
+              },
+              "enter": {
+                "preset": "fadeUp",
+                "at": "cta-btn.enter.end+0.15",
+                "distance": 20
+              }
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "target": "cta-btn",
+          "preset": "pulse",
+          "scale": 1.04,
+          "every": 0.9,
+          "at": "cta-btn.enter.end+0.2"
+        }
+      ]
+    }
+  ],
+  "notes": [
+    "Toast copy 'Generating PDF…', 'Your PDF is ready' and filename 'Invoices-October.pdf' are invented.",
+    "Captions 'Export every invoice in one click', 'Your numbers, at a glance' and the 'Start free' button label are invented copy."
+  ]
+}
