@@ -6,6 +6,16 @@ Images: `ghcr.io/professorblackman/sini:<version>` for linux/amd64 and linux/arm
 
 ## [Unreleased]
 
+Fixes from the 0.1.8 MedVerify re-test ([findings](docs/paper-tests/v0.7-real-assets/FINDINGS.md#4-re-test-on-018-m1b-m2b-m2hb)).
+
+### Changed
+- `avoided-word` can't be accepted in `lint.accept`: reword, crop, keep the word off screen, or cover it.
+
+### Fixed
+- Colour, bold and italic markup in a state's `content` rendered its brackets and asterisks literally.
+- `avoided-word` warned about words covered by a shape, card or image drawn on top.
+- The reference described a spotlight's `dim` backwards (`1` = no darkening).
+
 ## [0.1.8] - 2026-10-06
 
 Any font, and fixes from the real-assets round ([findings](docs/paper-tests/v0.7-real-assets/FINDINGS.md)).
