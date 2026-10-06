@@ -6,6 +6,8 @@ Images: `ghcr.io/professorblackman/sini:<version>` for linux/amd64 and linux/arm
 
 ## [Unreleased]
 
+## [0.1.8] - 2026-10-06
+
 Any font, and fixes from the real-assets round ([findings](docs/paper-tests/v0.7-real-assets/FINDINGS.md)).
 
 ### Added
@@ -158,7 +160,8 @@ The first release: an AI writes a JSON spec, and Sini renders it to MP4 determin
 - Docker image only (about 940 MB): Node 24, Chromium headless shell, a minimal FFmpeg build with libx264 (GPL; run as a separate program), bundled fonts and icons.
 - Writes files as the owner of the mounted folder.
 
-[Unreleased]: https://github.com/ProfessorBlackman/sini-video/compare/v0.1.7...HEAD
+[Unreleased]: https://github.com/ProfessorBlackman/sini-video/compare/v0.1.8...HEAD
+[0.1.8]: https://github.com/ProfessorBlackman/sini-video/compare/v0.1.7...v0.1.8
 [0.1.7]: https://github.com/ProfessorBlackman/sini-video/compare/v0.1.6...v0.1.7
 [0.1.6]: https://github.com/ProfessorBlackman/sini-video/compare/v0.1.5...v0.1.6
 [0.1.5]: https://github.com/ProfessorBlackman/sini-video/compare/v0.1.4...v0.1.5
