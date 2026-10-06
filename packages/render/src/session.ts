@@ -46,6 +46,8 @@ export interface LayoutBox {
   scene: string;
   box: { x: number; y: number; width: number; height: number };
   current: { x: number; y: number; width: number; height: number };
+  /** Text only: where the words are drawn at time t (letter spacing and wrapping included), which can differ from the box. */
+  ink?: { x: number; y: number; width: number; height: number };
   visible: boolean;
   inDevice: boolean;
   text?: string;

@@ -160,3 +160,21 @@ describe("text over pictures", () => {
     expect(codes("on-card")).not.toContain("text-over-image");
   });
 });
+
+describe("lint over time", () => {
+  it("flags text that grows too wide or leaves the frame mid-animation, but not during enters", async () => {
+    const { motionRules } = await import("./lint.js");
+    const plan = make([{ id: "s", duration: 2, background: "#000000", elements: [
+      { id: "wide", type: "text", content: "Wide", enter: "none" },
+      { id: "away", type: "text", content: "Away", enter: "none" },
+      { id: "slider", type: "text", content: "Slides in", enter: { preset: "slideIn", from: "left", at: 0, duration: 1 } },
+    ] }], { format: "9:16" });
+    const at = (t: number) => ({ time: t, width: 1080, height: 1920, elements: [
+      { ref: "wide", type: "text", scene: "s", visible: true, inDevice: false, box: { x: 100, y: 100, width: 800, height: 100 }, current: { x: 100, y: 100, width: 800, height: 100 }, ink: { x: t > 1 ? -50 : 100, y: 100, width: t > 1 ? 1200 : 800, height: 100 } },
+      { ref: "away", type: "text", scene: "s", visible: true, inDevice: false, box: { x: 100, y: 400, width: 300, height: 80 }, current: { x: t > 1 ? 950 : 100, y: 400, width: 300, height: 80 } },
+      { ref: "slider", type: "text", scene: "s", visible: true, inDevice: false, box: { x: 100, y: 700, width: 300, height: 80 }, current: { x: t < 1 ? -200 : 100, y: 700, width: 300, height: 80 } },
+    ] });
+    const issues = await motionRules(plan, { layout: async (t: number) => at(t) });
+    expect(issues.map((i) => `${i.path}:${i.code}`).sort()).toEqual(["away:leaves-frame", "wide:too-wide-in-motion"]);
+  });
+});

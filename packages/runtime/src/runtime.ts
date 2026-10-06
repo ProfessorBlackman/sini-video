@@ -30,6 +30,8 @@ export interface LayoutBox {
   box: { x: number; y: number; width: number; height: number };
   /** Box at time t, including animation transforms. */
   current: { x: number; y: number; width: number; height: number };
+  /** Text only: where the words are drawn at time t (letter spacing and wrapping included), which can differ from the box. */
+  ink?: { x: number; y: number; width: number; height: number };
   visible: boolean;
   inDevice: boolean;
   text?: string;
@@ -2300,6 +2302,7 @@ function layout(t: number): LayoutReport {
       scene: n.sceneId,
       box: staticBoxes.get(n.el.ref) ?? box(outerRect),
       current: box((SHAPED.has(n.el.type) && n.box instanceof HTMLElement ? n.box : n.anim).getBoundingClientRect()),
+      ...(n.el.type === "text" && n.text ? { ink: box(visualRect(n)) } : {}),
       visible,
       inDevice: n.el.inDevice,
       ...(n.el.text ? { text: n.el.text.plain } : {}),

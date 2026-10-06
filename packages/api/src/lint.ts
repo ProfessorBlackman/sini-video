@@ -7,7 +7,7 @@ import { existsSync } from "node:fs";
 import * as fontkit from "fontkit";
 import { contrast, over, parseCss, READING, SAFE_ZONES, TOP_LEVEL_TEXT_MARGIN, type CompiledPlan, type PlanElement, type RGBA } from "@sini/core";
 import { fontFile, RenderSession, type LayoutReport } from "@sini/render";
-import type { Issue } from "@sini/schema";
+import { ENTER_PRESETS, EXIT_PRESETS, type Issue } from "@sini/schema";
 import { plan as loadPlan } from "./project.js";
 import { resolveTextHotspots } from "./ocr.js";
 
@@ -44,6 +44,7 @@ export async function lint(target: string, opts: { layout?: boolean } = {}): Pro
     try {
       const report = await session.layout(0);
       issues.push(...layoutRules(plan, report));
+      issues.push(...(await motionRules(plan, session)));
     } finally {
       await session.close();
     }
@@ -162,6 +163,46 @@ function intersect(a: Box, b: Box): number {
 function solid(paint: string | undefined): RGBA | null {
   if (!paint || paint.includes("gradient")) return null;
   return parseCss(paint);
+}
+
+/** Enter and exit presets move things on and off screen on purpose. */
+const ON_OFF_PRESETS = new Set([...ENTER_PRESETS, ...EXIT_PRESETS]);
+
+/**
+ * Lint over time: text sampled every 0.5s while it's visible. Flags text that grows wider than the frame
+ * (e.g. trackIn letter spacing) or runs past its edge outside of an enter or exit. Text inside camera groups
+ * (zooming past the edges is the point) and inside devices is skipped.
+ */
+export async function motionRules(plan: CompiledPlan, session: { layout(t: number): Promise<LayoutReport> }): Promise<Issue[]> {
+  const W = plan.width;
+  const H = plan.height;
+  const entries = new Map(walk(plan).map((e) => [e.el.ref, e]));
+  const cameraGroups = new Set(plan.tracks.filter((t) => t.kind === "camera").map((t) => t.ref));
+  const onOff = (ref: string, t: number) => plan.tracks.some((tr) => tr.ref === ref && tr.t0 <= t && t <= tr.t1 + 0.05 && ON_OFF_PRESETS.has(tr.label.replace(/\s*\(.*\)$/, "") as never));
+  // Scene transitions (slides, pushes, zooms) move whole scenes off the frame on purpose.
+  const inTransition = (sceneId: string, t: number) => {
+    const i = plan.scenes.findIndex((s) => s.id === sceneId);
+    const sc = plan.scenes[i];
+    const next = plan.scenes[i + 1];
+    return (!!sc?.transition && t < sc.start + sc.transition.duration) || (!!next?.transition && t >= next.start);
+  };
+  const found = new Map<string, Issue>();
+  const tol = 8 * (Math.min(W, H) / 1080);
+  for (let t = 0.25; t < plan.duration; t += 0.5) {
+    const r = await session.layout(t);
+    for (const b of r.elements) {
+      const e = entries.get(b.ref);
+      if (!e || e.el.type !== "text" || b.inDevice || !b.visible || found.has(b.ref)) continue;
+      if (e.parents.some((p) => cameraGroups.has(p.ref)) || inTransition(e.el.sceneId, t)) continue;
+      const c = b.ink ?? b.current;
+      if (c.width > W + tol) {
+        found.set(b.ref, warn(b.ref, "too-wide-in-motion", `'${b.ref}' grows to ${Math.round(c.width)}px wide at ${r1(t)}s, wider than the ${W}px frame.`, "Shorten it, make it smaller, or reduce the animation's spread (e.g. trackIn's start spacing)."));
+      } else if ((c.x < -tol || c.y < -tol || c.x + c.width > W + tol || c.y + c.height > H + tol) && !onOff(b.ref, t)) {
+        found.set(b.ref, warn(b.ref, "leaves-frame", `'${b.ref}' runs past the edge of the frame at ${r1(t)}s (${Math.round(c.x)},${Math.round(c.y)} ${Math.round(c.width)}×${Math.round(c.height)}).`, "Keep its animation inside the frame, or make it an enter or exit."));
+      }
+    }
+  }
+  return [...found.values()];
 }
 
 export function layoutRules(plan: CompiledPlan, report: LayoutReport): Issue[] {
