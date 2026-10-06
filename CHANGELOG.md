@@ -9,6 +9,7 @@ Images: `ghcr.io/professorblackman/sini:<version>` for linux/amd64 and linux/arm
 ### Added
 - **`connector` element**: a line between two elements (or screenshot regions) that follows them every frame, from edge to edge, with `curve`, arrowheads, dashes and `drawOutline`; hidden while an end is hidden.
 - **`particles` element**: a seeded field of glowing dots that drift, rise, fall or twinkle; deterministic.
+- **`text-over-image` lint**: text sitting over an image, screenshot, SVG or path without a card behind it.
 - **Spotlights on screenshot regions**: `focusCycle` targets can be hotspots (`"app#export"`); a spotlight outlines each region in turn (`ring` colour) and dims the rest of the screenshot.
 
 ## [0.1.3] - 2026-10-06

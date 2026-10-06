@@ -339,6 +339,29 @@ export function layoutRules(plan: CompiledPlan, report: LayoutReport): Issue[] {
     }
   }
 
+  // Text over a picture (image, screenshot, SVG, drawn path): its contrast can't be measured, and busy
+  // pictures make text hard to read. Text on a filled card is fine (contrast is checked against the card).
+  const pictures = new Set(["image", "browser", "phone", "svg", "path"]);
+  for (const t of entries) {
+    if (t.el.type !== "text" || t.el.inDevice || !boxes.has(t.el.ref)) continue;
+    if (t.parents.some((p) => !!p.style.fill)) continue;
+    const tb = boxes.get(t.el.ref)!.box;
+    const tSpan = visibleSpan(t.el);
+    for (const o of entries) {
+      if (o.el.sceneId !== t.el.sceneId || !pictures.has(o.el.type) || o.el.inDevice || !boxes.has(o.el.ref)) continue;
+      if (o.parents.includes(t.el) || t.parents.includes(o.el)) continue;
+      const below = (o.el.z ?? 0) < (t.el.z ?? 0) || ((o.el.z ?? 0) === (t.el.z ?? 0) && order.get(o.el.ref)! < order.get(t.el.ref)!);
+      if (!below) continue;
+      const oSpan = visibleSpan(o.el);
+      if (Math.min(tSpan[1], oSpan[1]) - Math.max(tSpan[0], oSpan[0]) <= 0.05) continue;
+      const area = intersect(tb, boxes.get(o.el.ref)!.box);
+      if (tb.width * tb.height > 0 && area / (tb.width * tb.height) > 0.2) {
+        issues.push(warn(t.el.ref, "text-over-image", `'${t.el.ref}' sits over '${o.el.ref}' (${o.el.type}), so its contrast can't be checked and the picture may make it hard to read.`, "Move it off the picture, or put it on a card (a stack with style.fill)."));
+        break;
+      }
+    }
+  }
+
   // Overlapping text blocks that are on screen at the same time.
   const texts = entries.filter(({ el }) => textual.has(el.type) && !el.inDevice && boxes.has(el.ref));
   for (let i = 0; i < texts.length; i++) {

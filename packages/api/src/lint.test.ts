@@ -141,3 +141,22 @@ describe("accepted warnings", () => {
     expect(r.open.map((i) => `${i.code}:${i.path}`)).toEqual(["tiny-text:caption", "overlap:bottle-label"]);
   });
 });
+
+describe("text over pictures", () => {
+  const plan = make([{ id: "s", duration: "auto", background: "#000000", elements: [
+    { id: "shot", type: "image", asset: "x" },
+    { id: "over", type: "text", content: "Over the picture", style: { color: "#ffffff" } },
+    { id: "card", type: "stack", style: { fill: "#111111" }, children: [{ id: "on-card", type: "text", content: "On a card", style: { color: "#ffffff" } }] },
+  ] }]);
+  const box = (ref: string, type: string, x: number, y: number, w: number, h: number) =>
+    ({ ref, type, scene: "s", box: { x, y, width: w, height: h }, current: { x, y, width: w, height: h }, visible: true, inDevice: false, screenFontSize: 40 });
+  const report = { time: 0, width: 1080, height: 1920, elements: [
+    box("shot", "image", 100, 400, 880, 600), box("over", "text", 200, 500, 500, 80),
+    box("card", "stack", 200, 700, 500, 120), box("on-card", "text", 220, 720, 460, 80),
+  ] };
+  const codes = (ref: string) => layoutRules(plan, report).filter((i) => i.path === ref).map((i) => i.code);
+  it("flags text over an image, but not text on a filled card", () => {
+    expect(codes("over")).toContain("text-over-image");
+    expect(codes("on-card")).not.toContain("text-over-image");
+  });
+});

@@ -915,7 +915,7 @@ Lint checks include:
 - unintended overlap, and text covered by something drawn on top
 - content sticking out of a stack or grid, and text too wide for its box
 - text drawn too small to read (in devices, and at the camera's zoom)
-- low text contrast
+- low text contrast, and text over a picture (image, screenshot, SVG, path), where contrast can't be measured
 - too little reading time (`0.5s + 0.3s × words`, not counting time under a transition)
 - element never visible
 - broken time reference
