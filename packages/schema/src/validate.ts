@@ -434,7 +434,12 @@ class Validator {
       if (k in v && !(typeof v[k] === "number" && v[k] > 0)) this.err(`video.${k}`, "bad-number", "Must be a positive number.");
     }
     if ("background" in v) this.colour(v.background, "video.background");
-    if ("safeZone" in v) this.oneOf(v.safeZone, SAFE_ZONES, "video.safeZone", "safe zone");
+    if ("safeZone" in v) {
+      this.oneOf(v.safeZone, SAFE_ZONES, "video.safeZone", "safe zone");
+      // Platform safe zones are for vertical video; on a landscape or square video they flag the wrong areas.
+      const vertical = v.format === "9:16" || v.format === "4:5" || (typeof v.width === "number" && typeof v.height === "number" && v.height > v.width);
+      if (v.safeZone !== "none" && !vertical) this.warn("video.safeZone", "safe-zone-format", `safeZone '${v.safeZone}' is for vertical (9:16) video; this video is ${v.format ?? "not vertical"}.`, 'Remove safeZone, or set "safeZone": "none".');
+    }
     const end = v.end;
     if (isObj(end)) {
       this.unknownKeys(end, ["type", "duration", "color"], "video.end");

@@ -158,3 +158,11 @@ describe("connectors and particles", () => {
     expect(codes(spec([{ id: "p", type: "particles", count: 5000 }]))).toEqual(["bad-particles"]);
   });
 });
+
+describe("safe zones", () => {
+  it("warn when a vertical-platform safe zone is set on a landscape video", () => {
+    const spec = (format: string) => ({ version: "0.4", video: { format, safeZone: "reels" }, scenes: [{ id: "s", duration: 1, elements: [] }] });
+    expect(validate(spec("16:9")).issues.map((i) => i.code)).toContain("safe-zone-format");
+    expect(validate(spec("9:16")).issues.map((i) => i.code)).not.toContain("safe-zone-format");
+  });
+});

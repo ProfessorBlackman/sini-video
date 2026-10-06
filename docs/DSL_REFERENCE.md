@@ -183,7 +183,7 @@ Paths are relative to the project folder. Remote URLs are not allowed (they brea
 A hotspot names a region of an image so it can be clicked, focused, zoomed into or pinned to, like an element.
 
 - `[x, y, width, height]` in the **image's own pixels**. Only use this if you have seen the image or the human gave you the coordinates.
-- `{ "text": "Export PDF" }`: Sini finds the region by reading the text in the image. Use this when you haven't seen the image.
+- `{ "text": "Export PDF" }`: Sini finds the region by reading the text in the image. Use this when you haven't seen the image. The region is the words themselves, which suits buttons and links; for a whole card or panel (a spotlight or highlight around it), give `[x, y, width, height]`.
 
 Refer to a hotspot as `"<element-id>#<hotspot>"`, where the element shows that image (an `image`, or a `browser`/`phone` whose `content` is that image): e.g. `"click": "dashboard#export"`.
 

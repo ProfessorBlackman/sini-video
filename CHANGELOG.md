@@ -6,6 +6,10 @@ Images: `ghcr.io/professorblackman/sini:<version>` for linux/amd64 and linux/arm
 
 ## [Unreleased]
 
+### Added
+- Validation warns when a platform `safeZone` (reels, tiktok, shorts) is set on a landscape or square video.
+- Reference: text hotspots cover the words only; use `[x, y, w, h]` to spotlight a whole card or panel.
+
 ## [0.1.4] - 2026-10-06
 
 Diagrams, spotlights and smarter checks: the open items from the test rounds.
