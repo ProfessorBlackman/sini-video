@@ -324,7 +324,9 @@ function buildText(node: Node, host: HTMLElement) {
           host.appendChild(h("br"));
           line++;
         }
-        if (breaks === 0) host.appendChild(document.createTextNode(" "));
+        // The spaces themselves (after the last line break), so indentation survives.
+        const spaces = tok.slice(tok.lastIndexOf("\n") + 1);
+        if (spaces) host.appendChild(document.createTextNode(spaces));
         continue;
       }
       if (!word) {
@@ -449,7 +451,8 @@ function build(el: PlanElement, flow: boolean, sceneId: string): HTMLElement {
     case "text": {
       const t = h("div", "txt");
       fontCss(t, el);
-      t.style.whiteSpace = "normal";
+      // pre-wrap keeps leading and repeated spaces (code, indentation) and still wraps.
+      t.style.whiteSpace = "pre-wrap";
       anim.appendChild(t);
       node.text = t;
       buildText(node, t);

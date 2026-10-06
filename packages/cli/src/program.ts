@@ -118,7 +118,8 @@ export function createProgram(): Command {
         if (opts.json) return void console.log(JSON.stringify(r, null, 2));
         for (const i of r.issues) console.log(formatIssue(i));
         const n = r.issues.length;
-        console.log(n === 0 ? `✓ No problems found (${r.duration.toFixed(2)}s video).` : `\n${n} warning${n === 1 ? "" : "s"} (${r.duration.toFixed(2)}s video).`);
+        const acc = r.accepted ? `, ${r.accepted} accepted in lint.accept` : "";
+        console.log(n === 0 ? `✓ No problems found (${r.duration.toFixed(2)}s video${acc}).` : `\n${n} warning${n === 1 ? "" : "s"} (${r.duration.toFixed(2)}s video${acc}).`);
       })(),
     );
 

@@ -45,6 +45,7 @@ Sini turns a JSON description of a video into a deterministic MP4. You (the AI) 
 | `components` | no | Reusable element templates (§7.4) |
 | `scenes` | yes | Ordered list of scenes (§6) |
 | `notes` | no | Strings for the human: invented copy, assumptions, assets to replace. Not rendered |
+| `lint` | no | `{ "accept": [ … ] }`: lint warnings judged wrong for this video, each with a reason (§12) |
 
 The video's total duration is the **sum of the scene durations**.
 
@@ -837,7 +838,13 @@ Every patch creates a new version. Use `describe_at(time)` to find which element
 
 ## 12. Tools, errors and lint
 
-Treat lint warnings as problems to fix. Keep one only when you're sure it's wrong for this video, and say why in `notes`.
+Treat lint warnings as problems to fix. Keep one only when you're sure it's wrong for this video, and accept it with the reason, so it stops being reported:
+
+```json
+"lint": { "accept": [ { "code": "tiny-text", "element": "bottle-label", "reason": "Printed on the bottle; not meant to be read" } ] }
+```
+
+`element` is optional (without it, every warning with that code is accepted) and also covers elements inside it. Accepting doesn't hide errors.
 
 Use the tools instead of estimating:
 - `validate`: schema and reference errors.

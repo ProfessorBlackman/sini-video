@@ -103,3 +103,11 @@ describe("colours from the re-test round", () => {
     expect(errors(spec)).toEqual([]);
   });
 });
+
+describe("lint.accept", () => {
+  const spec = (lint: unknown) => ({ version: "0.4", video: { format: "1:1" }, lint, scenes: [{ id: "s", duration: 1, elements: [] }] });
+  it("needs a code and a reason for each accepted warning", () => {
+    expect(errors(spec({ accept: [{ code: "tiny-text", element: "x", reason: "Printed label" }] }))).toEqual([]);
+    expect(errors(spec({ accept: [{ code: "tiny-text" }] })).map((i) => i.path)).toEqual(["lint.accept[0].reason"]);
+  });
+});

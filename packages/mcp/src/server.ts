@@ -52,6 +52,15 @@ export function createServer(root = process.env.SINI_ROOT ?? process.cwd()): Mcp
     const rel = relative(ROOT, file);
     return rel && !rel.startsWith("..") ? `${rel} (in the folder Sini was given)` : file;
   };
+  // Big videos have hundreds of elements; most are hidden at any one time.
+  const filterArgs = {
+    visibleOnly: z.boolean().default(true).describe("Only elements visible at that time (default true)"),
+    elements: z.array(z.string()).optional().describe("Only these element ids (a component instance includes its parts)"),
+  };
+  const filterElements = <T extends { ref: string; visible: boolean }>(els: T[], visibleOnly: boolean, ids?: string[]) => {
+    const kept = els.filter((e) => (!visibleOnly || e.visible) && (!ids?.length || ids.some((id) => e.ref === id || e.ref.startsWith(`${id}/`) || e.ref.startsWith(`${id}#`))));
+    return { kept, omitted: els.length - kept.length };
+  };
   const projectArg = { project: z.string().default(".").describe("Project folder (relative to the server root) containing video.json") };
   const readOnly = { readOnlyHint: true, openWorldHint: false };
 
@@ -129,22 +138,31 @@ export function createServer(root = process.env.SINI_ROOT ?? process.cwd()): Mcp
     annotations: readOnly,
   }, (a) => run(async () => {
     const r = await api.lint(project(a.project), { layout: a.layout });
-    return text(r.issues.length ? `${formatIssues(r.issues)}\n\n${r.issues.length} warning(s); video is ${r.duration.toFixed(2)}s.` : `✓ No problems found; video is ${r.duration.toFixed(2)}s.`);
+    const acc = r.accepted ? ` ${r.accepted} accepted in lint.accept.` : "";
+    return text(r.issues.length ? `${formatIssues(r.issues)}\n\n${r.issues.length} warning(s); video is ${r.duration.toFixed(2)}s.${acc}` : `✓ No problems found; video is ${r.duration.toFixed(2)}s.${acc}`);
   })());
 
   server.registerTool("describe_at", {
     title: "What's on screen at a time",
     description: "Lists visible elements and running animations at a time. Use it to map feedback like 'at 0:07 the text is too fast' to element ids.",
-    inputSchema: { ...projectArg, time: z.number().min(0).describe("Seconds") },
+    inputSchema: { ...projectArg, time: z.number().min(0).describe("Seconds"), ...filterArgs },
     annotations: readOnly,
-  }, (a) => run(() => json(api.describe(project(a.project), a.time)))());
+  }, (a) => run(() => {
+    const d = api.describe(project(a.project), a.time);
+    const { kept, omitted } = filterElements(d.elements, a.visibleOnly, a.elements);
+    return json({ ...d, elements: kept, ...(omitted ? { omitted: `${omitted} elements not shown (hidden, or not in \`elements\`); visibleOnly: false shows hidden ones` } : {}) });
+  })());
 
   server.registerTool("get_layout", {
     title: "Computed layout",
     description: "Exact boxes (canvas px) of every element at a time, with text overflow and shrink info. Use instead of estimating text sizes.",
-    inputSchema: { ...projectArg, time: z.number().min(0) },
+    inputSchema: { ...projectArg, time: z.number().min(0), ...filterArgs },
     annotations: readOnly,
-  }, (a) => run(async () => json(await api.layoutAt(project(a.project), a.time)))());
+  }, (a) => run(async () => {
+    const r = await api.layoutAt(project(a.project), a.time);
+    const { kept, omitted } = filterElements(r.elements, a.visibleOnly, a.elements);
+    return json({ ...r, elements: kept, ...(omitted ? { omitted: `${omitted} elements not shown (hidden, or not in \`elements\`); visibleOnly: false shows hidden ones` } : {}) });
+  })());
 
   server.registerTool("render_frame", {
     title: "Render one frame",
@@ -178,7 +196,7 @@ export function createServer(root = process.env.SINI_ROOT ?? process.cwd()): Mcp
     return text(
       `✓ ${shown(r.file)}\n${r.duration.toFixed(2)}s, ${r.width}×${r.height} @ ${r.fps}fps, ${r.frames} frames, rendered in ${r.seconds.toFixed(1)}s` +
         (open.length
-          ? `\n\n${open.length} lint warning(s) still open. Fix them before calling the video done, or say in notes why one is wrong for this video:\n${formatIssues(open)}`
+          ? `\n\n${open.length} lint warning(s) still open. Fix them before calling the video done, or accept one in lint.accept with the reason it's wrong for this video:\n${formatIssues(open)}`
           : "\nLint: no problems."),
     );
   })());

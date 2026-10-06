@@ -131,3 +131,13 @@ describe("lint timing and camera awareness", () => {
     expect(issues.filter((i) => i.code === "tiny-text")).toEqual([]);
   });
 });
+
+describe("accepted warnings", () => {
+  it("drop warnings matched by code and element (or an element inside it)", async () => {
+    const { applyAccepted } = await import("./lint.js");
+    const w = (code: string, path: string) => ({ level: "warning" as const, code, path, message: "" });
+    const r = applyAccepted([w("tiny-text", "bottle-label"), w("tiny-text", "bottle/label"), w("tiny-text", "caption"), w("overlap", "bottle-label")], [{ code: "tiny-text", element: "bottle-label" }, { code: "tiny-text", element: "bottle" }]);
+    expect(r.accepted).toBe(2);
+    expect(r.open.map((i) => `${i.code}:${i.path}`)).toEqual(["tiny-text:caption", "overlap:bottle-label"]);
+  });
+});

@@ -15,6 +15,15 @@ export interface LintResult {
   ok: boolean;
   issues: Issue[];
   duration: number;
+  /** Warnings matched by the spec's `lint.accept` (left out of `issues`). */
+  accepted: number;
+}
+
+/** Drop warnings the spec accepts: same code, and the same element (or one inside it) when one is named. */
+export function applyAccepted(issues: Issue[], accept: { code: string; element?: string }[] = []): { open: Issue[]; accepted: number } {
+  const hit = (i: Issue) => i.level === "warning" && accept.some((a) => a.code === i.code && (!a.element || i.path === a.element || i.path.startsWith(`${a.element}/`)));
+  const open = issues.filter((i) => !hit(i));
+  return { open, accepted: issues.length - open.length };
 }
 
 type Box = { x: number; y: number; width: number; height: number };
@@ -26,7 +35,7 @@ const r1 = (x: number) => Math.round(x * 10) / 10;
 
 export async function lint(target: string, opts: { layout?: boolean } = {}): Promise<LintResult> {
   await resolveTextHotspots(target);
-  const { plan, validation } = loadPlan(target);
+  const { plan, validation, loaded } = loadPlan(target);
   const issues: Issue[] = [...validation.issues.filter((i) => i.level === "warning"), ...plan.report];
   issues.push(...timelineRules(plan));
   issues.push(...glyphRules(plan));
@@ -39,7 +48,8 @@ export async function lint(target: string, opts: { layout?: boolean } = {}): Pro
       await session.close();
     }
   }
-  return { ok: !issues.some((i) => i.level === "error"), issues, duration: plan.duration };
+  const { open, accepted } = applyAccepted(issues, loaded.spec.lint?.accept);
+  return { ok: !open.some((i) => i.level === "error"), issues: open, duration: plan.duration, accepted };
 }
 
 function walk(plan: CompiledPlan): { el: PlanElement; parents: PlanElement[] }[] {

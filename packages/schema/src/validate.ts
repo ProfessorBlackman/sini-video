@@ -116,6 +116,22 @@ class Validator {
     }
   }
 
+  /** `lint.accept`: warnings the author has judged wrong for this video, each with a reason. */
+  lintDecl(l: J) {
+    if (!isObj(l)) return this.err("lint", "bad-lint", 'Must be an object: { "accept": [ … ] }.');
+    this.unknownKeys(l, ["accept"], "lint");
+    if (!("accept" in l)) return;
+    if (!Array.isArray(l.accept)) return this.err("lint.accept", "bad-lint", "Must be a list.");
+    l.accept.forEach((a: J, i: number) => {
+      const p = `lint.accept[${i}]`;
+      if (!isObj(a)) return this.err(p, "bad-lint", 'Each entry is { "code", "element"?, "reason" }.');
+      this.unknownKeys(a, ["code", "element", "reason"], p);
+      if (typeof a.code !== "string" || !a.code) this.err(`${p}.code`, "bad-lint", "Name the lint code to accept, e.g. \"tiny-text\".");
+      if (typeof a.reason !== "string" || !a.reason.trim()) this.err(`${p}.reason`, "bad-lint", "Say why this warning is wrong for this video.");
+      if ("element" in a && typeof a.element !== "string") this.err(`${p}.element`, "bad-lint", "Must be an element id.");
+    });
+  }
+
   // ---------- colours / time / references ----------
 
   colour(v: J, path: string) {
@@ -253,7 +269,7 @@ class Validator {
       this.err("$", "not-an-object", "A Sini video must be a JSON object.");
       return { ok: false, issues: this.issues, stats };
     }
-    this.unknownKeys(s, ["version", "video", "theme", "assets", "components", "scenes", "notes"], "$");
+    this.unknownKeys(s, ["version", "video", "theme", "assets", "components", "scenes", "notes", "lint"], "$");
     if (s.version !== DSL_VERSION) {
       this.err("version", "bad-version", `Expected "${DSL_VERSION}", got ${JSON.stringify(s.version)}.`, `Set "version": "${DSL_VERSION}".`);
     }
@@ -270,6 +286,7 @@ class Validator {
       this.err("scenes", "no-scenes", "A video needs at least one scene.");
       return { ok: false, issues: this.issues, stats };
     }
+    if ("lint" in s) this.lintDecl(s.lint);
     scenes.forEach((sc: J, i: number) => {
       if (!isObj(sc)) return;
       const sid = sc.id;

@@ -75,3 +75,13 @@ describe("reference in sections", () => {
     expect(Buffer.byteLength(textOf(await call("get_reference", { section: "all" })))).toBeGreaterThan(50_000);
   });
 });
+
+describe("layout and describe filters", () => {
+  it("show only visible elements by default, and say how many were left out", async () => {
+    const all = JSON.parse(textOf(await call("get_layout", { project: "novae", time: 1, visibleOnly: false })));
+    const vis = JSON.parse(textOf(await call("get_layout", { project: "novae", time: 1 })));
+    expect(vis.elements.every((e: { visible: boolean }) => e.visible)).toBe(true);
+    expect(vis.elements.length).toBeLessThan(all.elements.length);
+    expect(vis.omitted).toContain(`${all.elements.length - vis.elements.length} elements not shown`);
+  }, 60_000);
+});
