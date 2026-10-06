@@ -111,3 +111,24 @@ describe("lint.accept", () => {
     expect(errors(spec({ accept: [{ code: "tiny-text" }] })).map((i) => i.path)).toEqual(["lint.accept[0].reason"]);
   });
 });
+
+describe("paths, dashes and follow", () => {
+  const spec = (els: unknown[], timeline: unknown[] = []) => ({ version: "0.4", video: { format: "1:1" }, scenes: [{ id: "s", duration: 3, elements: els, timeline }] });
+  const codes = (x: unknown) => errors(x).map((i) => i.code);
+  it("accepts points or d, not both or neither", () => {
+    expect(codes(spec([{ id: "p", type: "path", points: [[0, 0], [10, 5]], smooth: true }]))).toEqual([]);
+    expect(codes(spec([{ id: "p", type: "path", d: "M0 0 C10 -5 20 5 30 0" }]))).toEqual([]);
+    expect(codes(spec([{ id: "p", type: "path" }]))).toEqual(["path-geometry"]);
+    expect(codes(spec([{ id: "p", type: "path", d: "C10 0" }]))).toEqual(["bad-path"]);
+    expect(codes(spec([{ id: "p", type: "path", points: [[0, 0]] }]))).toEqual(["bad-path"]);
+  });
+  it("checks dash patterns", () => {
+    expect(codes(spec([{ id: "b", type: "shape", shape: "rect", style: { dash: [12, 8] } }]))).toEqual([]);
+    expect(codes(spec([{ id: "b", type: "shape", shape: "rect", style: { dash: "dotted" } }]))).toEqual(["bad-dash"]);
+  });
+  it("needs follow to name a path element", () => {
+    const els = [{ id: "car", type: "icon", name: "car" }, { id: "route", type: "path", d: "M0 0 L100 0" }, { id: "box", type: "shape", shape: "rect" }];
+    expect(codes(spec(els, [{ behavior: "follow", target: "car", path: "route", at: 0 }]))).toEqual([]);
+    expect(codes(spec(els, [{ behavior: "follow", target: "car", path: "box", at: 0 }]))).toEqual(["follow-path"]);
+  });
+});

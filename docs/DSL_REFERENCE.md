@@ -254,8 +254,9 @@ Every element accepts:
 | `scale`, `scaleX`, `scaleY` | 1 = natural size |
 | `origin` | Pivot for rotation and scale: an anchor name (§7.2). Default `"center"` |
 | `radius` | px. A value of half the height or more makes a pill or circle |
-| `fill`, `stroke` | colours |
+| `fill`, `stroke` | colours (gradients work for `fill`) |
 | `strokeWidth` | px |
+| `dash` | Shapes and paths: `[dash, gap]` in px for a dashed stroke (`[2, 10]` with round ends = dotted), `[n]` for equal dash and gap |
 | `shadow` | `"none" \| "soft" \| "deep"` |
 | `blur` | px |
 | `blend` | `"normal" \| "multiply" \| "screen" \| "overlay"` |
@@ -358,6 +359,20 @@ Text, buttons and containers are `"auto"`-sized by default: they size to their c
 ```
 
 `shape`: `rect | circle | ellipse | line | pill`. A `line` is horizontal across its `width` unless rotated.
+
+#### `path`
+
+Any line or outline: curves, waves, squiggles, blobs, routes, hand-drawn marks.
+
+```json
+{ "id": "icing", "type": "path", "points": [[0, 40], [60, 0], [120, 40], [180, 0], [240, 40]], "smooth": true,
+  "style": { "stroke": "cream", "strokeWidth": 12 }, "layout": { "anchor": "center", "width": 600 }, "enter": "drawOutline" }
+```
+
+- Geometry: either `points` (`[[x, y], …]` in px; `smooth: true` draws a flowing curve through every point, `closed: true` joins the last point back to the first) or `d`, SVG path data (`"M0 200 C150 -60 350 260 520 40"`).
+- The element's box is the drawing's bounding box. Give `layout.width` or `height` to scale it; the other dimension keeps its proportions. `viewBox` (`[w, h]` or `[x, y, w, h]`) sets the drawing area explicitly.
+- `style.stroke`, `strokeWidth` (px, default 4, stays the same when the path is scaled), `dash`, and `fill` (a colour or gradient; use it with `closed` for blobs). With neither fill nor stroke, it's stroked in the text colour. Ends and corners are round.
+- `drawOutline` draws it from start to end; a dashed path draws dash by dash. A path can also be a route for `follow` (§9.4).
 
 #### `svg`
 
@@ -758,6 +773,17 @@ Exact timings by `pace` (default `normal`):
 - Keys interpolate pairwise with `ease`. Two identical keys in a row = hold. End: the last key's `at`.
 - Interaction cursors are drawn on top of the camera, at normal size, and follow their targets on screen.
 
+**`follow`**: move an element along a `path` element.
+
+```json
+{ "id": "drive", "behavior": "follow", "target": "car", "path": "route", "at": 1.2, "duration": 2.4, "rotate": true }
+```
+
+- The target's centre travels from the path's start to its end over `duration` (default 2s, with `ease`, default `cubic.inOut`). It sits at the start before `at` and stays at the end after.
+- `rotate: true` turns the target to the path's direction (draw it pointing right).
+- The path can be hidden (`"style": { "opacity": 0 }`) when only the motion matters, or drawn with `drawOutline` at the same time as a trail.
+- Don't also `pin` the target: the follow decides its position. End: `at + duration`.
+
 **`focusCycle`**: highlight items one after another, dimming the rest.
 
 ```json
@@ -1117,6 +1143,10 @@ Start from the pattern that matches the brief, then adapt it. Use the real featu
 
 **Photo or product reel**
 - `image` elements (placeholders until the client sends files) in a `grid` or `stack`; `matchCut` from one photo to the next scene's `background`; `kenBurns` for slow movement.
+
+**Illustrated scenes (no photos)**
+- Organic shapes are `path` elements: `smooth` points for icing, steam, waves and hair; `closed` smooth points with a gradient `fill` for blobs, food and leaves. Draw them in with `drawOutline`.
+- Motion along a route (a car, a plane, a delivery) is `follow` on a `path`, with `rotate: true`; a dotted route is `"dash": [2, 12]`.
 
 **Announcement or event**
 - Logo as an `svg` asset with `drawOutline`; details on a card (`stack` with `style.fill`, or a `group` to move several things together); end on a `button` with `pulse`.

@@ -348,6 +348,34 @@ describe("fixes from the re-test round", () => {
   }, 60_000);
 });
 
+describe("paths", () => {
+  it("scale to a given width, keep stroke widths in px, dash, and carry a follower to the end", async () => {
+    const p = compile({ version: "0.4", video: { format: "1:1" }, scenes: [{ id: "s", duration: 3, elements: [
+      { id: "wave", type: "path", points: [[0, 40], [100, 0], [200, 40]], smooth: true, style: { stroke: "#ffffff", strokeWidth: 10, dash: [12, 8] }, layout: { x: 100, y: 100, width: 400 } },
+      { id: "route", type: "path", d: "M0 0 L300 300", style: { stroke: "#ffffff" }, layout: { x: 200, y: 400 } },
+      { id: "dot", type: "shape", shape: "circle", style: { fill: "#ff0000" }, layout: { anchor: "top-left", width: 40, height: 40 } },
+    ], timeline: [{ behavior: "follow", target: "dot", path: "route", at: 0.5, duration: 1 }] }] } as never);
+    const s = await RenderSession.open(p, { browser });
+    try {
+      const r = await s.layout(2);
+      const wave = r.elements.find((e) => e.ref === "wave")!.box;
+      expect(wave.width).toBeCloseTo(400, 0);
+      expect(wave.height).toBeCloseTo(80, 0);
+      const attrs = await s.page.evaluate(() => {
+        const g = document.querySelectorAll("path")[0]!;
+        return { sw: Number(g.getAttribute("stroke-width")), dash: g.style.strokeDasharray };
+      });
+      expect(attrs.sw).toBeCloseTo(5, 1); // drawn at 2× scale, so 10px needs 5 path units
+      expect(attrs.dash).not.toBe("");
+      const dot = r.elements.find((e) => e.ref === "dot")!.current;
+      expect(dot.x + dot.width / 2).toBeCloseTo(500, 0);
+      expect(dot.y + dot.height / 2).toBeCloseTo(700, 0);
+    } finally {
+      await s.close();
+    }
+  }, 60_000);
+});
+
 describe("svg and template", () => {
   it("sanitises SVG files", async () => {
     const { sanitizeSvg } = await import("./index.js");

@@ -50,6 +50,7 @@ export const PACE = {
 } as const;
 export const NAVIGATE_DURATION = 0.45;
 export const SCROLL_DURATION = 0.9;
+export const FOLLOW_DURATION = 2;
 
 /** Safe-zone margins on a 1080×1920 canvas: [top, right, bottom, left]. */
 export const SAFE_ZONES = {

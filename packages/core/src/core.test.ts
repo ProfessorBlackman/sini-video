@@ -350,3 +350,24 @@ describe("describeAt text", () => {
     expect(text(2.5)).toBe("After");
   });
 });
+
+describe("paths and follow", () => {
+  it("turns points into straight or smooth path data through every point", async () => {
+    const { pointsToPath } = await import("./index.js");
+    expect(pointsToPath([[0, 0], [10, 5], [20, 0]])).toBe("M0 0 L10 5 L20 0");
+    const smooth = pointsToPath([[0, 0], [10, 5], [20, 0]], true);
+    expect(smooth.startsWith("M0 0 C")).toBe(true);
+    expect(smooth.endsWith(" 20 0")).toBe(true);
+    expect(pointsToPath([[0, 0], [10, 5], [20, 0]], true, true).endsWith("Z")).toBe(true);
+  });
+  it("holds the follower at the path's ends before and after the move", () => {
+    const p = compile({ version: "0.4", video: { format: "1:1" }, scenes: [{ id: "s", duration: 4, elements: [
+      { id: "car", type: "icon", name: "car" }, { id: "route", type: "path", d: "M0 0 L100 0" },
+    ], timeline: [{ id: "go", behavior: "follow", target: "car", path: "route", at: 1, duration: 2, ease: "linear" }] }] } as never);
+    const at = (t: number) => frameAt(p, t).elements.car!.follow!;
+    expect(at(0.5).p).toBe(0);
+    expect(at(2).p).toBeCloseTo(0.5, 5);
+    expect(at(3.5).p).toBe(1);
+    expect(at(2).path).toBe("route");
+  });
+});

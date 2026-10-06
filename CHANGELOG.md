@@ -6,6 +6,12 @@ Images: `ghcr.io/professorblackman/sini:<version>` for linux/amd64 and linux/arm
 
 ## [Unreleased]
 
+### Added
+- **`path` element**: any line or outline, from `points` (straight, or `smooth` curves through every point, `closed` for blobs) or SVG path data `d`. Scales to a given width or height keeping its proportions; stroke width stays in px; gradient fills; draws itself with `drawOutline`.
+- **`follow` behavior**: moves an element's centre along a path, optionally turning with it (`rotate`).
+- **`style.dash`**: dashed and dotted strokes on shapes and paths, drawn dash by dash with `drawOutline`.
+- Reference: a recipe for illustrated scenes without photos.
+
 ## [0.1.2] - 2026-10-06
 
 Fixes from the re-test round ([findings](docs/paper-tests/v0.6-retest/FINDINGS.md)).

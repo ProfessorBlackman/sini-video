@@ -96,6 +96,8 @@ export interface PlanStyle {
   blur: number;
   blend: string;
   padding?: [number, number, number, number];
+  /** Dashed strokes: [dash, gap] in px. */
+  dash?: number[];
 }
 
 export interface PlanText {
@@ -246,10 +248,17 @@ export interface CameraTrack extends TrackBase {
   keys: { t: number; focus: string; zoom: number }[];
   ease: EaseSpec;
 }
+/** An element moving along a path element (the renderer measures the path). */
+export interface FollowTrack extends TrackBase {
+  kind: "follow";
+  path: string;
+  ease: EaseSpec;
+  rotate: boolean;
+}
 /** Text typed into a text element by an interaction `type` step. */
 export interface TypedTrack extends TrackBase {
   kind: "typed";
   text: string;
 }
 
-export type Track = TweenTrack | OscTrack | PulseTrack | SwingTrack | TypeTrack | CountTrack | ContentTrack | StepTrack | CursorTrack | TypedTrack | ScreenTrack | ScrollTrack | CameraTrack;
+export type Track = TweenTrack | OscTrack | PulseTrack | SwingTrack | TypeTrack | CountTrack | ContentTrack | StepTrack | CursorTrack | TypedTrack | ScreenTrack | ScrollTrack | CameraTrack | FollowTrack;

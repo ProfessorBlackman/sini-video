@@ -41,7 +41,7 @@ Each folder has the final `video.json`, the agent's `log.md` and `final-sheet.pn
 
 ## 3. Open
 
-- **No freeform shapes** (paths, curves) for organic subjects: icing, steam, hands (U2). The biggest gap for illustrated work.
+- ~~**No freeform shapes** (paths, curves) for organic subjects: icing, steam, hands (U2).~~ **Done after the round:** `path` elements (smooth points, blobs, SVG path data), `follow` along a path, and `style.dash`.
 - **No 3D or perspective**: a bottle can't really turn (U1); a fly-through is faked with parallax layers (U3).
 - **Lines between two points and particles** need computed geometry, so U3's patches ran to ~34KB.
 - **Highlight on a screenshot region** (spotlight / focusCycle on hotspots): asked for again (R1).

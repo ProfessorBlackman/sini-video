@@ -41,7 +41,7 @@ export type Side = (typeof SIDES)[number];
 export const SAFE_ZONES = ["reels", "tiktok", "shorts", "none"] as const;
 
 export const ELEMENT_TYPES = [
-  "text", "image", "shape", "svg", "button", "badge", "icon", "toast", "progress", "chart",
+  "text", "image", "shape", "path", "svg", "button", "badge", "icon", "toast", "progress", "chart",
   "browser", "phone", "group", "stack", "grid", "template",
 ] as const;
 export type ElementType = (typeof ELEMENT_TYPES)[number];
@@ -53,6 +53,7 @@ export const TYPE_KEYS: Record<ElementType, readonly string[]> = {
   text: ["content", "role", "fit", "maxLines"],
   image: ["asset", "fit", "focus"],
   shape: ["shape"],
+  path: ["d", "points", "smooth", "closed", "viewBox"],
   svg: ["asset"],
   button: ["label", "variant"],
   badge: ["label", "shape"],
@@ -94,7 +95,7 @@ export const STACK_JUSTIFY = ["start", "center", "end", "space-between"] as cons
 
 export const STYLE_KEYS = [
   "opacity", "rotation", "scale", "scaleX", "scaleY", "origin", "radius", "fill", "stroke",
-  "strokeWidth", "shadow", "blur", "blend", "padding",
+  "strokeWidth", "dash", "shadow", "blur", "blend", "padding",
   // text and label overrides
   "color", "align", "size", "weight", "lineHeight", "letterSpacing", "uppercase", "italic",
 ] as const;
@@ -159,6 +160,7 @@ export const BEHAVIORS: Record<string, readonly string[]> = {
   camera: ["target", "ease", "keys"],
   focusCycle: ["targets", "at", "interval", "dim", "scale"],
   navigate: ["target", "to", "transition", "at"],
+  follow: ["target", "path", "at", "duration", "ease", "rotate"],
 };
 
 export const TRANSITIONS: Record<string, readonly string[]> = {

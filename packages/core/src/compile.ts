@@ -6,10 +6,11 @@ import { expandComponent, devicePages, type Personality, type Spec } from "@sini
 import { parseCss, resolveColour, resolvePaint, luminance } from "./colour.js";
 import {
   AUTO, BUTTON, CHAIN_OVERLAP, DEFAULT_FONTS, DEFAULT_TRANSITION_DURATION, FIRST_ENTER_AT, NAVIGATE_DURATION,
-  PACE, PERSONALITY, READING, ROLE_TABLE, SCROLL_DURATION, STATE_DURATION, TOP_LEVEL_TEXT_MARGIN,
+  FOLLOW_DURATION, PACE, PERSONALITY, READING, ROLE_TABLE, SCROLL_DURATION, STATE_DURATION, TOP_LEVEL_TEXT_MARGIN,
 } from "./defaults.js";
 import type { EaseSpec } from "./ease.js";
 import { parseMarkup } from "./markup.js";
+import { pointsToPath } from "./path.js";
 import type {
   Font, ImageSource, PartSelector, Plan, PlanElement, PlanIssue, PlanScene, PlanState, PlanStyle, PlanTransition, Track, TweenTrack,
 } from "./plan.js";
@@ -190,6 +191,7 @@ class Compiler {
     const stroke = this.colour(s.stroke);
     if (stroke) out.stroke = stroke;
     if (s.strokeWidth !== undefined) out.strokeWidth = s.strokeWidth;
+    if (Array.isArray(s.dash)) out.dash = s.dash.length === 1 ? [s.dash[0], s.dash[0]] : s.dash;
     if (padding) out.padding = padding;
     return out;
   }
@@ -347,6 +349,11 @@ class Compiler {
       el.props = { shape: src.shape };
       if (src.shape !== "line" && !style.fill && !style.stroke) style.fill = ctx.textColour;
       if (src.shape === "line" && !style.stroke) style.stroke = ctx.textColour;
+    } else if (type === "path") {
+      const d = typeof src.d === "string" ? src.d : pointsToPath(src.points ?? [], !!src.smooth, !!src.closed);
+      const vb = src.viewBox as number[] | undefined;
+      el.props = { d, ...(vb ? { viewBox: vb.length === 2 ? [0, 0, vb[0], vb[1]] : vb } : {}) };
+      if (!style.fill && !style.stroke) style.stroke = ctx.textColour;
     } else if (type === "stack") {
       el.props = { direction: src.direction ?? "vertical", gap: src.gap ?? 0, align: src.align ?? "start", justify: src.justify ?? "start" };
     } else if (type === "grid") {
@@ -802,6 +809,8 @@ class Compiler {
     switch (t.behavior) {
       case "scroll":
         return { start, end: start + (t.duration ?? SCROLL_DURATION) };
+      case "follow":
+        return { start, end: start + (t.duration ?? FOLLOW_DURATION) };
       case "navigate":
         return { start, end: start + NAVIGATE_DURATION };
       case "interaction": {
@@ -1027,6 +1036,13 @@ class Compiler {
         }
       }
       if (t.behavior === "focusCycle") this.focusCycle(sc, j, t, registry, timing, sceneStart);
+      if (t.behavior === "follow") {
+        const mover = registry.get(t.target)?.el;
+        const path = registry.get(t.path)?.el;
+        if (!mover || !path) continue;
+        const start = sceneStart + timing.evalExpr(t.at);
+        this.tracks.push({ kind: "follow", ref: mover.ref, path: path.ref, t0: start, t1: start + (t.duration ?? FOLLOW_DURATION), ease: t.ease ?? "cubic.inOut", rotate: t.rotate === true, label: `follow → ${t.path}${t.id ? ` (${t.id})` : ` (timeline[${j}])`}` });
+      }
       if (t.behavior === "scroll") {
         const device = registry.get(t.target)?.el;
         if (!device) continue;

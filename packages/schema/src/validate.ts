@@ -116,6 +116,32 @@ class Validator {
     }
   }
 
+  /** `path`: an SVG path string (`d`) or a list of points (optionally smoothed into curves). */
+  pathDecl(e: J, p: string) {
+    const hasD = "d" in e;
+    const hasPoints = "points" in e;
+    if (hasD === hasPoints) {
+      this.err(p, "path-geometry", 'A path needs exactly one of "d" (SVG path data) or "points" ([[x, y], …]).');
+      return;
+    }
+    if (hasD && !/\{\{/.test(String(e.d))) {
+      if (typeof e.d !== "string" || !/^\s*[Mm]/.test(e.d) || !/^[MmLlHhVvCcSsQqTtAaZz0-9eE.,+\-\s]+$/.test(e.d)) {
+        this.err(`${p}.d`, "bad-path", 'Path data must be SVG path syntax starting with M, e.g. "M0 0 C40 -30 80 30 120 0".');
+      }
+    }
+    if (hasPoints) {
+      const ok = Array.isArray(e.points) && e.points.length >= 2 && e.points.every((pt: J) => Array.isArray(pt) && pt.length === 2 && pt.every((v: J) => typeof v === "number"));
+      if (!ok) this.err(`${p}.points`, "bad-path", "Points must be at least two [x, y] pairs of numbers.");
+    }
+    if ("smooth" in e && typeof e.smooth !== "boolean") this.err(`${p}.smooth`, "bad-path", "Must be true or false.");
+    if ("closed" in e && typeof e.closed !== "boolean") this.err(`${p}.closed`, "bad-path", "Must be true or false.");
+    if ("viewBox" in e) {
+      const vb = e.viewBox;
+      const ok = Array.isArray(vb) && (vb.length === 2 || vb.length === 4) && vb.every((v: J) => typeof v === "number") && (vb.at(-1) ?? 0) > 0 && (vb.at(-2) ?? 0) > 0;
+      if (!ok) this.err(`${p}.viewBox`, "bad-path", "Must be [width, height] or [x, y, width, height], with positive width and height.");
+    }
+  }
+
   /** `lint.accept`: warnings the author has judged wrong for this video, each with a reason. */
   lintDecl(l: J) {
     if (!isObj(l)) return this.err("lint", "bad-lint", 'Must be an object: { "accept": [ … ] }.');
@@ -557,6 +583,7 @@ class Validator {
       if ("fit" in e) this.oneOf(e.fit, ["none", "shrink"], `${p}.fit`, "fit");
     }
     if (ty === "shape") this.oneOf(e.shape, SHAPES, `${p}.shape`, "shape");
+    if (ty === "path") this.pathDecl(e, p);
     if (ty === "badge" && "shape" in e) this.oneOf(e.shape, BADGE_SHAPES, `${p}.shape`, "badge shape");
     if (ty === "button" && "variant" in e && !/\{\{/.test(e.variant)) this.oneOf(e.variant, BUTTON_VARIANTS, `${p}.variant`, "variant");
     if ((ty === "image" || ty === "svg") && !this.assets.has(e.asset) && !/\{\{/.test(String(e.asset))) {
@@ -611,6 +638,11 @@ class Validator {
     const sid = sc?.id;
     const st = e.style ?? {};
     this.unknownKeys(st, STYLE_KEYS, `${p}.style`);
+    if ("dash" in st) {
+      const d = st.dash;
+      const ok = d === false || (Array.isArray(d) && d.length >= 1 && d.length <= 2 && d.every((v: J) => typeof v === "number" && v >= 0) && d.some((v: J) => v > 0));
+      if (!ok) this.err(`${p}.style.dash`, "bad-dash", "Must be [dash, gap] in px (e.g. [12, 8]), [dash] for equal gaps, or false.");
+    }
     for (const ck of ["color", "fill", "stroke"]) if (ck in st) this.colour(st[ck], `${p}.style.${ck}`);
     if ("origin" in st) this.oneOf(st.origin, ANCHORS, `${p}.style.origin`, "origin");
     if ("shadow" in st) this.oneOf(st.shadow, ["none", "soft", "deep"], `${p}.style.shadow`, "shadow");
@@ -774,6 +806,14 @@ class Validator {
       if (b === "navigate") {
         this.navigate(t.target, t.to, elems, p);
         this.oneOf(t.transition, SCREEN_TRANSITIONS, `${p}.transition`, "screen transition");
+      }
+      if (b === "follow") {
+        checkTarget(t.target);
+        if (this.etype(elems.get(t.path)) !== "path") {
+          this.err(`${p}.path`, "follow-path", `'${t.path}' isn't a path element in this scene.`, didYouMean(String(t.path), [...elems.entries()].filter(([, v]) => this.etype(v) === "path").map(([k]) => k)));
+        }
+        if ("rotate" in t && typeof t.rotate !== "boolean") this.err(`${p}.rotate`, "bad-follow", "Must be true or false.");
+        if ("duration" in t && !(typeof t.duration === "number" && t.duration > 0)) this.err(`${p}.duration`, "bad-follow", "Must be a positive number of seconds.");
       }
       if (b === "focusCycle") {
         for (const x of Array.isArray(t.targets) ? t.targets : []) this.targetRef(x, sid, `${p}.targets`, { hotspot: true });

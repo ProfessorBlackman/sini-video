@@ -500,6 +500,31 @@ function build(el: PlanElement, flow: boolean, sceneId: string): HTMLElement {
       if (flow && !outer.style.height && !outer.style.aspectRatio) outer.style.aspectRatio = "4 / 3";
       break;
     }
+    case "path": {
+      const svg = document.createElementNS(SVGNS, "svg");
+      svg.setAttribute("width", "100%");
+      svg.setAttribute("height", "100%");
+      svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+      Object.assign(svg.style, { display: "block", overflow: "visible" });
+      const geo = document.createElementNS(SVGNS, "path");
+      geo.setAttribute("d", String(el.props.d));
+      geo.setAttribute("pathLength", "1");
+      geo.setAttribute("fill", svgPaint(svg, el.style.fill ?? "none"));
+      if (el.style.stroke) {
+        geo.setAttribute("stroke", svgPaint(svg, el.style.stroke));
+        geo.setAttribute("stroke-linecap", "round");
+        geo.setAttribute("stroke-linejoin", "round");
+      }
+      svg.appendChild(geo);
+      anim.appendChild(svg);
+      Object.assign(anim.style, { width: "100%", height: "100%" });
+      node.box = geo;
+      node.outline = geo;
+      const vb = el.props.viewBox as number[] | undefined;
+      if (vb) svg.setAttribute("viewBox", vb.join(" "));
+      paths.push({ node, svg, geo, auto: !vb });
+      break;
+    }
     case "shape": {
       const shape = String(el.props.shape);
       const sw = el.style.strokeWidth ?? (el.style.stroke ? 2 : 0);
@@ -1321,6 +1346,126 @@ function anchorPlace(n: Node) {
   st.transform = `translate(${cx}, ${cy}) translate(${px(tx)}, ${px(ty)})`;
 }
 
+// ---------------------------------------------------------------- paths, dashes, follow
+
+const paths: { node: Node; svg: SVGSVGElement; geo: SVGPathElement; auto: boolean }[] = [];
+/** Stroke length in canvas px (for dashes in px on pathLength=1 geometry). */
+const strokeLen = new Map<Node, number>();
+
+/** A path without a viewBox takes its own bounding box as its box (points are in px). Given only a width or
+ *  only a height, the other follows the drawing's proportions. */
+function sizePaths() {
+  for (const { svg, geo, auto, node } of paths) {
+    let w: number;
+    let hgt: number;
+    if (auto) {
+      const bb = geo.getBBox();
+      w = Math.max(bb.width, 1);
+      hgt = Math.max(bb.height, 1);
+      svg.setAttribute("viewBox", `${bb.x} ${bb.y} ${w} ${hgt}`);
+    } else {
+      const vb = svg.viewBox.baseVal;
+      [w, hgt] = [vb.width, vb.height];
+    }
+    const st = node.outer.style;
+    const pxOf = (v: string) => (v.endsWith("px") ? parseFloat(v) : NaN);
+    const sw = pxOf(st.width);
+    const sh = pxOf(st.height);
+    if (!Number.isNaN(sw) && !st.height) st.height = px((sw * hgt) / w);
+    else if (!Number.isNaN(sh) && !st.width) st.width = px((sh * w) / hgt);
+    if (!st.width) st.width = px(w);
+    if (!st.height) st.height = px(hgt);
+  }
+}
+
+/** viewBox units → box px (preserveAspectRatio meet). */
+function pathScale(svg: SVGSVGElement): { s: number; vb: DOMRect; ox: number; oy: number } {
+  const vb = svg.viewBox.baseVal as unknown as DOMRect;
+  const w = svg.clientWidth || 1;
+  const hgt = svg.clientHeight || 1;
+  const s = Math.min(w / (vb.width || 1), hgt / (vb.height || 1));
+  return { s, vb, ox: (w - vb.width * s) / 2, oy: (hgt - vb.height * s) / 2 };
+}
+
+/** After layout: stroke widths stay in canvas px however a path is scaled, and dashes get their px length. */
+function finishStrokes() {
+  for (const { svg, geo, node } of paths) {
+    const { s } = pathScale(svg);
+    const sw = node.el.style.strokeWidth ?? 4 * k;
+    if (node.el.style.stroke) geo.setAttribute("stroke-width", String(sw / s));
+    strokeLen.set(node, geo.getTotalLength() * s);
+  }
+  for (const n of nodes.values()) {
+    if (n.el.type === "shape" && n.outline) strokeLen.set(n, n.outline.getTotalLength());
+    if (n.el.style.dash && n.outline) setDash(n, 1);
+  }
+}
+
+/** Dashes on pathLength=1 geometry; while drawOutline runs, only the drawn part's dashes show. */
+function setDash(n: Node, drawn: number) {
+  const g = n.outline!;
+  const len = strokeLen.get(n) || 1;
+  const [a, gap] = (n.el.style.dash ?? [1, 0]).map((v) => v / len) as [number, number];
+  if (drawn >= 1) {
+    g.style.strokeDasharray = `${a} ${gap}`;
+    g.style.strokeDashoffset = "0";
+    return;
+  }
+  const parts: number[] = [];
+  let covered = 0;
+  while (covered < drawn && parts.length < 800) {
+    const seg = Math.min(a, drawn - covered);
+    parts.push(seg);
+    covered += seg;
+    if (covered >= drawn) break;
+    parts.push(gap);
+    covered += gap;
+  }
+  if (parts.length % 2 === 1) parts.push(1);
+  else parts.push(0, 1);
+  g.style.strokeDasharray = parts.join(" ");
+  g.style.strokeDashoffset = "0";
+}
+
+const following = new Set<Node>();
+/** `follow`: the element's centre rides along a path element, optionally turned to its direction. */
+function applyFollow(fr: Frame) {
+  for (const n of nodes.values()) {
+    const f = fr.elements[n.el.ref]?.follow;
+    if (!f) {
+      if (following.delete(n)) {
+        n.outer.style.translate = "";
+        n.outer.style.rotate = "";
+      }
+      continue;
+    }
+    const pn = paths.find((x) => x.node.el.ref === f.path);
+    if (!pn) continue;
+    const { svg, geo } = pn;
+    const L = geo.getTotalLength();
+    const rect = svg.getBoundingClientRect();
+    const css = rect.width / (svg.clientWidth || 1);
+    const { s, vb, ox, oy } = pathScale(svg);
+    const at = (q: number): [number, number] => {
+      const pt = geo.getPointAtLength(clamp01(q) * L);
+      return [rect.left + (ox + (pt.x - vb.x) * s) * css, rect.top + (oy + (pt.y - vb.y) * s) * css];
+    };
+    const parent = (n.outer.offsetParent as HTMLElement | null) ?? n.outer.parentElement!;
+    n.outer.style.translate = "";
+    n.outer.style.rotate = "";
+    const me = localBox(n.outer, parent);
+    const [tx, ty] = at(f.p);
+    const t = localBox(new DOMRect(tx, ty, 0, 0), parent);
+    n.outer.style.translate = `${px(t.x - (me.x + me.w / 2))} ${px(t.y - (me.y + me.h / 2))}`;
+    if (f.rotate) {
+      const [ax, ay] = at(f.p - 0.002);
+      const [bx, by] = at(f.p + 0.002);
+      n.outer.style.rotate = `${(Math.atan2(by - ay, bx - ax) * 180) / Math.PI}deg`;
+    }
+    following.add(n);
+  }
+}
+
 /** Pinned elements ride along with their target's animation (the pin point is re-measured each frame). */
 const pinFollows: { node: Node; rect: () => DOMRect; fx: number; fy: number; base: [number, number] }[] = [];
 
@@ -1563,8 +1708,11 @@ function applyElement(n: Node, f: ElementFrame | undefined) {
       n.outline.style.opacity = d >= 1 ? "1" : String(Math.min(1, line * 4));
       if (n.body) n.body.style.opacity = String(clamp01((d - 0.55) / 0.45));
     } else if (p.draw !== undefined) {
-      n.outline.style.strokeDasharray = "1";
-      n.outline.style.strokeDashoffset = String(1 - clamp01(d));
+      if (el.style.dash) setDash(n, clamp01(d));
+      else {
+        n.outline.style.strokeDasharray = "1";
+        n.outline.style.strokeDashoffset = String(1 - clamp01(d));
+      }
       n.outline.style.strokeOpacity = String(capFade(n.outline, clamp01(d)));
     }
   }
@@ -1892,6 +2040,7 @@ function render(t: number) {
     const cam = fr.elements[n.el.ref]?.camera;
     if (cam) applyCamera(n, cam);
   }
+  applyFollow(fr);
   followPins();
   applyMatchCuts(fr);
   applyCursors(fr.cursors);
@@ -2005,7 +2154,9 @@ async function boot() {
   await document.fonts.ready;
   await decodeImages();
   for (const s of sceneEls.values()) s.style.visibility = "hidden";
+  sizePaths();
   layoutAll();
+  finishStrokes();
   for (const tr of plan.tracks) if (tr.kind === "camera") {
     const n = nodes.get(tr.ref);
     if (n) n.outer.style.overflow = "hidden";

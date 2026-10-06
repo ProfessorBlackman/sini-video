@@ -6,3 +6,4 @@ export { easeFn, spring, EASE_NAMES, type EaseSpec, type EaseFn } from "./ease.j
 export { parseCss, toCss, mix, resolveColour, resolvePaint, contrast, luminance, over, type RGBA } from "./colour.js";
 export * from "./defaults.js";
 export type * from "./plan.js";
+export { pointsToPath } from "./path.js";
