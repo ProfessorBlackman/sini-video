@@ -6,6 +6,10 @@ Images: `ghcr.io/professorblackman/sini:<version>` for linux/amd64 and linux/arm
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-10-06
+
+Diagrams, spotlights and smarter checks: the open items from the test rounds.
+
 ### Fixed
 - The `zoom` transition scaled whole scenes, so the incoming scene's edges showed as a hard rectangle; it now zooms the content while backgrounds crossfade full-frame.
 
@@ -103,7 +107,8 @@ The first release: an AI writes a JSON spec, and Sini renders it to MP4 determin
 - Docker image only (about 940 MB): Node 24, Chromium headless shell, a minimal FFmpeg build with libx264 (GPL; run as a separate program), bundled fonts and icons.
 - Writes files as the owner of the mounted folder.
 
-[Unreleased]: https://github.com/ProfessorBlackman/sini-video/compare/v0.1.3...HEAD
+[Unreleased]: https://github.com/ProfessorBlackman/sini-video/compare/v0.1.4...HEAD
+[0.1.4]: https://github.com/ProfessorBlackman/sini-video/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/ProfessorBlackman/sini-video/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/ProfessorBlackman/sini-video/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/ProfessorBlackman/sini-video/compare/v0.1.0...v0.1.1
