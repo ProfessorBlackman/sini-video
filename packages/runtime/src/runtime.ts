@@ -77,6 +77,8 @@ interface Node {
   host?: HTMLElement;
   body?: HTMLElement;
   ring?: HTMLElement;
+  /** focusCycle spotlight on a screenshot region. */
+  spot?: HTMLElement;
   /** Device screen element (scaled logical-pixel space). */
   screen?: HTMLElement;
   /** Device pages by screen name. */
@@ -1447,6 +1449,42 @@ function setDash(n: Node, drawn: number) {
   g.style.strokeDashoffset = "0";
 }
 
+/** A window onto one screenshot region: outlined, with the rest of the screenshot dimmed by its shadow. */
+function applySpot(n: Node, s: ElementFrame["spot"]) {
+  if (!s) {
+    if (n.spot) n.spot.style.display = "none";
+    return;
+  }
+  // Inside the device screen or the image frame, so it scrolls, zooms and clips with the screenshot.
+  const host = (n.screen ?? n.box) as HTMLElement | undefined;
+  const a = spotRect(n, s.from);
+  const b = spotRect(n, s.to);
+  if (!host || !a || !b) return;
+  if (!n.spot) {
+    n.spot = h("div", "spot", { position: "absolute", pointerEvents: "none", zIndex: "40", boxSizing: "border-box" });
+    host.appendChild(n.spot);
+  }
+  const ra = localBox(a, host);
+  const rb = localBox(b, host);
+  const q = s.p;
+  const r = { x: ra.x + (rb.x - ra.x) * q, y: ra.y + (rb.y - ra.y) * q, w: ra.w + (rb.w - ra.w) * q, h: ra.h + (rb.h - ra.h) * q };
+  // Padding and line width in canvas px, whatever the host's scale.
+  const unit = host.offsetWidth ? host.getBoundingClientRect().width / scale / host.offsetWidth : 1;
+  const pad = (10 * k) / unit;
+  const line = (3 * k) / unit;
+  Object.assign(n.spot.style, {
+    display: "block",
+    left: px(r.x - pad),
+    top: px(r.y - pad),
+    width: px(r.w + 2 * pad),
+    height: px(r.h + 2 * pad),
+    borderRadius: px((12 * k) / unit),
+    border: `${px(line)} solid ${s.ring}`,
+    boxShadow: `0 0 0 9999px rgba(0, 0, 0, ${(1 - s.dim) * 0.85})`,
+    opacity: String(s.opacity),
+  });
+}
+
 const following = new Set<Node>();
 /** `follow`: the element's centre rides along a path element, optionally turned to its direction. */
 function applyFollow(fr: Frame) {
@@ -2062,6 +2100,7 @@ function render(t: number) {
   }
   applyFollow(fr);
   followPins();
+  for (const n of nodes.values()) applySpot(n, fr.elements[n.el.ref]?.spot);
   applyMatchCuts(fr);
   applyCursors(fr.cursors);
   for (const [id, layer] of bgLayers) {

@@ -972,17 +972,21 @@ class Compiler {
    * with any other opacity or scale animation.
    */
   focusCycle(sc: J, j: number, t: J, registry: Map<string, { el: PlanElement; src: J; topLevel: boolean }>, timing: ReturnType<Compiler["sceneTiming"]>, sceneStart: number) {
-    const targets: string[] = (t.targets ?? []).map((x: string) => {
+    // Each turn is an element (or chart bar / progress step), or a screenshot region (a spotlight).
+    type Turn = { ref: string } | { owner: string; hotspot: string };
+    const turns: Turn[] = (t.targets ?? []).map((x: string): Turn | null => {
       if (x.includes("#")) {
         const [base, part] = x.split("#") as [string, string];
         const owner = registry.get(base)?.el;
-        if (owner && (owner.type === "chart" || owner.type === "progress")) return `${owner.ref}#${part}`;
-        this.warn(`${sc.id}.timeline[${j}]`, "unsupported-feature", `focusCycle can't highlight hotspot '${x}'; only elements, chart bars and progress steps.`);
+        if (owner && (owner.type === "chart" || owner.type === "progress")) return { ref: `${owner.ref}#${part}` };
+        if (owner && (owner.props.hotspots as Record<string, unknown> | undefined)?.[part]) return { owner: owner.ref, hotspot: part };
+        this.warn(`${sc.id}.timeline[${j}]`, "unsupported-feature", `focusCycle can't find region '${x}' (a text hotspot that OCR didn't locate?); skipped.`);
         return null;
       }
-      return registry.get(x)?.el?.ref ?? null;
-    }).filter(Boolean);
-    if (!targets.length) return;
+      const ref = registry.get(x)?.el?.ref;
+      return ref ? { ref } : null;
+    }).filter((x: Turn | null): x is Turn => x !== null);
+    if (!turns.length) return;
     const at = sceneStart + timing.evalExpr(t.at);
     const interval = Number(t.interval ?? 0.9);
     const dim = Number(t.dim ?? 0.35);
@@ -991,8 +995,21 @@ class Compiler {
     const label = `focusCycle${t.id ? ` (${t.id})` : ` (timeline[${j}])`}`;
     const step = (ref: string, prop: string, to: number, t0: number, d = fade) =>
       this.tracks.push(this.tween(ref, prop, [null, to], t0, t0 + d, "cubic.inOut", label));
-    const n = targets.length;
-    targets.forEach((ref, i) => {
+    const ring = this.colour(t.ring ?? "#FFFFFF") ?? "#FFFFFF";
+    turns.forEach((turn, i) => {
+      if (!("hotspot" in turn)) return;
+      const prev = turns[i - 1];
+      const next = turns[i + 1];
+      const start = at + i * interval;
+      this.tracks.push({
+        kind: "spot", ref: turn.owner, hotspot: turn.hotspot, t0: start, t1: start + interval, dim, ring, label,
+        from: prev && "hotspot" in prev && prev.owner === turn.owner ? prev.hotspot : null,
+        fadeOut: !(next && "hotspot" in next && next.owner === turn.owner),
+      });
+    });
+    const targets = turns.map((x, i) => ("ref" in x ? { ref: x.ref, i } : null)).filter((x): x is { ref: string; i: number } => x !== null);
+    const n = turns.length;
+    targets.forEach(({ ref, i }) => {
       const start = at + i * interval;
       const end = start + interval;
       // Dimmed from the start of the cycle unless first; full while focused; dimmed again after.

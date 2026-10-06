@@ -158,7 +158,7 @@ export const BEHAVIORS: Record<string, readonly string[]> = {
   scroll: ["target", "to", "at", "duration", "ease"],
   interaction: ["at", "cursor", "from", "steps", "pace"],
   camera: ["target", "ease", "keys"],
-  focusCycle: ["targets", "at", "interval", "dim", "scale"],
+  focusCycle: ["targets", "at", "interval", "dim", "scale", "ring"],
   navigate: ["target", "to", "transition", "at"],
   follow: ["target", "path", "at", "duration", "ease", "rotate"],
 };

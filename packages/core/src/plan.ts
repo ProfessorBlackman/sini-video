@@ -249,6 +249,17 @@ export interface CameraTrack extends TrackBase {
   keys: { t: number; focus: string; zoom: number }[];
   ease: EaseSpec;
 }
+/** focusCycle on a screenshot region: a spotlight inside the image or device that shows it. */
+export interface SpotTrack extends TrackBase {
+  kind: "spot";
+  hotspot: string;
+  /** The region the spotlight glides in from (the previous turn), or null to fade in. */
+  from: string | null;
+  /** No hotspot turn follows on this element: fade out after t1. */
+  fadeOut: boolean;
+  dim: number;
+  ring: string;
+}
 /** An element moving along a path element (the renderer measures the path). */
 export interface FollowTrack extends TrackBase {
   kind: "follow";
@@ -262,4 +273,4 @@ export interface TypedTrack extends TrackBase {
   text: string;
 }
 
-export type Track = TweenTrack | OscTrack | PulseTrack | SwingTrack | TypeTrack | CountTrack | ContentTrack | StepTrack | CursorTrack | TypedTrack | ScreenTrack | ScrollTrack | CameraTrack | FollowTrack;
+export type Track = TweenTrack | OscTrack | PulseTrack | SwingTrack | TypeTrack | CountTrack | ContentTrack | StepTrack | CursorTrack | TypedTrack | ScreenTrack | ScrollTrack | CameraTrack | FollowTrack | SpotTrack;

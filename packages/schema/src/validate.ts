@@ -825,6 +825,7 @@ class Validator {
       }
       if (b === "focusCycle") {
         for (const x of Array.isArray(t.targets) ? t.targets : []) this.targetRef(x, sid, `${p}.targets`, { hotspot: true });
+        if ("ring" in t) this.colour(t.ring, `${p}.ring`);
       }
       if (b === "interaction") this.interaction(t, sc, elems, p);
     }

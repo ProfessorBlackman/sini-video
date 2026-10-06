@@ -32,6 +32,8 @@ export interface ElementFrame {
   camera?: { from: { focus: string; zoom: number }; to: { focus: string; zoom: number }; p: number };
   /** Moving along a path element: progress 0–1 along its length (held at the ends). */
   follow?: { path: string; p: number; rotate: boolean };
+  /** focusCycle on screenshot regions: the region shown (gliding from → to), how visible, how dark the rest is. */
+  spot?: { from: string; to: string; p: number; opacity: number; dim: number; ring: string };
   /** Devices: the screen showing, or a transition between two screens. */
   screen?: { from: string; to: string; p: number; transition: "push" | "fade" | "none" };
 }
@@ -278,6 +280,16 @@ export function elementFrame(plan: Plan, ref: string, t: number): ElementFrame {
         const b = keys[Math.min(i + 1, keys.length - 1)]!;
         const p = t <= a.t || b === a ? 0 : easeFn(tr.ease)(clamp01((t - a.t) / (b.t - a.t)));
         frame.camera = t <= keys[0]!.t ? { from: keys[0]!, to: keys[0]!, p: 1 } : { from: a, to: b, p };
+        break;
+      }
+      case "spot": {
+        const SPOT_GLIDE = 0.35;
+        const SPOT_FADE = 0.3;
+        if (t < tr.t0 || t > tr.t1 + (tr.fadeOut ? SPOT_FADE : 0)) break;
+        const p = tr.from ? easeFn("cubic.inOut")(clamp01((t - tr.t0) / SPOT_GLIDE)) : 1;
+        let opacity = tr.from ? 1 : clamp01((t - tr.t0) / 0.25);
+        if (tr.fadeOut && t > tr.t1) opacity *= 1 - clamp01((t - tr.t1) / SPOT_FADE);
+        frame.spot = { from: tr.from ?? tr.hotspot, to: tr.hotspot, p, opacity, dim: tr.dim, ring: tr.ring };
         break;
       }
       case "follow": {

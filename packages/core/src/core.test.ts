@@ -371,3 +371,19 @@ describe("paths and follow", () => {
     expect(at(2).path).toBe("route");
   });
 });
+
+describe("focusCycle on screenshot regions", () => {
+  it("moves a spotlight between hotspots and fades it out after the last", () => {
+    const p = compile({ version: "0.4", video: { format: "16:9" },
+      assets: { shot: { type: "image", src: "shot.png", hotspots: { a: [0, 0, 100, 50], b: [200, 0, 100, 50] } } },
+      scenes: [{ id: "s", duration: 5, elements: [{ id: "app", type: "browser", content: "shot" }],
+        timeline: [{ behavior: "focusCycle", targets: ["app#a", "app#b"], at: 1, interval: 1 }] }] } as never, { exists: () => false });
+    const spot = (t: number) => frameAt(p, t).elements.app!.spot;
+    expect(spot(0.5)).toBeUndefined();
+    expect(spot(1.5)).toMatchObject({ from: "a", to: "a", opacity: 1 });
+    expect(spot(2.1)).toMatchObject({ from: "a", to: "b" });
+    expect(spot(2.1)!.p).toBeLessThan(1);
+    expect(spot(3.15)!.opacity).toBeLessThan(1);
+    expect(spot(3.5)).toBeUndefined();
+  });
+});

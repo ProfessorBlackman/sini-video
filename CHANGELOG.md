@@ -6,6 +6,9 @@ Images: `ghcr.io/professorblackman/sini:<version>` for linux/amd64 and linux/arm
 
 ## [Unreleased]
 
+### Added
+- **Spotlights on screenshot regions**: `focusCycle` targets can be hotspots (`"app#export"`); a spotlight outlines each region in turn (`ring` colour) and dims the rest of the screenshot.
+
 ## [0.1.3] - 2026-10-06
 
 Freeform drawing, after the bakery brief showed illustrated scenes needed curves.

@@ -791,6 +791,7 @@ Exact timings by `pace` (default `normal`):
 ```
 
 - Each target is highlighted for `interval` seconds. Scaled items overlap their neighbours; layout doesn't reflow.
+- A target can be a screenshot region (`"app#export"`): a spotlight outlines it in `ring` (a colour, default white) and darkens the rest of the screenshot by `dim`, gliding from region to region. It stays inside the image or device, so it scrolls and zooms with it. Elements and regions can be mixed in one cycle.
 - After the last item, everything returns to normal over 0.3s. End: `at + interval × count`.
 
 ### 9.5 States
@@ -1131,7 +1132,7 @@ Start from the pattern that matches the brief, then adapt it. Use the real featu
 - `browser` (or `phone`) with `content` = the screenshot asset; declare `hotspots` on the asset (`{ "text": "Export PDF" }` finds the words for you).
 - Put the device in a `group` and zoom with a `camera` behavior on that group: `"focus": "app#export"`.
 - Click with an `interaction` (`"click": "app#export"`); show the result with a `toast` in the device's `overlay`, changed by a `state` item.
-- Highlight regions with overlay shapes pinned to hotspots (`"pin": { "to": "app#card" }`) and presets, or `focusCycle` for elements.
+- Highlight regions with `focusCycle` on hotspots (`"targets": ["app#outstanding", "app#paid"]`): a spotlight moves between them and dims the rest of the screenshot. For a custom mark, pin an overlay shape to a hotspot (`"pin": { "to": "app#card" }`).
 
 **Phone app flow without screenshots** (complete spec below)
 - One `phone` with `screens`; build each screen from elements. Repeated rows are a component.
