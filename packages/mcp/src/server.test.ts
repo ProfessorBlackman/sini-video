@@ -85,3 +85,12 @@ describe("layout and describe filters", () => {
     expect(vis.omitted).toContain(`${all.elements.length - vis.elements.length} elements not shown`);
   }, 60_000);
 });
+
+describe("design review", () => {
+  it("comes with every contact sheet and in the create-video prompt", async () => {
+    const r = await call("render_contact_sheet", { project: "novae", count: 4 });
+    expect(textOf(r)).toContain("Name the 3 biggest problems");
+    const p = await client.getPrompt({ name: "create-video", arguments: { brief: "A 10s reel" } });
+    expect(JSON.stringify(p.messages)).toContain("design review");
+  }, 120_000);
+});

@@ -1148,6 +1148,18 @@ Before submitting, check:
 - [ ] `template` is used only where nothing else works
 - [ ] Invented copy is listed in `notes`
 
+**Design review.** Then look at a contact sheet and judge it like a demanding designer:
+
+- **Brief:** every beat it asked for is on screen, in order; the main message or call to action reads clearly.
+- **Hierarchy:** each frame has one dominant thing; the eye knows where to look first.
+- **One idea per scene**, on screen long enough to take in.
+- **Space:** nothing cramped against an edge or a neighbour; no large dead areas; content not lost small in a big frame.
+- **Readability:** text big enough on a phone, strong contrast, not over a busy picture.
+- **Consistency:** one palette, type scale, corner style and set of alignment lines across scenes.
+- **Motion:** something moves in every scene; the last frame holds long enough.
+
+Name the three biggest problems, fix them, and look again. Stop when you'd ship it.
+
 ---
 
 ## 15. Recipes

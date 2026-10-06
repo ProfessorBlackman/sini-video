@@ -22,6 +22,18 @@ type Result = { content: Content[]; isError?: boolean };
 
 const text = (t: string): Result => ({ content: [{ type: "text", text: t }] });
 const json = (v: unknown): Result => text(JSON.stringify(v, null, 2));
+/** The design review a model runs on each contact sheet (also in the create-video prompt and reference §14). */
+export const DESIGN_REVIEW =
+  "Review this sheet like a demanding designer before going on:\n" +
+  "- Brief: every beat it asked for is on screen, in order, and the main message or call to action reads clearly.\n" +
+  "- Hierarchy: each frame has one dominant thing; the eye knows where to look first.\n" +
+  "- One idea per scene, on screen long enough to take in.\n" +
+  "- Space: nothing cramped against an edge or a neighbour; no large dead areas; content not lost small in a big frame.\n" +
+  "- Readability: text big enough on a phone, strong contrast, not over a busy picture.\n" +
+  "- Consistency: one palette, type scale, corner style and set of alignment lines across scenes.\n" +
+  "- Motion: something moves in every scene; the last frame holds long enough.\n" +
+  "Name the 3 biggest problems, fix them with update_video, and look again. Stop when you'd ship it.";
+
 const formatIssues = (issues: Issue[]) =>
   issues.map((i) => `${i.level === "error" ? "✗" : "!"} ${i.path}: ${i.message}${i.suggestion ? ` ${i.suggestion}` : ""} [${i.code}]`).join("\n");
 
@@ -181,7 +193,7 @@ export function createServer(root = process.env.SINI_ROOT ?? process.cwd()): Mcp
     annotations: readOnly,
   }, (a) => run(async () => {
     const r = await api.contactSheet(project(a.project), { ...(a.times ? { times: a.times } : { count: a.count }) });
-    return { content: [{ type: "image", data: r.png.toString("base64"), mimeType: "image/png" }, { type: "text", text: `${shown(r.file)}\nTimes: ${r.times.join(", ")}` }] };
+    return { content: [{ type: "image", data: r.png.toString("base64"), mimeType: "image/png" }, { type: "text", text: `${shown(r.file)}\nTimes: ${r.times.join(", ")}\n\n${DESIGN_REVIEW}` }] };
   })());
 
   server.registerTool("render_video", {
@@ -228,8 +240,9 @@ export function createServer(root = process.env.SINI_ROOT ?? process.cwd()): Mcp
           `1. Read the DSL reference: get_reference, then get_reference with section "7" and "9".\n` +
           `2. Write the spec and create_video in "${dir ?? "video"}".\n` +
           `3. validate_video and lint_video; fix everything with update_video patches.\n` +
-          `4. render_contact_sheet and look at it critically: hierarchy, pacing, overlaps, empty space. Fix and repeat (2–3 rounds).\n` +
-          `5. render_video with draft: true, then report what you made, what you assumed (notes), and the file path.`,
+          `4. render_contact_sheet and run its design review: name the 3 biggest problems (brief, hierarchy, one idea per scene, space, readability, consistency, motion), fix them with update_video, and look again. Repeat until you'd ship it (usually 2–3 rounds).\n` +
+          `5. render_video with draft: true; fix or accept (lint.accept, with a reason) any lint warnings it lists.\n` +
+          `6. Report what you made, what you assumed or invented (also in notes), what the client should supply (real photos, logo, copy), and the file path.`,
       },
     }],
   }));
