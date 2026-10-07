@@ -6,6 +6,10 @@ Images: `ghcr.io/professorblackman/sini:<version>` for linux/amd64 and linux/arm
 
 ## [Unreleased]
 
+## [0.1.10] - 2026-10-07
+
+Use Sini from Claude on the web, ChatGPT and other chat apps, on your own server.
+
 ### Added
 - **`sini serve`**: the MCP server over HTTP, for AI chat apps on the web (Claude, ChatGPT, …). Access with a key in the connector URL (`/mcp/<key>`) or a bearer header. A [self-hosting guide](docs/SELF_HOSTING.md), a [Docker Compose setup](deploy/compose.yaml) with automatic HTTPS, and a [Coolify](deploy/coolify.yaml) version.
 - Remote tools: `get_upload_link` (a page where the human uploads files into the project), `get_download_link`, and `render_status`. Over HTTP, `render_video` answers with a download link and keeps long renders going in the background; renders run one at a time by default (`SINI_MAX_RENDERS`).
@@ -181,7 +185,8 @@ The first release: an AI writes a JSON spec, and Sini renders it to MP4 determin
 - Docker image only (about 940 MB): Node 24, Chromium headless shell, a minimal FFmpeg build with libx264 (GPL; run as a separate program), bundled fonts and icons.
 - Writes files as the owner of the mounted folder.
 
-[Unreleased]: https://github.com/ProfessorBlackman/sini-video/compare/v0.1.9...HEAD
+[Unreleased]: https://github.com/ProfessorBlackman/sini-video/compare/v0.1.10...HEAD
+[0.1.10]: https://github.com/ProfessorBlackman/sini-video/compare/v0.1.9...v0.1.10
 [0.1.9]: https://github.com/ProfessorBlackman/sini-video/compare/v0.1.8...v0.1.9
 [0.1.8]: https://github.com/ProfessorBlackman/sini-video/compare/v0.1.7...v0.1.8
 [0.1.7]: https://github.com/ProfessorBlackman/sini-video/compare/v0.1.6...v0.1.7
