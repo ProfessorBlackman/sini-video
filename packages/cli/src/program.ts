@@ -261,5 +261,28 @@ export function createProgram(): Command {
       await serveStdio(opts.root);
     });
 
+  program
+    .command("serve")
+    .description("Run the MCP server over HTTP, for AI chat apps on the web (Claude, ChatGPT, …); see docs/SELF_HOSTING.md")
+    .option("--root <dir>", "folder for projects (default: current directory)")
+    .option("--port <n>", "port (default: $PORT or 8080)")
+    .option("--host <addr>", "address to listen on", "0.0.0.0")
+    .option("--key <key>", "access key (default: $SINI_KEY); connect at /mcp/<key>")
+    .option("--public-url <url>", "the address people reach it at, for links (default: $SINI_PUBLIC_URL, or from each request)")
+    .option("--open", "serve without a key (only behind your own authentication)")
+    .action((opts: { root?: string; port?: string; host: string; key?: string; publicUrl?: string; open?: boolean }) =>
+      guard(async () => {
+        const { serveHttp } = await import("@sini/mcp");
+        await serveHttp({
+          host: opts.host,
+          ...(opts.root ? { root: opts.root } : {}),
+          ...(opts.port ? { port: Number(opts.port) } : {}),
+          ...(opts.key ? { key: opts.key } : {}),
+          ...(opts.publicUrl ? { publicUrl: opts.publicUrl } : {}),
+          ...(opts.open ? { open: true } : {}),
+        });
+      })(),
+    );
+
   return program;
 }

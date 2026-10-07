@@ -8,3 +8,4 @@ export {
 } from "./versions.js";
 export { resolveTextHotspots, cachedTextHotspots, findText, assetText, toLines, imageSize, type TextLine } from "./ocr.js";
 export { resolveFonts, cachedFontFaces, parseMetadata, fontKind } from "./fonts.js";
+export { assetKind, cleanName, saveAsset, fetchAsset } from "./assets.js";

@@ -1,0 +1,32 @@
+# Sini on your own server, reachable by AI chat apps on the web over HTTPS.
+# 1. Point a domain at the server (an A record), and open ports 80 and 443.
+# 2. Copy this folder to the server, create .env next to it:
+#      SINI_DOMAIN=sini.example.com
+#      SINI_KEY=<a long random string, e.g. from: openssl rand -hex 24>
+# 3. docker compose up -d
+# Then connect your AI app to https://sini.example.com/mcp/<SINI_KEY>   (see docs/SELF_HOSTING.md)
+services:
+  sini:
+    image: ghcr.io/professorblackman/sini:0.1
+    command: ["serve"]
+    environment:
+      SINI_KEY: ${SINI_KEY:?set SINI_KEY in .env}
+      SINI_PUBLIC_URL: https://${SINI_DOMAIN:?set SINI_DOMAIN in .env}
+      # SINI_MAX_RENDERS: 1   # renders at the same time (each uses Chromium and FFmpeg flat out)
+    volumes:
+      - sini-projects:/work
+    restart: unless-stopped
+    # Chromium needs more shared memory than Docker's 64 MB default for big frames.
+    shm_size: 1gb
+
+  caddy:
+    image: caddy:2
+    command: ["caddy", "reverse-proxy", "--from", "${SINI_DOMAIN}", "--to", "sini:8080"]
+    ports: ["80:80", "443:443"]
+    volumes:
+      - caddy-data:/data
+    restart: unless-stopped
+
+volumes:
+  sini-projects:
+  caddy-data:

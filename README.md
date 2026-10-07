@@ -21,6 +21,7 @@ The AI describes **what the video shows and when**: scenes, text, images, device
 | Doc | What it covers |
 |---|---|
 | [DSL reference](docs/DSL_REFERENCE.md) | The video language, written for AI models to read in one pass |
+| [Self-hosting](docs/SELF_HOSTING.md) | Running Sini on your own server for Claude on the web, ChatGPT and other chat apps |
 | [Product direction](docs/PRODUCT_DIRECTION.md) | Decisions, the AI iteration loop, CLI and MCP interface |
 | [Vertical slice plan](docs/VERTICAL_SLICE_PLAN.md) | Architecture and milestones for the first working engine |
 | [Paper tests](docs/paper-tests/) | How the DSL was tested with LLMs before building, and what changed |
@@ -60,7 +61,11 @@ claude mcp add sini -- docker run -i --rm -v "$PWD":/work ghcr.io/professorblack
 
 Then ask: *"Make a 15-second vertical reel for my bakery's weekend cinnamon box."* The `create-video` prompt walks the model through create → validate → lint → contact sheet → fix → render.
 
-Tools: `get_reference`, `create_video`, `get_video`, `validate_video`, `update_video`, `lint_video`, `describe_at`, `get_layout`, `render_frame`, `render_contact_sheet`, `render_video`, `list_versions`, `restore_version`.
+Tools: `get_reference`, `create_video`, `get_video`, `validate_video`, `update_video`, `lint_video`, `describe_at`, `get_layout`, `read_image_text`, `add_asset`, `render_frame`, `render_contact_sheet`, `render_video`, `list_versions`, `restore_version`.
+
+### From Claude on the web, ChatGPT and other chat apps
+
+Run Sini on your own server with `sini serve` and connect the chat app to `https://your-server/mcp/<key>`. The AI can take your files through an upload page and gives you a download link for the video. A Docker Compose setup with automatic HTTPS is in [`deploy/`](deploy/compose.yaml); the steps are in [Self-hosting](docs/SELF_HOSTING.md).
 
 ### From the command line
 

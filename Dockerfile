@@ -66,5 +66,7 @@ COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 # Chromium needs a writable home whichever user the entrypoint switches to.
 ENV HOME=/tmp
 WORKDIR /work
+# `sini serve` (the MCP server over HTTP) listens here.
+EXPOSE 8080
 ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["--help"]

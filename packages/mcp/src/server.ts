@@ -37,7 +37,36 @@ export const DESIGN_REVIEW =
 const formatIssues = (issues: Issue[]) =>
   issues.map((i) => `${i.level === "error" ? "✗" : "!"} ${i.path}: ${i.message}${i.suggestion ? ` ${i.suggestion}` : ""} [${i.code}]`).join("\n");
 
-export function createServer(root = process.env.SINI_ROOT ?? process.cwd()): McpServer {
+/** What a server reached over the internet adds: links to fetch outputs and to upload assets, and renders that outlive a tool call. */
+export interface Remote {
+  /** A download link for a file inside the root. */
+  link(file: string): string;
+  /** A page where the human uploads files into a project's assets/. */
+  uploadLink(projectDir: string): string;
+  /** How long render_video waits before answering "still rendering" (web clients cut long calls off). */
+  waitSeconds: number;
+}
+
+// ---------- background renders (remote mode) ----------
+
+interface RenderJob { state: "queued" | "rendering" | "done" | "failed"; draft: boolean; done: number; total: number; started: number; result?: string; error?: string; promise: Promise<void> }
+const jobs = new Map<string, RenderJob>();
+let running = 0;
+const waiting: (() => void)[] = [];
+const MAX_RENDERS = Math.max(1, Number(process.env.SINI_MAX_RENDERS ?? 1));
+/** One render at a time by default: each one runs Chromium and FFmpeg flat out. */
+async function slot<T>(fn: () => Promise<T>): Promise<T> {
+  if (running >= MAX_RENDERS) await new Promise<void>((r) => waiting.push(r));
+  running++;
+  try {
+    return await fn();
+  } finally {
+    running--;
+    waiting.shift()?.();
+  }
+}
+
+export function createServer(root = process.env.SINI_ROOT ?? process.cwd(), remote?: Remote): McpServer {
   const ROOT = resolve(root);
   const project = (p?: string) => {
     const abs = resolve(ROOT, p ?? ".");
@@ -57,7 +86,10 @@ export function createServer(root = process.env.SINI_ROOT ?? process.cwd()): Mcp
     instructions:
       "Sini renders videos from a JSON spec. Read the DSL reference first: get_reference (essentials and index), then sections \"7\" and \"9\". " +
       "Workflow: create_video → validate_video / lint_video → render_contact_sheet (look at it) → update_video with patches → render_video (draft first). " +
-      "Use describe_at and get_layout instead of estimating timing or text sizes. Every change creates a new version.",
+      "Use describe_at and get_layout instead of estimating timing or text sizes. Every change creates a new version." +
+      (remote
+        ? " This server is remote: put the human's files in a project with add_asset (from a link) or get_upload_link (a page for them to upload to). render_video answers with a download link; if it says it's still rendering, call render_status."
+        : ""),
   });
   // Output paths relative to the server root: inside Docker the absolute path (/work/…) means nothing to the user.
   const shown = (file: string) => {
@@ -113,7 +145,7 @@ export function createServer(root = process.env.SINI_ROOT ?? process.cwd()): Mcp
   }, (a) => run(async () => {
     const r = api.initProject(project(a.project), { ...(a.spec ? { spec: a.spec as never } : {}), ...(a.force ? { force: true } : {}) });
     const f = await fetchFonts(r.dir, r.issues);
-    return text(`Created ${r.dir}/video.json as version ${r.version.version}.${f.note}${f.issues.length ? `\n${formatIssues(f.issues)}` : ""}`);
+    return text(`Created ${shown(resolve(r.dir, "video.json"))} as version ${r.version.version}.${f.note}${f.issues.length ? `\n${formatIssues(f.issues)}` : ""}`);
   })());
 
   server.registerTool("get_video", { title: "Read the current spec", description: "Returns the project's video.json, scene-by-scene timing, and the version history.", inputSchema: projectArg, annotations: readOnly },
@@ -188,6 +220,23 @@ export function createServer(root = process.env.SINI_ROOT ?? process.cwd()): Mcp
     return json({ ...r, elements: kept, ...(omitted ? { omitted: `${omitted} elements not shown (hidden, or not in \`elements\`); visibleOnly: false shows hidden ones` } : {}) });
   })());
 
+  server.registerTool("add_asset", {
+    title: "Add a file to the project",
+    description: "Save an image, SVG or font into the project's assets/ folder, from an https link or from base64 data (small files, e.g. an SVG you wrote). " +
+      "Then declare it in the spec's assets (\"logo\": \"assets/logo.png\").",
+    inputSchema: {
+      ...projectArg,
+      url: z.string().optional().describe("https link to the file"),
+      data: z.string().optional().describe("The file's bytes as base64"),
+      name: z.string().optional().describe("File name to save as, e.g. logo.png (required with data)"),
+    },
+  }, (a) => run(async () => {
+    const dir = project(a.project);
+    if (!a.url === !a.data) throw new api.SiniError("Pass `url` or `data` (one of them).");
+    const r = a.url ? await api.fetchAsset(dir, a.url, a.name) : api.saveAsset(dir, a.name ?? "", Buffer.from(a.data!, "base64"));
+    return text(`✓ Saved ${r.path} (${r.kind}${r.size ? `, ${r.size.width}×${r.size.height} px` : ""}).`);
+  })());
+
   server.registerTool("read_image_text", {
     title: "Read the text in an image",
     description: "Every line of text in a screenshot or image asset (OCR), with its box [x, y, width, height] in the image's own pixels. " +
@@ -221,25 +270,90 @@ export function createServer(root = process.env.SINI_ROOT ?? process.cwd()): Mcp
     return { content: [{ type: "image", data: r.png.toString("base64"), mimeType: "image/png" }, { type: "text", text: `${shown(r.file)}\nTimes: ${r.times.join(", ")}\n\n${DESIGN_REVIEW}` }] };
   })());
 
+  // The text a finished render reports: file, numbers, open and accepted lint warnings, and (remote) a download link.
+  const renderReport = async (dir: string, r: Awaited<ReturnType<typeof api.renderMp4>>) => {
+    // Open lint warnings are repeated here: a render is where a model decides it's finished.
+    const lint = await api.lint(dir);
+    const open = lint.issues.filter((i) => i.level === "warning");
+    return (
+      `✓ ${shown(r.file)}\n${r.duration.toFixed(2)}s, ${r.width}×${r.height} @ ${r.fps}fps, ${r.frames} frames, rendered in ${r.seconds.toFixed(1)}s` +
+      (remote ? `\nDownload (give the human this link; it expires in 24 hours): ${remote.link(r.file)}` : "") +
+      (open.length
+        ? `\n\n${open.length} lint warning(s) still open. Fix them before calling the video done, or accept one in lint.accept with the reason it's wrong for this video:\n${formatIssues(open)}`
+        : "\nLint: no problems.") +
+      (lint.acceptedNotes.length
+        ? `\n\nAccepted lint warnings (tell the human about these, with your reasons):\n${lint.acceptedNotes.map((n) => `- ${n}`).join("\n")}`
+        : "")
+    );
+  };
+  const jobStatus = (j: RenderJob) => {
+    if (j.state === "done") return j.result!;
+    if (j.state === "failed") return `The render failed: ${j.error}`;
+    const secs = Math.round((Date.now() - j.started) / 1000);
+    const pct = j.total ? ` (${Math.round((j.done / j.total) * 100)}%, ${j.done}/${j.total} frames)` : "";
+    return `Still ${j.state === "queued" ? "waiting for another render to finish" : `rendering${pct}`}, ${secs}s so far. Call render_status in about 20 seconds.`;
+  };
+
   server.registerTool("render_video", {
     title: "Render the video",
-    description: "Render to MP4 in the project's out/ folder. Use draft: true (half size, 15 fps, fast) while iterating.",
+    description: "Render to MP4 in the project's out/ folder. Use draft: true (half size, 15 fps, fast) while iterating." +
+      (remote ? " Answers with a download link; a long render keeps going in the background: then call render_status." : ""),
     inputSchema: { ...projectArg, draft: z.boolean().default(true) },
   }, (a) => run(async () => {
-    const r = await api.renderMp4(project(a.project), { draft: a.draft });
-    // Open lint warnings are repeated here: a render is where a model decides it's finished.
-    const lint = await api.lint(project(a.project));
-    const open = lint.issues.filter((i) => i.level === "warning");
-    return text(
-      `✓ ${shown(r.file)}\n${r.duration.toFixed(2)}s, ${r.width}×${r.height} @ ${r.fps}fps, ${r.frames} frames, rendered in ${r.seconds.toFixed(1)}s` +
-        (open.length
-          ? `\n\n${open.length} lint warning(s) still open. Fix them before calling the video done, or accept one in lint.accept with the reason it's wrong for this video:\n${formatIssues(open)}`
-          : "\nLint: no problems.") +
-        (lint.acceptedNotes.length
-          ? `\n\nAccepted lint warnings (tell the human about these, with your reasons):\n${lint.acceptedNotes.map((n) => `- ${n}`).join("\n")}`
-          : ""),
-    );
+    const dir = project(a.project);
+    if (!remote) return text(await renderReport(dir, await api.renderMp4(dir, { draft: a.draft })));
+    const busy = jobs.get(dir);
+    if (busy && (busy.state === "queued" || busy.state === "rendering")) return text(`A render of this project is already running. ${jobStatus(busy)}`);
+    const job: RenderJob = { state: "queued", draft: a.draft, done: 0, total: 0, started: Date.now(), promise: Promise.resolve() };
+    job.promise = slot(async () => {
+      job.state = "rendering";
+      const r = await api.renderMp4(dir, { draft: a.draft, onProgress: (d, t) => void ((job.done = d), (job.total = t)) });
+      job.result = await renderReport(dir, r);
+      job.state = "done";
+    }).catch((e) => {
+      job.state = "failed";
+      job.error = e instanceof api.SiniError ? `${e.message}${e.issues.length ? `\n${formatIssues(e.issues)}` : ""}` : (e as Error).message;
+    });
+    jobs.set(dir, job);
+    await Promise.race([job.promise, new Promise((r) => setTimeout(r, remote.waitSeconds * 1000))]);
+    return { ...text(jobStatus(job)), ...(job.state === "failed" ? { isError: true } : {}) };
   })());
+
+  if (remote) {
+    server.registerTool("render_status", {
+      title: "Check a render",
+      description: "How the project's latest render_video is going; when it's finished, the result and its download link.",
+      inputSchema: projectArg,
+      annotations: readOnly,
+    }, (a) => run(async () => {
+      const job = jobs.get(project(a.project));
+      if (!job) return text("No render has been started for this project since the server started. Call render_video.");
+      // Wait a little for a running render, so the model doesn't need to poll as often.
+      if (job.state === "queued" || job.state === "rendering") await Promise.race([job.promise, new Promise((r) => setTimeout(r, Math.min(20, remote.waitSeconds) * 1000))]);
+      return { ...text(jobStatus(job)), ...(job.state === "failed" ? { isError: true } : {}) };
+    })());
+
+    server.registerTool("get_upload_link", {
+      title: "Get a link for the human to upload files",
+      description: "A web page (valid for an hour) where the human uploads screenshots, photos, logos or fonts into the project's assets/ folder. " +
+        "Give them the link, wait until they say they're done, then use the files as assets/<name>.",
+      inputSchema: projectArg,
+      annotations: readOnly,
+    }, (a) => run(() => text(`Ask the human to open this link and upload their files (it expires in an hour):\n${remote.uploadLink(project(a.project))}\nThey'll land in ${shown(resolve(project(a.project), "assets"))}.`))());
+
+    server.registerTool("get_download_link", {
+      title: "Get a download link for an output file",
+      description: "A link (valid for 24 hours) to a file in the project's out/ folder, e.g. out/video.mp4, out/draft.mp4 or out/sheet.png.",
+      inputSchema: { ...projectArg, file: z.string().default("out/video.mp4").describe("Path inside the project, under out/") },
+      annotations: readOnly,
+    }, (a) => run(() => {
+      const dir = project(a.project);
+      const file = resolve(dir, a.file);
+      if (!file.startsWith(resolve(dir, "out") + sep)) throw new api.SiniError("Only files in the project's out/ folder can be shared.");
+      if (!existsSync(file)) throw new api.SiniError(`${a.file} doesn't exist yet; render it first.`);
+      return text(`${remote.link(file)}\n(expires in 24 hours)`);
+    })());
+  }
 
   server.registerTool("list_versions", { title: "Version history", inputSchema: projectArg, annotations: readOnly },
     (a) => run(() => json(api.listVersions(project(a.project))))());
