@@ -1,0 +1,24 @@
+# Sini on Coolify: New Resource → Docker Compose (empty) → paste this file → set the domain → Deploy.
+# Coolify routes your domain (with HTTPS) to port 8080 and generates the access key:
+# find SERVICE_PASSWORD_64_SINI under Environment Variables, then connect your AI app to
+#   https://<your domain>/mcp/<that key>
+# (or set SINI_KEY to a key of your own instead).
+services:
+  sini:
+    image: ghcr.io/professorblackman/sini:0.1
+    command: ["serve"]
+    environment:
+      - SERVICE_FQDN_SINI_8080
+      - SINI_KEY=${SERVICE_PASSWORD_64_SINI}
+      # - SINI_MAX_RENDERS=1
+    volumes:
+      - sini-projects:/work
+    # Chromium needs more shared memory than Docker's 64 MB default for big frames.
+    shm_size: 1gb
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8080/health').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+volumes:
+  sini-projects:

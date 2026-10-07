@@ -36,6 +36,17 @@ https://sini.example.com/mcp/<your SINI_KEY>
 
 Projects (specs, versions, uploaded files and rendered videos) are kept in the `sini-projects` Docker volume.
 
+## On Coolify
+
+If your server runs [Coolify](https://coolify.io), it already provides the HTTPS proxy, so use [`deploy/coolify.yaml`](../deploy/coolify.yaml) instead of the Caddy setup:
+
+1. In your project: **New Resource → Docker Compose Empty**, and paste the contents of `coolify.yaml`.
+2. Give the `sini` service a domain (e.g. `https://sini.example.com`). Coolify routes it to port 8080 and gets the certificate.
+3. **Deploy**.
+4. The access key is generated for you: copy `SERVICE_PASSWORD_64_SINI` from the resource's **Environment Variables** (or set `SINI_KEY` to your own and redeploy).
+
+Your connector URL is `https://sini.example.com/mcp/<key>`. Download and upload links use the address the request came in on, which Coolify's proxy passes through; set `SINI_PUBLIC_URL` if they come out wrong.
+
 ## Connect your AI app
 
 Menu names change from time to time; look for "connectors", "custom connectors" or "MCP servers".

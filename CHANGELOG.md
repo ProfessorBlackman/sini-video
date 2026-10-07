@@ -7,7 +7,7 @@ Images: `ghcr.io/professorblackman/sini:<version>` for linux/amd64 and linux/arm
 ## [Unreleased]
 
 ### Added
-- **`sini serve`**: the MCP server over HTTP, for AI chat apps on the web (Claude, ChatGPT, …). Access with a key in the connector URL (`/mcp/<key>`) or a bearer header. A [self-hosting guide](docs/SELF_HOSTING.md) and a [Docker Compose setup](deploy/compose.yaml) with automatic HTTPS.
+- **`sini serve`**: the MCP server over HTTP, for AI chat apps on the web (Claude, ChatGPT, …). Access with a key in the connector URL (`/mcp/<key>`) or a bearer header. A [self-hosting guide](docs/SELF_HOSTING.md), a [Docker Compose setup](deploy/compose.yaml) with automatic HTTPS, and a [Coolify](deploy/coolify.yaml) version.
 - Remote tools: `get_upload_link` (a page where the human uploads files into the project), `get_download_link`, and `render_status`. Over HTTP, `render_video` answers with a download link and keeps long renders going in the background; renders run one at a time by default (`SINI_MAX_RENDERS`).
 - **`add_asset`** (also locally): save an image, SVG or font into the project from an https link or base64 data. Files are checked by content.
 
