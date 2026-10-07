@@ -1,6 +1,6 @@
 {
   "name": "@sini/cli",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "Command-line interface for Sini, the AI-programmable motion video engine",
   "license": "Apache-2.0",
   "type": "module",
