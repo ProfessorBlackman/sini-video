@@ -127,6 +127,7 @@ Text elements pick a **role**, which sets font, size, weight and line height.
 | `mono` | mono | 28 | 14 | 1.4 | |
 
 - **Canvas sizes** are for a 1080px **short side** (every standard format), so they don't change between formats; custom canvases scale them.
+- **Video type is much bigger than web type.** Prefer roles to `style.size`; if you set sizes, don't copy CSS pixels from a website (its 14px labels and 18px body copy are unreadable on a phone at 1080px). Lint flags text under 20px, and sentences under 26px.
 - **In-device sizes** apply to text inside a `phone` or `browser` (§7.3), in that device's logical pixels.
 - Override roles in `theme.roles`, e.g. `"roles": { "title": { "size": 120 } }`. Partial overrides merge with the defaults.
 
@@ -909,7 +910,9 @@ Use the tools instead of estimating:
 - `lint`: design problems (below).
 - `layout`: the computed box (`x`, `y`, `width`, `height`) of every element at a given time. Use it instead of computing text heights by hand. Text also reports `ink`, where its letters are drawn: the box includes the font's spacing above and below, so align big type (numbers, headlines against a rule or an image edge) by `ink`.
 - `render_contact_sheet`: one image of about 12 frames, to check the look.
-- `read_image_text`: each line of text in a screenshot, with its box in image pixels (for hotspots and `crop`).
+- `inspect_image`: the photos, graphics and text blocks in a screenshot, with boxes in image pixels and a suggested `crop` per photo, on an annotated copy. `read_image_text`: every line of text with its box.
+- `lint_video` with `fix: true`: applies the mechanical fixes (marked auto-fix: text sizes, scene lengths) as a new version.
+- `list_projects`, `delete_project` (only when asked).
 
 Errors are structured. Fix them and resubmit.
 
@@ -1180,6 +1183,13 @@ Start from the pattern that matches the brief, then adapt it. Use the real featu
 - Put the device in a `group` and zoom with a `camera` behavior on that group: `"focus": "app#export"`.
 - Click with an `interaction` (`"click": "app#export"`); show the result with a `toast` in the device's `overlay`, changed by a `state` item.
 - Highlight regions with `focusCycle` on hotspots (`"targets": ["app#outstanding", "app#paid"]`): a spotlight moves between them and dims the rest of the screenshot. For a custom mark, pin an overlay shape to a hotspot (`"pin": { "to": "app#card" }`).
+
+**A promo made from a website or its screenshots** (not a demo of the site)
+- Run `inspect_image` on each screenshot first: it finds the photos (with boxes and a crop for the video's shape) and the text. Use the photos as `image` elements with `crop`; leave the web page itself (navigation, buttons, small print) out.
+- Let imagery fill the frame: a photo full-bleed or most of the height, not a small picture in a big empty frame.
+- At most one short line per scene (a 2–5 word headline); some scenes have no text. Take the site's best phrases, don't copy its paragraphs.
+- Vary the pace: 2.5–4s per scene, longer where there's text to read.
+- Never copy web sizes: 14px web text becomes 22px or more here, and body copy is 40px (§4.2).
 
 **Phone app flow without screenshots** (complete spec in §15.1)
 - One `phone` with `screens`; build each screen from elements. Repeated rows are a component.

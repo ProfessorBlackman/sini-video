@@ -286,3 +286,16 @@ describe("overlap while the camera zooms", () => {
     expect(issues.map((i) => i.path)).toEqual(["cap"]);
   });
 });
+
+describe("lint fixes", () => {
+  it("give tiny text a readable size and merge competing scene lengths", async () => {
+    const { mergedFixes, timelineRules } = await import("./lint.js");
+    expect(mergedFixes([
+      { level: "warning", path: "a", code: "reading-time", message: "", fix: [{ op: "set", path: "s.duration", value: 3.6 }] },
+      { level: "warning", path: "b", code: "reading-time", message: "", fix: [{ op: "set", path: "s.duration", value: 4.9 }] },
+    ])).toEqual([{ op: "set", path: "s.duration", value: 4.9 }]);
+    const spec = { version: "0.4", video: { format: "9:16" }, scenes: [{ id: "s", duration: 1.5, elements: [{ id: "sub", type: "text", content: "Contemporary pieces for the way you move.", enter: "none" }] }] };
+    const issues = timelineRules(compile(spec as never), spec);
+    expect(issues.find((i) => i.code === "reading-time")?.fix).toEqual([{ op: "set", path: "s.duration", value: 2.6 }]);
+  });
+});

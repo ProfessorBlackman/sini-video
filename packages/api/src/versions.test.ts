@@ -136,3 +136,17 @@ describe("patches from the 0.1.4 re-test", () => {
     expect(() => patchProject(d, [{ op: "add", element: { id: "lost", type: "text", content: "?" } }])).toThrow(/Say where/);
   });
 });
+
+describe("projects", () => {
+  it("are listed with their versions and outputs, and deleted only inside the root", async () => {
+    const { listProjects, deleteProject } = await import("./index.js");
+    const root = tmp();
+    initProject(join(root, "one"));
+    initProject(join(root, "clients", "two"));
+    expect(listProjects(root).map((p) => p.name).sort()).toEqual(["clients/two", "one"]);
+    expect(() => deleteProject(root, "..")).toThrow(SiniError);
+    expect(() => deleteProject(root, "clients")).toThrow(SiniError); // not a project itself
+    deleteProject(root, "one");
+    expect(listProjects(root).map((p) => p.name)).toEqual(["clients/two"]);
+  });
+});

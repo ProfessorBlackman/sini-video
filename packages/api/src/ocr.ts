@@ -5,9 +5,9 @@
  * stays synchronous and OCR runs once per screenshot.
  */
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
-import { join, resolve } from "node:path";
+import { dirname, join, relative, resolve, sep } from "node:path";
 import type { Spec } from "@sini/schema";
 import { load, SiniError } from "./project.js";
 
@@ -277,16 +277,33 @@ export function toLines(words: Word[]): TextLine[] {
  * Every line of text in an image asset, with boxes in the image's own pixels: the whole page, plus labels on
  * buttons and chips that only the fine tiles read. Cached per image content in out/.cache/.
  */
-export async function assetText(target: string, assetId: string): Promise<{ asset: string; file: string; width?: number; height?: number; lines: TextLine[] }> {
-  const { spec, dir } = load(target);
-  const a = (spec.assets ?? {})[assetId] as unknown;
-  const src = typeof a === "string" ? a : a && typeof a === "object" ? (a as { src?: string; type?: string }).src : undefined;
-  if (!src || (typeof a === "object" && (a as { type?: string }).type && !["image"].includes((a as { type: string }).type))) {
-    const images = Object.entries((spec.assets ?? {}) as Record<string, any>).filter(([, v]) => typeof v === "string" || (v && typeof v === "object" && v.src && (v.type ?? "image") === "image")).map(([k]) => k);
-    throw new SiniError(`'${assetId}' isn't an image asset of this video.${images.length ? ` Its images: ${images.join(", ")}.` : ""}`);
+/**
+ * An image named by asset id (from the spec) or by its path in the project ("assets/hero.png"), so files
+ * uploaded before any video exists can be read too. Returns the project folder and the path inside it.
+ */
+export function imageRef(target: string, ref: string): { dir: string; src: string; spec?: Spec } {
+  let spec: Spec | undefined;
+  let dir: string;
+  try {
+    ({ spec, dir } = load(target));
+  } catch {
+    const abs = resolve(target);
+    dir = existsSync(abs) && statSync(abs).isDirectory() ? abs : dirname(abs);
   }
+  const a = (spec?.assets ?? {})[ref] as unknown;
+  const declared = typeof a === "string" ? a : a && typeof a === "object" && ((a as { type?: string }).type ?? "image") === "image" ? (a as { src?: string }).src : undefined;
+  const path = resolve(dir, declared ?? ref);
+  if ((declared || /\.(png|jpe?g|webp|gif)$/i.test(ref)) && (path === dir || path.startsWith(dir + sep)) && existsSync(path) && statSync(path).isFile()) {
+    return { dir, src: relative(dir, path).split(sep).join("/"), ...(spec ? { spec } : {}) };
+  }
+  const ids = Object.entries((spec?.assets ?? {}) as Record<string, any>).filter(([, v]) => typeof v === "string" || (v && typeof v === "object" && v.src && (v.type ?? "image") === "image")).map(([k]) => k);
+  const files = existsSync(join(dir, "assets")) ? readdirSync(join(dir, "assets")).filter((f) => /\.(png|jpe?g|webp|gif)$/i.test(f)).map((f) => `assets/${f}`) : [];
+  throw new SiniError(`'${ref}' isn't an image of this project.${ids.length ? ` Image assets: ${ids.join(", ")}.` : ""}${files.length ? ` Files: ${files.join(", ")}.` : ""}`);
+}
+
+export async function assetText(target: string, assetId: string): Promise<{ asset: string; file: string; width?: number; height?: number; lines: TextLine[] }> {
+  const { dir, src } = imageRef(target, assetId);
   const file = resolve(dir, src);
-  if (!existsSync(file)) throw new SiniError(`Asset file '${src}' not found.`);
   hashes.delete(file);
   const cached = join(dir, "out", ".cache", `text-${fileHash(file)}.json`);
   const size = imageSize(file) ?? undefined;
@@ -326,4 +343,27 @@ export async function assetText(target: string, assetId: string): Promise<{ asse
   mkdirSync(join(dir, "out", ".cache"), { recursive: true });
   writeFileSync(cached, `${JSON.stringify(lines)}\n`);
   return { asset: assetId, file: src, ...(size ?? {}), lines };
+}
+
+// ---------------------------------------------------------------- inspecting an image's layout
+
+/** Width / height from "9:16", "4:5", "1.91:1" or a number. */
+export function parseAspect(a: string | number | undefined): number | undefined {
+  if (typeof a === "number") return a > 0 ? a : undefined;
+  const m = /^\s*([\d.]+)\s*[:/x]\s*([\d.]+)\s*$/.exec(a ?? "");
+  return m && Number(m[2]) > 0 ? Number(m[1]) / Number(m[2]) : undefined;
+}
+
+/**
+ * Photos, graphics and text blocks in an image asset, with suggested crops for the video's shape (or `aspect`),
+ * and an annotated picture (coordinate grid, numbered boxes, dashed crops).
+ */
+export async function inspectAsset(target: string, assetId: string, opts: { aspect?: string | number } = {}) {
+  const { spec, dir } = imageRef(target, assetId);
+  const t = await assetText(target, assetId);
+  const format = (spec?.video as { format?: string; width?: number; height?: number } | undefined) ?? {};
+  const aspect = parseAspect(opts.aspect) ?? parseAspect(format.format) ?? (format.width && format.height ? format.width / format.height : undefined) ?? 9 / 16;
+  const { inspectImage } = await import("@sini/render");
+  const r = await inspectImage(resolve(dir, t.file), t.lines.map((l) => ({ box: l.box, text: l.text })), aspect);
+  return { asset: assetId, file: t.file, ...r };
 }

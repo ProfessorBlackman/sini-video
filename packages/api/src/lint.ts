@@ -10,6 +10,7 @@ import { contrast, over, parseCss, READING, SAFE_ZONES, TOP_LEVEL_TEXT_MARGIN, t
 import { fontFile, RenderSession, type LayoutReport, type RegionQuery } from "@sini/render";
 import { ENTER_PRESETS, EXIT_PRESETS, type Issue } from "@sini/schema";
 import { plan as loadPlan, type Loaded } from "./project.js";
+import { patchProject } from "./versions.js";
 import { resolveFonts } from "./fonts.js";
 import { assetText, findText, resolveTextHotspots, type TextLine } from "./ocr.js";
 
@@ -43,7 +44,7 @@ export async function lint(target: string, opts: { layout?: boolean } = {}): Pro
   await resolveFonts(target);
   const { plan, validation, loaded } = loadPlan(target);
   const issues: Issue[] = [...validation.issues.filter((i) => i.level === "warning"), ...plan.report];
-  issues.push(...timelineRules(plan));
+  issues.push(...timelineRules(plan, loaded.spec as never));
   issues.push(...deviceRules(plan));
   issues.push(...glyphRules(plan));
   const avoid = loaded.spec.lint?.avoid ?? [];
@@ -83,15 +84,29 @@ function walk(plan: CompiledPlan): { el: PlanElement; parents: PlanElement[] }[]
 
 // ---------------------------------------------------------------- timeline rules
 
-export function timelineRules(plan: CompiledPlan): Issue[] {
+export function timelineRules(plan: CompiledPlan, spec?: { scenes?: { id?: string; duration?: unknown }[]; video?: { targetDuration?: unknown } }): Issue[] {
   const issues: Issue[] = [];
+  const sceneOf = new Map(walk(plan).map(({ el }) => [el.ref, el.sceneId]));
   for (const r of plan.reading) {
     const need = READING.base + READING.perWord * r.words;
     const have = r.end - r.start;
     if (have + 0.05 < need) {
-      issues.push(warn(r.ref, "reading-time",
-        `'${r.ref}' is readable for ${r1(Math.max(0, have))}s but needs about ${r1(need)}s (${r.words} word${r.words === 1 ? "" : "s"}).`,
-        have <= 0 ? "It disappears before its entrance finishes; start it earlier or lengthen the scene." : `Lengthen the scene by ${r1(need - have)}s, start the text earlier, or use "duration": "auto".`));
+      const more = Math.ceil((need - have) * 10) / 10;
+      const fits = Math.max(1, Math.floor((have - READING.base) / READING.perWord));
+      // A fixed-length scene (with no target length to keep) can simply get longer.
+      const sid = sceneOf.get(r.ref);
+      const sc = spec?.scenes?.find((x) => x.id === sid);
+      const fix = typeof sc?.duration === "number" && spec?.video?.targetDuration === undefined && !r.ref.includes("/")
+        ? [{ op: "set" as const, path: `${sid}.duration`, value: Math.round((sc.duration + more) * 10) / 10 }]
+        : undefined;
+      issues.push({
+        ...warn(r.ref, "reading-time",
+          `'${r.ref}' is readable for ${r1(Math.max(0, have))}s but needs about ${r1(need)}s (${r.words} word${r.words === 1 ? "" : "s"}).`,
+          have <= 0
+            ? "It disappears before its entrance finishes; start it earlier or lengthen the scene."
+            : `${fits >= 2 && fits < r.words ? `Cut it to ${fits} words, or give` : "Give"} it ${r1(more)}s more (lengthen the scene, start the text earlier, or use "duration": "auto").`),
+        ...(fix ? { fix } : {}),
+      });
     }
   }
   for (const s of plan.scenes) {
@@ -545,7 +560,13 @@ export function layoutRules(plan: CompiledPlan, report: LayoutReport): Issue[] {
           b.y + b.height > H - margin ? `bottom (${r1(H - b.y - b.height)}px)` : "",
           b.x < margin ? `left (${r1(b.x)}px)` : "",
         ].filter(Boolean);
-        issues.push(warn(el.ref, "edge-margin", `'${el.ref}' is closer than ${Math.round(margin)}px to the ${sides.join(" and ")} edge of the frame.`, "Keep text and buttons at least 72px from the edges."));
+        const moves = [
+          b.y < margin ? `${Math.ceil(margin - b.y)}px down` : "",
+          b.x + b.width > W - margin ? `${Math.ceil(b.x + b.width - (W - margin))}px left (or make it narrower)` : "",
+          b.y + b.height > H - margin ? `${Math.ceil(b.y + b.height - (H - margin))}px up` : "",
+          b.x < margin ? `${Math.ceil(margin - b.x)}px right` : "",
+        ].filter(Boolean);
+        issues.push(warn(el.ref, "edge-margin", `'${el.ref}' is closer than ${Math.round(margin)}px to the ${sides.join(" and ")} edge of the frame.`, `Move it ${moves.join(" and ")}: text and buttons need ${Math.round(margin)}px from the edges.`));
       }
       if (plan.safeZone !== "none" && textual.has(el.type) && !off) {
         const hit = [b.y < zt && "top", b.y + b.height > H - zb && "bottom", b.x < zl && "left", b.x + b.width > W - zr && "right"].filter(Boolean);
@@ -603,9 +624,17 @@ export function layoutRules(plan: CompiledPlan, report: LayoutReport): Issue[] {
     if (!lb?.screenFontSize || !el.text || el.text.readingWords === 0) continue;
     const zoom = cameraZoom(el);
     const size = lb.screenFontSize * zoom;
-    if (size < 20 * k - 0.05) {
-      issues.push(warn(el.ref, "tiny-text", `'${el.ref}' is drawn at ${r1(size)}px on the canvas${zoom > 1 ? ` (at the camera's ${r1(zoom)}× zoom)` : ""}, too small to read on a phone.`,
-        el.inDevice ? "Raise its style.size (in-device sizes are scaled with the device), or make the device larger." : "Use a larger role or style.size (at least 20px on a 1080px canvas)."));
+    // Labels of a few words can be small; sentences need at least caption size to be read in passing.
+    const sentence = el.text.readingWords >= 4;
+    if (size < (sentence ? 26 : 20) * k - 0.05) {
+      // The style.size that draws it at a readable size: label-sized for a few words, caption-sized for sentences.
+      const target = (sentence ? 26 : 22) * k;
+      const value = Math.ceil((el.font?.size ?? lb.screenFontSize) * (target / size));
+      issues.push({
+        ...warn(el.ref, "tiny-text", `'${el.ref}' is drawn at ${r1(size)}px on the canvas${zoom > 1 ? ` (at the camera's ${r1(zoom)}× zoom)` : ""}, too small to read on a phone${sentence ? " (a sentence needs at least caption size)" : ""}.`,
+          `Set style.size to ${value} or more${el.inDevice ? " (in-device sizes are scaled with the device), or make the device larger" : ""}. Video type is much bigger than web type: on a 1080px-wide canvas body text is 40px and labels 22px.`),
+        ...(el.ref.includes("/") ? {} : { fix: [{ op: "set" as const, path: `${el.ref}.style.size`, value }] }),
+      });
     }
   }
 
@@ -677,4 +706,23 @@ export function layoutRules(plan: CompiledPlan, report: LayoutReport): Issue[] {
     }
   }
   return issues;
+}
+
+/** Every warning's mechanical fix, merged: when several set the same value (a scene's length), the largest wins. */
+export function mergedFixes(issues: Issue[]): { op: "set"; path: string; value: unknown }[] {
+  const byPath = new Map<string, { op: "set"; path: string; value: unknown }>();
+  for (const f of issues.flatMap((i) => i.fix ?? [])) {
+    const prev = byPath.get(f.path);
+    if (!prev || (typeof f.value === "number" && typeof prev.value === "number" && f.value > prev.value)) byPath.set(f.path, f);
+  }
+  return [...byPath.values()];
+}
+
+/** Lint, apply the mechanical fixes as one new version, and lint again. */
+export async function applyLintFixes(target: string, opts: { layout?: boolean } = {}): Promise<{ applied: { op: "set"; path: string; value: unknown }[]; version?: number; result: LintResult }> {
+  const before = await lint(target, opts);
+  const applied = mergedFixes(before.issues);
+  if (!applied.length) return { applied, result: before };
+  const r = patchProject(target, applied as never, `Lint fixes: ${applied.map((f) => f.path).join(", ")}`);
+  return { applied, version: r.version.version, result: await lint(target, opts) };
 }

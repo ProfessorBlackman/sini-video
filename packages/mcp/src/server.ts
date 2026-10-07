@@ -35,7 +35,7 @@ export const DESIGN_REVIEW =
   "Name the 3 biggest problems, fix them with update_video, and look again. Stop when you'd ship it.";
 
 const formatIssues = (issues: Issue[]) =>
-  issues.map((i) => `${i.level === "error" ? "✗" : "!"} ${i.path}: ${i.message}${i.suggestion ? ` ${i.suggestion}` : ""} [${i.code}]`).join("\n");
+  issues.map((i) => `${i.level === "error" ? "✗" : "!"} ${i.path}: ${i.message}${i.suggestion ? ` ${i.suggestion}` : ""} [${i.code}]${i.fix ? " (auto-fix)" : ""}`).join("\n");
 
 /** What a server reached over the internet adds: links to fetch outputs and to upload assets, and renders that outlive a tool call. */
 export interface Remote {
@@ -189,13 +189,26 @@ export function createServer(root = process.env.SINI_ROOT ?? process.cwd(), remo
 
   server.registerTool("lint_video", {
     title: "Find design problems",
-    description: "Reading time, edges and safe zones, overlapping text, overflow, contrast, missing glyphs, timing problems. Run after validate.",
-    inputSchema: { ...projectArg, layout: z.boolean().default(true).describe("Include checks that need the renderer") },
-    annotations: readOnly,
+    description: "Reading time, edges and safe zones, overlapping text, overflow, contrast, missing glyphs, timing problems. Run after validate. " +
+      "Warnings marked (auto-fix) have a mechanical fix (a text size, a scene length): `fix: true` applies them all as a new version and lints again.",
+    inputSchema: {
+      ...projectArg,
+      layout: z.boolean().default(true).describe("Include checks that need the renderer"),
+      fix: z.boolean().default(false).describe("Apply the (auto-fix) fixes as a new version, then lint again"),
+    },
   }, (a) => run(async () => {
-    const r = await api.lint(project(a.project), { layout: a.layout });
+    const dir = project(a.project);
+    let head = "";
+    let r: Awaited<ReturnType<typeof api.lint>>;
+    if (a.fix) {
+      const f = await api.applyLintFixes(dir, { layout: a.layout });
+      head = f.applied.length
+        ? `✓ Applied ${f.applied.length} fix${f.applied.length === 1 ? "" : "es"} as version ${f.version}: ${f.applied.map((x) => `${x.path} = ${JSON.stringify(x.value)}`).join(", ")}.\n\n`
+        : "No automatic fixes to apply.\n\n";
+      r = f.result;
+    } else r = await api.lint(dir, { layout: a.layout });
     const acc = r.accepted ? ` ${r.accepted} accepted in lint.accept.` : "";
-    return text(r.issues.length ? `${formatIssues(r.issues)}\n\n${r.issues.length} warning(s); video is ${r.duration.toFixed(2)}s.${acc}` : `✓ No problems found; video is ${r.duration.toFixed(2)}s.${acc}`);
+    return text(head + (r.issues.length ? `${formatIssues(r.issues)}\n\n${r.issues.length} warning(s); video is ${r.duration.toFixed(2)}s.${acc}` : `✓ No problems found; video is ${r.duration.toFixed(2)}s.${acc}`));
   })());
 
   server.registerTool("describe_at", {
@@ -235,6 +248,31 @@ export function createServer(root = process.env.SINI_ROOT ?? process.cwd(), remo
     if (!a.url === !a.data) throw new api.SiniError("Pass `url` or `data` (one of them).");
     const r = a.url ? await api.fetchAsset(dir, a.url, a.name) : api.saveAsset(dir, a.name ?? "", Buffer.from(a.data!, "base64"));
     return text(`✓ Saved ${r.path} (${r.kind}${r.size ? `, ${r.size.width}×${r.size.height} px` : ""}).`);
+  })());
+
+  server.registerTool("inspect_image", {
+    title: "See what's in a screenshot or image",
+    description: "Finds the photos, graphics (logos, icons) and text blocks in an image, with exact boxes in the image's own pixels, and for each photo " +
+      "a suggested `crop` for the video's shape (or `aspect`). Returns the image with a coordinate grid and numbered boxes (dashed: suggested crops). " +
+      "Use it before building from screenshots: take the photos out with `crop` and recompose them, instead of showing the web page. " +
+      "`asset` is an asset id or a file path in the project (assets/hero.png), so it works before the video exists.",
+    inputSchema: {
+      ...projectArg,
+      asset: z.string().describe("Image asset id, or its path in the project"),
+      aspect: z.string().optional().describe('Shape of the suggested crops, e.g. "9:16", "4:5", "1:1" (default: the video\'s format)'),
+    },
+    annotations: readOnly,
+  }, (a) => run(async () => {
+    const r = await api.inspectAsset(project(a.project), a.asset, a.aspect ? { aspect: a.aspect } : {});
+    const ratio = (x: number) => (Math.abs(x - 9 / 16) < 0.01 ? "9:16" : Math.abs(x - 16 / 9) < 0.01 ? "16:9" : Math.abs(x - 0.8) < 0.01 ? "4:5" : Math.abs(x - 1) < 0.01 ? "1:1" : x.toFixed(2));
+    const lines = r.regions.map((g) => `${g.n}  ${g.kind.padEnd(7)} [${g.box.join(", ")}]${g.crop ? `  ${ratio(r.aspect)} crop [${g.crop.join(", ")}]` : ""}${g.text ? `  "${g.text}"` : ""}`);
+    const photos = r.regions.filter((g) => g.kind === "photo").length;
+    return {
+      content: [
+        { type: "image", data: r.png.toString("base64"), mimeType: "image/png" },
+        { type: "text", text: `${r.file}: ${r.width}×${r.height} px; ${photos} photo${photos === 1 ? "" : "s"}, boxes in image pixels. Use a photo as { "type": "image", "asset": "…", "crop": [x, y, w, h] }; the suggested crop fills a ${ratio(r.aspect)} frame and centres the busiest part (a face, the product): adjust it if the subject is elsewhere.\n${lines.join("\n")}` },
+      ],
+    };
   })());
 
   server.registerTool("read_image_text", {
@@ -355,6 +393,31 @@ export function createServer(root = process.env.SINI_ROOT ?? process.cwd(), remo
     })());
   }
 
+  server.registerTool("list_projects", {
+    title: "List the projects",
+    description: "Every video project in the folder this server uses: name, number of versions, when it last changed, and rendered files.",
+    inputSchema: {},
+    annotations: readOnly,
+  }, () => run(() => {
+    const ps = api.listProjects(ROOT);
+    if (!ps.length) return text("No projects yet. Make one with create_video.");
+    return text(ps.map((p) => `${p.name}  (${p.versions} version${p.versions === 1 ? "" : "s"}, changed ${p.changed.replace("T", " ").slice(0, 16)}${p.outputs.length ? `, ${p.outputs.join(", ")}` : ""})`).join("\n"));
+  })());
+
+  server.registerTool("delete_project", {
+    title: "Delete a project",
+    description: "Permanently delete a project folder: its spec, every version, uploaded assets and rendered videos. Only when the human asks; " +
+      "repeat the project name in `confirm`.",
+    inputSchema: { project: z.string().describe("Project folder"), confirm: z.string().describe("The project name again, to confirm") },
+    annotations: { destructiveHint: true, openWorldHint: false },
+  }, (a) => run(() => {
+    if (a.confirm !== a.project) throw new api.SiniError("`confirm` must repeat the project name exactly.");
+    project(a.project);
+    api.deleteProject(ROOT, a.project);
+    jobs.delete(resolve(ROOT, a.project));
+    return text(`✓ Deleted ${a.project}.`);
+  })());
+
   server.registerTool("list_versions", { title: "Version history", inputSchema: projectArg, annotations: readOnly },
     (a) => run(() => json(api.listVersions(project(a.project))))());
 
@@ -380,8 +443,8 @@ export function createServer(root = process.env.SINI_ROOT ?? process.cwd(), remo
         text:
           `Make a video with Sini for this brief:\n\n${brief}\n\n` +
           `1. Read the DSL reference: get_reference, then get_reference with section "7" and "9".\n` +
-          `2. Write the spec and create_video in "${dir ?? "video"}". For screenshots, read_image_text gives every line of text with its box (for hotspots and crop). If the brief rules words out, list them in lint.avoid.\n` +
-          `3. validate_video and lint_video; fix everything with update_video patches.\n` +
+          `2. Write the spec and create_video in "${dir ?? "video"}". For screenshots or images, run inspect_image first: it finds the photos (with crops for the video's shape) and the text with exact boxes. If the brief rules words out, list them in lint.avoid.\n` +
+          `3. validate_video and lint_video; lint_video with fix: true applies the mechanical fixes (text sizes, scene lengths); fix the rest with update_video patches.\n` +
           `4. render_contact_sheet and run its design review: name the 3 biggest problems (brief, hierarchy, one idea per scene, space, readability, consistency, motion), fix them with update_video, and look again. Repeat until you'd ship it (usually 2–3 rounds).\n` +
           `5. render_video with draft: true; fix or accept (lint.accept, with a reason) any lint warnings it lists.\n` +
           `6. Report what you made, what you assumed or invented (also in notes), any lint warnings you accepted and why, what the client should supply (real photos, logo, copy), and the file path.`,

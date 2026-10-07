@@ -1,7 +1,8 @@
 import { createRequire } from "node:module";
 import { Command } from "commander";
-import { readFileSync } from "node:fs";
-import { assetText, contactSheet, describeWithLayout, initProject, inspect, layoutAt, lint, listVersions, patchProject, renderFrame, renderMp4, restoreVersion, SiniError, snapshot, type PatchOp } from "@sini/api";
+import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
+import { applyLintFixes, assetText, contactSheet, inspectAsset, listProjects, outDir, describeWithLayout, initProject, inspect, layoutAt, lint, listVersions, patchProject, renderFrame, renderMp4, restoreVersion, SiniError, snapshot, type PatchOp } from "@sini/api";
 import { formatIssue, runValidate } from "./validate-command.js";
 
 const require = createRequire(import.meta.url);
@@ -25,6 +26,14 @@ export function guard(fn: () => void | Promise<void>) {
     }
   };
 }
+
+/** The project folder for a path that is a folder or a spec file. */
+const projectRoot = (p: string) => {
+  const abs = resolve(p);
+  const dir = existsSync(abs) && statSync(abs).isDirectory() ? abs : dirname(abs);
+  mkdirSync(join(dir, "out"), { recursive: true });
+  return dir;
+};
 
 export function createProgram(): Command {
   const program = new Command()
@@ -112,9 +121,15 @@ export function createProgram(): Command {
     .argument("[project]", "project folder or spec file", ".")
     .option("--json", "machine-readable output")
     .option("--no-layout", "skip checks that need the renderer (faster)")
-    .action((project: string, opts: { json?: boolean; layout?: boolean }) =>
+    .option("--fix", "apply the automatic fixes (marked auto-fix) as a new version, then lint again")
+    .action((project: string, opts: { json?: boolean; layout?: boolean; fix?: boolean }) =>
       guard(async () => {
-        const r = await lint(project, { layout: opts.layout !== false });
+        let r: Awaited<ReturnType<typeof lint>>;
+        if (opts.fix) {
+          const f = await applyLintFixes(project, { layout: opts.layout !== false });
+          if (!opts.json) console.log(f.applied.length ? `✓ Applied ${f.applied.length} fix(es) as version ${f.version}: ${f.applied.map((x) => `${x.path} = ${JSON.stringify(x.value)}`).join(", ")}\n` : "No automatic fixes to apply.\n");
+          r = f.result;
+        } else r = await lint(project, { layout: opts.layout !== false });
         if (opts.json) return void console.log(JSON.stringify(r, null, 2));
         for (const i of r.issues) console.log(formatIssue(i));
         const n = r.issues.length;
@@ -157,6 +172,37 @@ export function createProgram(): Command {
           const anim = e.animating.length ? `  ⟳ ${e.animating.join(", ")}` : "";
           console.log(`  ${e.ref} [${e.type}] ${state}${e.text ? ` "${e.text}"` : ""}${anim}`);
         }
+      })(),
+    );
+
+  program
+    .command("regions")
+    .description("Find the photos, graphics and text blocks in an image, with suggested crops; writes an annotated PNG")
+    .argument("<asset>", "image asset id, or its path in the project")
+    .argument("[project]", "project folder", ".")
+    .option("--aspect <ratio>", "shape of the suggested crops, e.g. 9:16 (default: the video's format)")
+    .option("--json", "machine-readable output")
+    .action((asset: string, project: string, opts: { aspect?: string; json?: boolean }) =>
+      guard(async () => {
+        const r = await inspectAsset(project, asset, opts.aspect ? { aspect: opts.aspect } : {});
+        const { png, ...rest } = r;
+        const file = join(outDir(projectRoot(project)), `regions-${asset.replace(/\.\w+$/, "").replace(/[^\w-]+/g, "_")}.png`);
+        writeFileSync(file, png);
+        if (opts.json) return void console.log(JSON.stringify({ ...rest, annotated: file }, null, 2));
+        console.log(`${r.file}: ${r.width}×${r.height} px  (annotated: ${file})`);
+        for (const g of r.regions) console.log(`  ${g.n}  ${g.kind.padEnd(7)} [${g.box.join(", ")}]${g.crop ? `  crop [${g.crop.join(", ")}]` : ""}${g.text ? `  "${g.text}"` : ""}`);
+      })(),
+    );
+
+  program
+    .command("projects")
+    .description("List the video projects in a folder")
+    .argument("[root]", "folder", ".")
+    .action((root: string) =>
+      guard(() => {
+        const ps = listProjects(root);
+        if (!ps.length) return void console.log("No projects here.");
+        for (const p of ps) console.log(`${p.name}  (${p.versions} versions, changed ${p.changed.slice(0, 16).replace("T", " ")}${p.outputs.length ? `, ${p.outputs.join(", ")}` : ""})`);
       })(),
     );
 

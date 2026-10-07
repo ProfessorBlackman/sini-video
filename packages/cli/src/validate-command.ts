@@ -10,7 +10,7 @@ export function specPath(target: string): string {
 
 export function formatIssue(i: Issue): string {
   const tag = i.level === "error" ? "✗" : "!";
-  return `${tag} ${i.path}: ${i.message}${i.suggestion ? `  ${i.suggestion}` : ""}  [${i.code}]`;
+  return `${tag} ${i.path}: ${i.message}${i.suggestion ? `  ${i.suggestion}` : ""}  [${i.code}]${i.fix ? " (auto-fix)" : ""}`;
 }
 
 export function runValidate(target: string, opts: { json?: boolean }): number {

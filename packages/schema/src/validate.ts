@@ -21,6 +21,8 @@ export interface Issue {
   code: string;
   message: string;
   suggestion?: string;
+  /** Patch operations that fix it mechanically (lint applies them with `fix`). */
+  fix?: { op: "set"; path: string; value: unknown }[];
 }
 
 export interface ValidationResult {

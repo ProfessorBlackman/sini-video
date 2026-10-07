@@ -1,11 +1,12 @@
 export { SiniError, load, check, plan, specFile, compileSpec, assetPathIssues, iconIssues, validateFull, validateSpec, type Loaded } from "./project.js";
 export { describe, describeWithLayout, coveredAt, inspect, type Inspection } from "./describe.js";
 export { renderFrame, layoutAt, outDir, renderMp4, contactSheet } from "./render.js";
-export { lint, timelineRules, glyphRules, layoutRules, type LintResult } from "./lint.js";
+export { lint, timelineRules, glyphRules, layoutRules, mergedFixes, applyLintFixes, type LintResult } from "./lint.js";
 export {
   initProject, snapshot, replaceSpec, restoreVersion, readVersion, listVersions, saveVersion, applyOps, patchProject, projectDir,
   type PatchOp, type VersionInfo,
 } from "./versions.js";
-export { resolveTextHotspots, cachedTextHotspots, findText, assetText, toLines, imageSize, type TextLine } from "./ocr.js";
+export { resolveTextHotspots, cachedTextHotspots, findText, assetText, toLines, imageSize, inspectAsset, parseAspect, type TextLine } from "./ocr.js";
 export { resolveFonts, cachedFontFaces, parseMetadata, fontKind } from "./fonts.js";
 export { assetKind, cleanName, saveAsset, fetchAsset } from "./assets.js";
+export { listProjects, deleteProject, type ProjectInfo } from "./projects.js";

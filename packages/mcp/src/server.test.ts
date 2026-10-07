@@ -65,7 +65,7 @@ describe("MCP server", () => {
 describe("reference in sections", () => {
   it("returns the essentials with an index, then sections on request", async () => {
     const first = textOf(await call("get_reference"));
-    expect(Buffer.byteLength(first)).toBeLessThan(25_000);
+    expect(Buffer.byteLength(first)).toBeLessThan(27_000);
     expect(first).toContain("## 10. Transitions");
     expect(first).toContain("**7. Elements**");
     expect(first).not.toContain("### 7.3 Element types");
@@ -93,4 +93,14 @@ describe("design review", () => {
     const p = await client.getPrompt({ name: "create-video", arguments: { brief: "A 10s reel" } });
     expect(JSON.stringify(p.messages)).toContain("design review");
   }, 120_000);
+});
+
+describe("projects over MCP", () => {
+  it("lists projects and deletes one only with a matching confirm", async () => {
+    expect(textOf(await call("list_projects"))).toContain("novae");
+    await call("create_video", { project: "scratch" });
+    expect((await call("delete_project", { project: "scratch", confirm: "nope" })).isError).toBe(true);
+    expect(textOf(await call("delete_project", { project: "scratch", confirm: "scratch" }))).toContain("Deleted");
+    expect(textOf(await call("list_projects"))).not.toContain("scratch");
+  });
 });

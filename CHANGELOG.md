@@ -6,6 +6,19 @@ Images: `ghcr.io/professorblackman/sini:<version>` for linux/amd64 and linux/arm
 
 ## [Unreleased]
 
+From the first ChatGPT test over the web (a fashion promo made from website screenshots).
+
+### Added
+- **`inspect_image`** (MCP) and `sini regions`: finds the photos, graphics and text blocks in a screenshot, with exact boxes and, for each photo, a crop for the video's shape centred on its busiest part; returns the image annotated with a coordinate grid and numbered boxes. Splits rows of product cards into one photo each. No model involved.
+- `read_image_text` and `inspect_image` accept a file path (`assets/hero.png`), so uploads can be inspected before the video exists.
+- **Lint fixes**: warnings say exactly what to do ("Set style.size to 28 or more", "Cut it to 3 words, or give it 1.4s more", "Move it 12px right"), and mechanical ones carry a patch: `lint_video` with `fix: true` (or `sini lint --fix`) applies them as one new version.
+- `list_projects` and `delete_project` (MCP), `sini projects`.
+- Reference: a recipe for promos made from a website or its screenshots, and a warning not to copy web type sizes.
+
+### Changed
+- `tiny-text` also flags sentences (4+ words) drawn under caption size (26px on a 1080px canvas).
+- The default `get_reference` answer may be up to 27KB (it was 25KB).
+
 ## [0.1.10] - 2026-10-07
 
 Use Sini from Claude on the web, ChatGPT and other chat apps, on your own server.

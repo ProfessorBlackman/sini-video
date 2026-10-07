@@ -4,3 +4,4 @@ export { fontFile, fontFaceCss, BUNDLED } from "./fonts.js";
 export { renderSheet, sheetTimes, type SheetOptions } from "./sheet.js";
 export { iconNames, iconMarkup, planIcons } from "./icons.js";
 export { sanitizeSvg, planSvgs } from "./svg.js";
+export { inspectImage, type ImageInspection, type ImageRegion, type RegionKind } from "./inspect.js";

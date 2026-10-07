@@ -557,3 +557,38 @@ describe("svg and template", () => {
     }
   }, 60_000);
 });
+
+describe("inspecting an image", () => {
+  it("finds photos split by a gutter, ignores flat UI, and suggests crops of the asked shape", async () => {
+    const { mkdtempSync, rmSync, writeFileSync } = await import("node:fs");
+    const { tmpdir } = await import("node:os");
+    const { join } = await import("node:path");
+    const { inspectImage } = await import("./index.js");
+    // A "web page": flat background, a flat button, and two noisy photos 24px apart.
+    const page = await browser.newPage({ viewport: { width: 1200, height: 700 } });
+    await page.setContent(`<body style="margin:0;background:#f5f2ec"><canvas id=c width=1200 height=700></canvas><script>
+      const g = c.getContext("2d"); g.fillStyle = "#f5f2ec"; g.fillRect(0, 0, 1200, 700);
+      g.fillStyle = "#141414"; g.fillRect(60, 60, 200, 50);
+      let s = 7; const r = () => (s = (s * 16807) % 2147483647) / 2147483647;
+      for (const [x0, y0, w, h] of [[400, 100, 300, 500], [724, 100, 300, 500]])
+        for (let y = y0; y < y0 + h; y += 2) for (let x = x0; x < x0 + w; x += 2) { const v = 120 + r() * 60; g.fillStyle = "rgb(" + (v | 0) + "," + ((v * 0.8) | 0) + "," + ((v * 0.7) | 0) + ")"; g.fillRect(x, y, 2, 2); }
+    </script></body>`);
+    const dir = mkdtempSync(join(tmpdir(), "sini-inspect-"));
+    const file = join(dir, "page.png");
+    writeFileSync(file, await page.locator("#c").screenshot());
+    await page.close();
+    try {
+      const r = await inspectImage(file, [], 9 / 16);
+      const photos = r.regions.filter((g) => g.kind === "photo");
+      expect(photos.map((p) => p.box)).toEqual([[400, 100, 300, 500], [724, 100, 300, 500]]);
+      for (const p of photos) {
+        const [x, y, w, h] = p.crop!;
+        expect(Math.abs(w / h - 9 / 16)).toBeLessThan(0.01);
+        expect(x >= p.box[0] && y >= p.box[1] && x + w <= p.box[0] + p.box[2] && y + h <= p.box[1] + p.box[3]).toBe(true);
+      }
+      expect(r.png.length).toBeGreaterThan(1000);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }, 60_000);
+});
