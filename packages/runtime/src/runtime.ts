@@ -1527,13 +1527,24 @@ function setDash(n: Node, drawn: number) {
 }
 
 /** A window onto one screenshot region: outlined, with the rest of the screenshot dimmed by its shadow. */
+/** Where a spotlight is drawn: the device screen showing the screenshot, or the image's own frame. */
+function spotHost(n: Node): HTMLElement | undefined {
+  if (n.screen) return n.screen;
+  for (let e = n.outer.parentElement; e && e !== stage; e = e.parentElement) {
+    const d = e.dataset.ref ? nodes.get(e.dataset.ref) : undefined;
+    if (d?.screen && d.screen.contains(n.outer)) return d.screen;
+  }
+  return n.box as HTMLElement | undefined;
+}
+
 function applySpot(n: Node, s: ElementFrame["spot"]) {
   if (!s) {
     if (n.spot) n.spot.style.display = "none";
     return;
   }
-  // Inside the device screen or the image frame, so it scrolls, zooms and clips with the screenshot.
-  const host = (n.screen ?? n.box) as HTMLElement | undefined;
+  // Inside the device screen (also for a screenshot image placed in one, so everything else on that screen
+  // dims with it: patches, other crops) or else the image frame; it zooms and clips with the screenshot.
+  const host = spotHost(n);
   const a = spotRect(n, s.from);
   const b = spotRect(n, s.to);
   if (!host || !a || !b) return;

@@ -819,7 +819,7 @@ Exact timings by `pace` (default `normal`):
 ```
 
 - Each target is highlighted for `interval` seconds. Scaled items overlap their neighbours; layout doesn't reflow.
-- A target can be a screenshot region (`"app#export"`): a spotlight outlines it in `ring` (a colour, default white) and darkens the rest of the screenshot, gliding from region to region. `dim` is how much of the rest stays visible, as for elements: `1` = no darkening, `0` = darkest. It stays inside the image or device, so it scrolls and zooms with it. Elements and regions can be mixed in one cycle.
+- A target can be a screenshot region (`"app#export"`): a spotlight outlines it in `ring` (a colour, default white) and darkens the rest of the screenshot, gliding from region to region. `dim` is how much of the rest stays visible, as for elements: `1` = no darkening, `0` = darkest. It darkens the whole device screen (or the image, outside devices), including shapes drawn over the screenshot, and scrolls and zooms with it. Elements and regions can be mixed in one cycle.
 - After the last item, everything returns to normal over 0.3s. End: `at + interval × count`.
 
 ### 9.5 States
@@ -902,7 +902,7 @@ Treat lint warnings as problems to fix. Accept one, with the reason, only when i
 
 `element` is optional (without it, every warning with that code is accepted) and covers elements inside it. Errors can't be accepted. Don't delete content or lower `targetDuration` to silence a warning: fix the design. Accepted warnings and reasons are shown to the human with every render.
 
-When the brief rules words out, list them: `"lint": { "avoid": ["safe", "verified safe"] }`. Lint checks copy and on-screen screenshots (OCR); these can't be accepted.
+When the brief rules words out, list them: `"lint": { "avoid": ["safe", "verified safe"] }`. Lint checks copy and on-screen screenshots (OCR); no accepting these.
 
 Use the tools instead of estimating:
 - `validate`: schema and reference errors.
@@ -926,14 +926,12 @@ Lint checks include:
 - an app flow that puts a new phone or browser in each scene (use one device with `screens`), and device screens that are mostly empty
 - text that grows wider than the frame or runs past its edge while animating (sampled every 0.5s; enters, exits, scene transitions and camera zooms are expected to move things off screen)
 - low text contrast, and text over a picture (image, screenshot, SVG, path), where contrast can't be measured
-- too little reading time (`0.5s + 0.3s × words`, not counting time under a transition)
-- element never visible
-- broken time reference
-- missing glyph in the chosen font
-- missing asset (placeholder used)
-- low motion: a scene longer than 6s with nothing animating
+- too little reading time (`0.5s + 0.3s × words`, not counting transitions)
+- element never visible; broken time reference
+- missing glyph in the chosen font; missing asset (placeholder used)
+- low motion: a scene over 6s with nothing animating
 - a word from `lint.avoid` in the copy, or on screen in a screenshot (`avoided-word`)
-- a spotlit region, or the camera's zoom target, cut off by the frame or its device screen (`spotlight-cut`, `camera-target-cut`)
+- zooms cutting off a spotlit region or the target (`spotlight-cut`, `camera-target-cut`), or pushing an element into text (`overlap-in-motion`)
 
 ---
 

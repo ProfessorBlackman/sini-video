@@ -8,8 +8,12 @@ Images: `ghcr.io/professorblackman/sini:<version>` for linux/amd64 and linux/arm
 
 Fixes from the 0.1.8 MedVerify re-test ([findings](docs/paper-tests/v0.7-real-assets/FINDINGS.md#4-re-test-on-018-m1b-m2b-m2hb)).
 
+### Added
+- **`overlap-in-motion` lint**: an element carried by a camera zoom runs into text outside the zoom (a phone pushed under a caption), though they're apart at rest.
+
 ### Changed
-- `avoided-word` can't be accepted in `lint.accept`: reword, crop, keep the word off screen, or cover it.
+- `avoided-word` can't be accepted: an accept entry for it is ignored (with a validation warning). Reword, crop, keep the word off screen, or cover it.
+- A spotlight on a screenshot inside a phone or browser darkens the whole device screen, so shapes drawn over the screenshot and other crops of it dim too (they stayed bright, or the crop showed as a grey stripe).
 
 ### Fixed
 - Colour, bold and italic markup in a state's `content` rendered its brackets and asterisks literally.

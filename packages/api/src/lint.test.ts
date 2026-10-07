@@ -239,7 +239,8 @@ describe("words to avoid", () => {
     expect(base({}, { crop: [0, 270, 390, 790] }).ok).toBe(true);
     expect(base({}, { crop: [0, 270, 0, 790] }).issues.map((i) => i.code)).toContain("bad-crop");
     // A ruled-out word has to be fixed, not accepted.
-    expect(base({ lint: { avoid: ["safe"], accept: [{ code: "avoided-word", reason: "not emphasised" }] } }).ok).toBe(false);
+    const acc = base({ lint: { avoid: ["safe"], accept: [{ code: "avoided-word", reason: "not emphasised" }] } });
+    expect(acc.issues).toEqual([expect.objectContaining({ level: "warning", path: "lint.accept[0].code" })]);
   });
 });
 
@@ -254,5 +255,34 @@ describe("state text with markup", () => {
       expect.objectContaining({ text: "registered", color: "rgb(23, 145, 90)" }),
       expect.objectContaining({ text: "FDA", bold: true }),
     ]));
+  });
+});
+
+describe("overlap while the camera zooms", () => {
+  it("flags a zoomed element running into text outside the zoom, not things zoomed together", async () => {
+    const { motionRules } = await import("./lint.js");
+    const plan = make([{ id: "s", duration: 2, elements: [
+      { id: "cap", type: "text", content: "On the register", enter: "none", layout: { x: 100, y: 100 } },
+      { id: "stage", type: "group", layout: { x: 0, y: 400, width: 1080, height: 1400 }, children: [
+        { id: "phone", type: "shape", shape: "rect", style: { fill: "#ffffff" }, layout: { x: 240, y: 0, width: 600, height: 1200 }, enter: "none" },
+        { id: "label", type: "text", content: "Inside", enter: "none", layout: { x: 300, y: 50 } },
+      ] },
+    ], timeline: [{ target: "stage", behavior: "camera", keys: [{ at: 0, focus: "center", zoom: 1 }, { at: 1, focus: "phone", zoom: 1.6 }] }] }]);
+    const box = (x: number, y: number, width: number, height: number) => ({ x, y, width, height });
+    const report = (t: number) => {
+      const zoomed = t > 1;
+      return {
+        time: t, width: 1080, height: 1920,
+        elements: [
+          { ref: "cap", type: "text", scene: "s", box: box(100, 100, 500, 80), current: box(100, 100, 500, 80), visible: true },
+          { ref: "stage", type: "group", scene: "s", box: box(0, 400, 1080, 1400), current: box(0, 400, 1080, 1400), visible: true },
+          { ref: "phone", type: "shape", scene: "s", box: box(240, 400, 600, 1200), current: zoomed ? box(60, 50, 960, 1900) : box(240, 400, 600, 1200), visible: true },
+          { ref: "label", type: "text", scene: "s", box: box(300, 450, 200, 60), current: zoomed ? box(160, 130, 320, 96) : box(300, 450, 200, 60), visible: true },
+        ],
+      };
+    };
+    const session = { layout: async (t: number) => report(t) as never, layouts: async (ts: number[]) => ts.map(report) as never };
+    const issues = (await motionRules(plan, session)).filter((i) => i.code === "overlap-in-motion");
+    expect(issues.map((i) => i.path)).toEqual(["cap"]);
   });
 });

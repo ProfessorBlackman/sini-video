@@ -60,6 +60,6 @@ Found and fixed after the re-test:
 - The reference said a spotlight "darkens by `dim`"; `dim` is how much stays visible (`1` = none), as for elements (M1b set `dim: 0` expecting no darkening).
 
 Still open:
-- A spotlight doesn't dim shapes drawn over the screenshot (M1b's patch stayed bright).
-- No lint for an element moving under another during a camera zoom (M2b's phone went under the caption).
+- ~~A spotlight doesn't dim shapes drawn over the screenshot (M1b's patch stayed bright).~~ **Done:** a spotlight on a screenshot in a device darkens the whole device screen.
+- ~~No lint for an element moving under another during a camera zoom (M2b's phone went under the caption).~~ **Done:** `overlap-in-motion` (flags M2b's v3 and v4, passes the fixed versions and the perfume video's zoomed bottle).
 - Haiku still treats warnings as negotiable and runs long; the default model is the one to use for client work.

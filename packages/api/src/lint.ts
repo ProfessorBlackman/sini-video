@@ -25,7 +25,8 @@ export interface LintResult {
 
 /** Drop warnings the spec accepts: same code, and the same element (or one inside it) when one is named. */
 export function applyAccepted(issues: Issue[], accept: { code: string; element?: string }[] = []): { open: Issue[]; accepted: number } {
-  const hit = (i: Issue) => i.level === "warning" && accept.some((a) => a.code === i.code && (!a.element || i.path === a.element || i.path.startsWith(`${a.element}/`)));
+  // Words the brief rules out are never accepted: they have to be fixed.
+  const hit = (i: Issue) => i.level === "warning" && i.code !== "avoided-word" && accept.some((a) => a.code === i.code && (!a.element || i.path === a.element || i.path.startsWith(`${a.element}/`)));
   const open = issues.filter((i) => !hit(i));
   return { open, accepted: issues.length - open.length };
 }
@@ -61,7 +62,7 @@ export async function lint(target: string, opts: { layout?: boolean } = {}): Pro
   const accept = loaded.spec.lint?.accept ?? [];
   const { open, accepted } = applyAccepted(issues, accept);
   const acceptedNotes = accept
-    .filter((a) => issues.some((i) => i.code === a.code && (!a.element || i.path === a.element || i.path.startsWith(`${a.element}/`))))
+    .filter((a) => a.code !== "avoided-word" && issues.some((i) => i.code === a.code && (!a.element || i.path === a.element || i.path.startsWith(`${a.element}/`))))
     .map((a) => `${a.code}${a.element ? ` on '${a.element}'` : ""}: ${a.reason}`);
   return { ok: !open.some((i) => i.level === "error"), issues: open, duration: plan.duration, accepted, acceptedNotes };
 }
@@ -238,6 +239,42 @@ export async function motionRules(plan: CompiledPlan, session: { layout(t: numbe
   for (let t = 0.25; t < plan.duration; t += 0.5) times.push(t);
   // All samples in one page call when the session can (much faster for heavy scenes).
   const reports = session.layouts ? await session.layouts(times) : await Promise.all(times.map((t) => session.layout(t)));
+  // Text and a solid element that are apart at rest but overlap while a camera zoom carries the element and
+  // not the text (a phone pushed under a caption): pairs and the sample times they overlap.
+  const solidTypes = new Set(["image", "phone", "browser", "chart", "toast", "button", "badge", "svg"]);
+  const isSolid = (el: PlanElement) => solidTypes.has(el.type) || (["shape", "path", "group", "stack", "grid"].includes(el.type) && !!el.style.fill && el.style.fill !== "rgba(0, 0, 0, 0)");
+  const related = (a: string, b: string) => !!entries.get(a)?.parents.some((p) => p.ref === b) || !!entries.get(b)?.parents.some((p) => p.ref === a);
+  const meets = (a: Box, b: Box) => intersect(a, b);
+  const movedOver = new Map<string, number[]>();
+  for (const r of reports) {
+    const t = r.time;
+    const shown = r.elements.filter((b) => b.visible && !b.inDevice);
+    for (const a of shown) {
+      const ea = entries.get(a.ref);
+      if (!ea || ea.el.type !== "text" || onOff(a.ref, t) || inTransition(ea.el.sceneId, t)) continue;
+      const ink = a.ink ?? a.current;
+      const area = ink.width * ink.height;
+      if (!area) continue;
+      for (const b of shown) {
+        const eb = entries.get(b.ref);
+        if (!eb || eb.el.sceneId !== ea.el.sceneId || !isSolid(eb.el) || related(a.ref, b.ref) || onOff(b.ref, t)) continue;
+        // See-through things (reflections, glows) don't hide text.
+        if ([eb.el, ...eb.parents].reduce((o, x) => o * (x.style.opacity ?? 1), 1) < 0.6) continue;
+        // Only a camera zoom that carries the element but not the text: things zoomed together keep their spacing.
+        const zoomedB = [...cameraGroups].filter((g) => b.ref === g || eb.parents.some((p) => p.ref === g));
+        if (!zoomedB.length || zoomedB.some((g) => ea.parents.some((p) => p.ref === g))) continue;
+        // Apart where the layout puts them.
+        if (meets(a.box, b.box) > 0) continue;
+        if (meets(ink, b.current) / area > 0.15) movedOver.set(`${a.ref}|${b.ref}`, [...(movedOver.get(`${a.ref}|${b.ref}`) ?? []), t]);
+      }
+    }
+  }
+  for (const [pair, ts] of movedOver) {
+    const [a, b] = pair.split("|") as [string, string];
+    if (found.has(a)) continue;
+    found.set(a, warn(a, "overlap-in-motion", `'${b}' runs into '${a}' as the camera zooms at ${spans(ts, 0.5)}; they're apart at rest.`,
+      "Zoom less, move the focus away from the text, or keep the text clear of where the element travels (or move the text out with an exit first)."));
+  }
   for (const r of reports) {
     const t = r.time;
     // Mostly empty device screens: content reaching less than 40% of the way down.
